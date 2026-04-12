@@ -1,0 +1,27 @@
+实现调起手机拨号盘 (App-to-Phone)
+如果你只是想实现点击按钮，跳转到手机系统自带的拨号界面（例如“联系客服”功能），这非常简单，不需要集成任何复杂的SDK。
+
+只需一行代码：在页面的JS文件中，调用微信小程序的 wx.makePhoneCall API。
+
+代码示例：
+
+javascript
+// 在页面的 .js 文件中
+Page({
+  // 定义一个打电话的方法
+  callPhone() {
+    wx.makePhoneCall({
+      phoneNumber: '400-123-4567', // 替换成你想拨打的电话号码
+      success: () => {
+        console.log('调起拨号盘成功');
+      },
+      fail: (err) => {
+        console.error('调起拨号盘失败', err);
+      }
+    });
+  }
+})
+html
+<!-- 在页面的 .wxml 文件中，添加一个按钮并绑定方法 -->
+<button type="primary" bindtap="callPhone">联系客服</button>
+用户点击按钮后，手机会自动弹出一个对话框，显示“即将拨打电话：400-123-4567”，用户确认后就会跳转到系统拨号界面。

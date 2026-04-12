@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "navigation-bar": "/components/navigation-bar/navigation-bar",
+    "guard-bottom-nav": "/components/guard-bottom-nav/guard-bottom-nav"
+  }
+}

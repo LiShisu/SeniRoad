@@ -1,0 +1,13 @@
+<!--elder/pages/contact/contact.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="back-button" bindtap="goBack">
+      <text>←</text>
+    </view>
+    <view class="page-title">联系家属</view>
+  </view>
+  <view class="content">
+    <view class="title">联系家属功能开发中</view>
+    <view class="description">敬请期待</view>
+  </view>
+</view>

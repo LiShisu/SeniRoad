@@ -1,0 +1,59 @@
+<view class="container">
+  <!-- 顶部状态栏 -->
+  <view class="header">
+    <text class="app-name">颐路安</text>
+    <text class="subtitle">您的智能出行助手</text>
+    <text class="time">{{currentTime}}</text> <!-- 实时更新时间 -->
+  </view>
+
+  <!-- 语音输入核心区域 -->
+  <view class="voice-section">
+    <text class="prompt">请说出您要去的地方</text>
+    <text class="example">比如 "去公园" "家旁边的菜市场"</text>
+    
+    <!-- 按住说话按钮 -->
+    <view 
+      class="mic-btn" 
+      bindtouchstart="startRecord" 
+      bindtouchend="stopRecord">
+      按住说话
+    </view>
+    
+    <!-- 或者输入框（可选） -->
+    <input class="input" placeholder="点击输入目的地" bindconfirm="onSearch" />
+  </view>
+
+  <!-- 常用地点 -->
+  <view class="frequent-places">
+    <text class="section-title">常用地点</text>
+    <view class="places-grid">
+      <view class="place-item" bindtap="goToHome">
+        <image src="../../images/home.png" class="place-icon"></image>
+        <text class="place-name">家</text>
+      </view>
+      <view class="place-item" bindtap="goToHospital">
+        <image src="../../images/hospital.png" class="place-icon"></image>
+        <text class="place-name">医院</text>
+      </view>
+      <view class="place-item" bindtap="goToMarket">
+        <image src="../../images/market.png" class="place-icon"></image>
+        <text class="place-name">菜市场</text>
+      </view>
+      <view class="place-item" bindtap="goToPark">
+        <image src="../../images/park.png" class="place-icon"></image>
+        <text class="place-name">公园</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 紧急求助 -->
+  <view class="emergency-section">
+    <text class="section-title">紧急求助</text>
+    <view class="emergency-btn" bindtap="callEmergency">
+      <image src="../../images/emergency.png" class="emergency-icon"></image>
+      <text class="emergency-text">一键求助</text>
+    </view>
+  </view>
+
+
+</view>

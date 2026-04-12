@@ -1,0 +1,92 @@
+from sqlalchemy.orm import Session
+from app.models.voice_log import VoiceLog
+from app.schemas.voice_log import VoiceLogCreate, VoiceLogUpdate, VoiceLogResponse
+from app.repositories.voice_log_repository import VoiceLogRepository
+from typing import List, Optional
+from datetime import datetime, timedelta
+
+class VoiceLogService:
+    def __init__(self, db: Session):
+        self.voice_log_repo = VoiceLogRepository(db)
+    
+    def get_log_by_id(self, log_id: int) -> Optional[VoiceLogResponse]:
+        """根据ID获取语音日志"""
+        log = self.voice_log_repo.get_by_id(log_id)
+        if log:
+            return VoiceLogResponse.model_validate(log)
+        return None
+    
+    def get_logs_by_user_id(self, user_id: int, limit: int = 100) -> List[VoiceLogResponse]:
+        """根据用户ID获取语音日志列表"""
+        logs = self.voice_log_repo.get_by_user_id(user_id, limit)
+        return [VoiceLogResponse.model_validate(log) for log in logs]
+    
+    def get_logs_by_device_id(self, device_id: int, limit: int = 100) -> List[VoiceLogResponse]:
+        """根据设备ID获取语音日志列表"""
+        logs = self.voice_log_repo.get_by_device_id(device_id, limit)
+        return [VoiceLogResponse.model_validate(log) for log in logs]
+    
+    def get_logs_by_time_range(self, user_id: int, start_time: datetime, end_time: datetime) -> List[VoiceLogResponse]:
+        """根据时间范围获取语音日志"""
+        logs = self.voice_log_repo.get_by_time_range(user_id, start_time, end_time)
+        return [VoiceLogResponse.model_validate(log) for log in logs]
+    
+    def create_log(self, log_data: VoiceLogCreate) -> VoiceLogResponse:
+        """创建语音日志"""
+        # 创建语音日志实例
+        log = VoiceLog(
+            user_id=log_data.user_id,
+            device_id=log_data.device_id,
+            audio_url=log_data.audio_url,
+            asr_text=log_data.asr_text,
+            intent_json=log_data.intent_json,
+            response_text=log_data.response_text,
+            log_time=log_data.log_time
+        )
+        
+        # 保存日志
+        created_log = self.voice_log_repo.create(log)
+        return VoiceLogResponse.model_validate(created_log)
+    
+    def update_log(self, log_id: int, log_data: VoiceLogUpdate) -> Optional[VoiceLogResponse]:
+        """更新语音日志"""
+        log = self.voice_log_repo.get_by_id(log_id)
+        if not log:
+            return None
+        
+        # 更新日志字段
+        if log_data.device_id is not None:
+            log.device_id = log_data.device_id
+        if log_data.audio_url is not None:
+            log.audio_url = log_data.audio_url
+        if log_data.asr_text is not None:
+            log.asr_text = log_data.asr_text
+        if log_data.intent_json is not None:
+            log.intent_json = log_data.intent_json
+        if log_data.response_text is not None:
+            log.response_text = log_data.response_text
+        
+        # 保存更新
+        updated_log = self.voice_log_repo.update(log)
+        return VoiceLogResponse.model_validate(updated_log)
+    
+    def delete_log(self, log_id: int) -> bool:
+        """删除语音日志"""
+        log = self.voice_log_repo.get_by_id(log_id)
+        if not log:
+            return False
+        
+        self.voice_log_repo.delete(log)
+        return True
+    
+    def delete_old_logs(self, user_id: int, days: int = 30) -> int:
+        """删除指定天数之前的语音日志"""
+        before_date = datetime.now() - timedelta(days=days)
+        return self.voice_log_repo.delete_old_logs(user_id, before_date)
+    
+    def get_recent_logs(self, user_id: int, hours: int = 24) -> List[VoiceLogResponse]:
+        """获取最近几小时的语音日志"""
+        start_time = datetime.now() - timedelta(hours=hours)
+        end_time = datetime.now()
+        logs = self.voice_log_repo.get_by_time_range(user_id, start_time, end_time)
+        return [VoiceLogResponse.model_validate(log) for log in logs]

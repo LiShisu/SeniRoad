@@ -1,0 +1,10 @@
+<view class="bottom-nav">
+  <navigator open-type="redirect" url="/elder/pages/index/index" class="nav-item {{activeItem === 'home' ? 'active' : ''}}">
+    <image src="{{activeItem === 'home' ? homeActiveIcon : homeIcon}}" class="nav-icon"></image>
+    <text class="nav-text">首页</text>
+  </navigator>
+  <navigator open-type="redirect" url="/elder/pages/profile/profile" class="nav-item {{activeItem === 'profile' ? 'active' : ''}}">
+    <image src="{{activeItem === 'profile' ? profileActiveIcon : profileIcon}}" class="nav-icon"></image>
+    <text class="nav-text">个人中心</text>
+  </navigator>
+</view>

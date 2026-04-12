@@ -1,0 +1,200 @@
+/* elder-date-picker.scss */
+// 颜色变量
+$primary-color: #FF8C42; // 熟柿色主色调
+$selected-bg: #FFF0E6; // 浅橘色背景
+$selected-text: #FF8C42; // 深橘色文字
+$unselected-text: #333333; // 深灰色文字
+$mask-bg: rgba(0, 0, 0, 0.4); // 遮罩层颜色
+$panel-bg: #FFFFFF; // 面板背景色
+$border-color: #EEEEEE; // 边框颜色
+
+// 尺寸
+$panel-height: 600rpx; // 面板高度
+$panel-radius: 40rpx; // 面板圆角
+$btn-height: 100rpx; // 按钮高度
+$column-gap: 40rpx; // 列间距
+$picker-value-height: 120rpx; // 选择值高度
+$picker-btn-size: 80rpx; // 按钮尺寸
+
+// 字体
+$font-label: 32rpx; // 标签字体
+$font-value: 48rpx; // 数值字体
+$font-btn: 36rpx; // 按钮字体
+
+// 遮罩层
+.date-picker-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: $mask-bg;
+  z-index: 999;
+  transition: opacity 0.3s ease;
+}
+
+// 底部弹出面板
+.date-picker-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: $panel-height;
+  background: $panel-bg;
+  border-top-left-radius: $panel-radius;
+  border-top-right-radius: $panel-radius;
+  z-index: 1000;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  display: flex;
+  flex-direction: column;
+
+  &.show {
+    transform: translateY(0);
+  }
+}
+
+// 顶部按钮栏
+.picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40rpx;
+  height: $btn-height;
+  border-bottom: 2rpx solid $border-color;
+  flex-shrink: 0;
+
+  .cancel-btn {
+    font-size: $font-btn;
+    color: $unselected-text;
+    padding: 20rpx 30rpx;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+
+    &:active {
+      opacity: 0.6;
+    }
+  }
+
+  .confirm-btn {
+    font-size: $font-btn;
+    color: white;
+    background: $primary-color;
+    padding: 20rpx 50rpx;
+    border-radius: 40rpx;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:active {
+      transform: scale(0.95);
+      opacity: 0.9;
+    }
+  }
+}
+
+// 日期选择区域
+.picker-content {
+  flex: 1;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 40rpx;
+  gap: $column-gap;
+}
+
+// 选择列
+.picker-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+
+  .picker-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20rpx;
+    width: 100%;
+  }
+
+  // 按钮样式
+  .picker-btn {
+    width: $picker-btn-size;
+    height: $picker-btn-size;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #F5F5F5;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:active {
+      transform: scale(0.9);
+      background: #E0E0E0;
+    }
+
+    .picker-arrow {
+      font-size: 32rpx;
+      color: $unselected-text;
+    }
+  }
+
+  // 数值显示
+  .picker-value {
+    width: 100%;
+    height: $picker-value-height;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #F5F5F5;
+    border-radius: 20rpx;
+    font-size: $font-value;
+    color: $unselected-text;
+    font-weight: 500;
+    transition: all 0.2s ease;
+
+    &.selected {
+      background: $selected-bg;
+      color: $selected-text;
+      font-weight: 700;
+      border: 2rpx solid $primary-color;
+    }
+  }
+}
+
+// 适老化设计
+@media (prefers-reduced-motion: reduce) {
+  .date-picker-panel,
+  .picker-btn,
+  .picker-value,
+  .cancel-btn,
+  .confirm-btn {
+    transition: none;
+  }
+}
+
+// 响应式设计
+@media (max-width: 375px) {
+  $panel-height: 500rpx;
+  $picker-value-height: 100rpx;
+  $font-value: 40rpx;
+  $font-label: 28rpx;
+  $font-btn: 32rpx;
+
+  .date-picker-panel {
+    height: $panel-height;
+  }
+
+  .picker-value {
+    height: $picker-value-height;
+    font-size: $font-value;
+  }
+
+  .cancel-btn,
+  .confirm-btn {
+    font-size: $font-btn;
+  }
+}

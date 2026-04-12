@@ -1,0 +1,13 @@
+<!--elder/pages/navigate/navigate.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="back-button" bindtap="goBack">
+      <text>←</text>
+    </view>
+    <view class="page-title">导航出门</view>
+  </view>
+  <view class="content">
+    <view class="title">导航功能开发中</view>
+    <view class="description">敬请期待</view>
+  </view>
+</view>

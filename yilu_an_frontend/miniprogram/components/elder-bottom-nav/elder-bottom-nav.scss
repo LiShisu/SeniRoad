@@ -1,0 +1,52 @@
+/* 老人端底部导航栏组件样式 */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background-color: white;
+  border-top: 1rpx solid #f0f0f0;
+  padding: 10rpx 0;
+  z-index: 1000;
+  height: 100rpx;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.nav-item.active {
+  color: #4a90e2;
+}
+
+.nav-icon {
+  width: 48rpx;
+  height: 48rpx;
+  margin-bottom: 5rpx;
+}
+
+.nav-text {
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+/* 响应式设计 */
+@media (max-width: 375px) {
+  .nav-icon {
+    width: 40rpx;
+    height: 40rpx;
+  }
+  
+  .nav-text {
+    font-size: 20rpx;
+  }
+}

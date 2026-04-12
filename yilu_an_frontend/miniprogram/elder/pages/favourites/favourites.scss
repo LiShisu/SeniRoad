@@ -1,0 +1,243 @@
+/* elder/pages/favourites/favourites.scss */
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f8f8f8;
+  padding-bottom: 100rpx; /* 为底部导航栏留出空间 */
+}
+
+/* 顶部导航栏 */
+.nav-bar {
+  background-color: #4a90e2;
+  color: white;
+  padding: 30rpx;
+  text-align: center;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-title {
+  font-size: 36rpx;
+  font-weight: 600;
+}
+
+/* 区块 */
+.section {
+  background-color: white;
+  margin: 20rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  padding: 30rpx;
+}
+
+.section-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 30rpx;
+  display: block;
+}
+
+/* 地点列表 */
+.place-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+/* 地点项 */
+.place-item {
+  display: flex;
+  align-items: center;
+  padding: 25rpx;
+  background-color: #f9f9f9;
+  border-radius: 15rpx;
+  transition: all 0.2s ease;
+}
+
+.place-item:active {
+  background-color: #f0f0f0;
+  transform: scale(0.98);
+}
+
+/* 地点图标 */
+.place-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.place-icon.home {
+  background-color: #4a90e2;
+}
+
+.place-icon.hospital {
+  background-color: #ff4757;
+}
+
+.place-icon.market {
+  background-color: #2ed573;
+}
+
+.place-icon.park {
+  background-color: #1e90ff;
+}
+
+.icon-text {
+  color: white;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+/* 地点信息 */
+.place-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.place-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.place-address {
+  font-size: 24rpx;
+  color: #666;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 操作按钮 */
+.place-actions {
+  display: flex;
+  gap: 15rpx;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  padding: 15rpx 25rpx;
+  border-radius: 10rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.action-btn.navigate {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.action-btn.navigate:active {
+  background-color: #3a7bc8;
+}
+
+.action-btn.edit {
+  background-color: #747d8c;
+  color: white;
+}
+
+.action-btn.edit:active {
+  background-color: #57606f;
+}
+
+.action-text {
+  font-size: 24rpx;
+}
+
+/* 添加新地点 */
+.add-section {
+  padding: 30rpx 20rpx;
+  margin: 20rpx;
+}
+
+.add-btn {
+  background-color: #f0f0f0;
+  border: 2rpx dashed #ccc;
+  color: #666;
+  padding: 30rpx;
+  border-radius: 15rpx;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.add-btn:active {
+  background-color: #e0e0e0;
+  transform: scale(0.98);
+}
+
+.add-text {
+  font-size: 32rpx;
+}
+
+/* 底部导航栏 */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background-color: white;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.1);
+  height: 100rpx;
+  z-index: 1000;
+}
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.nav-item.active {
+  color: #4a90e2;
+}
+
+.nav-icon {
+  width: 48rpx;
+  height: 48rpx;
+  margin-bottom: 8rpx;
+}
+
+.nav-text {
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+/* 响应式设计 */
+@media (max-width: 375px) {
+  .nav-title {
+    font-size: 32rpx;
+  }
+  
+  .section-title {
+    font-size: 32rpx;
+  }
+  
+  .place-name {
+    font-size: 28rpx;
+  }
+  
+  .add-text {
+    font-size: 28rpx;
+  }
+}

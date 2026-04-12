@@ -1,0 +1,142 @@
+/* elder/pages/index/index.scss */
+
+// 颜色变量
+$bg-color: #fffae8;
+$primary-orange: #FF8C42;
+$primary-green: #4ade80;
+$primary-blue: #38bdf8;
+$text-primary: #333333;
+$text-secondary: #999999;
+
+// 尺寸变量
+$header-height: 120rpx;
+$button-height: 140rpx;
+$button-icon-size: 60rpx;
+$brand-icon-size: 48rpx;
+$robot-icon-size: 80rpx;
+$flash-icon-size: 24rpx;
+$border-radius: 24rpx;
+
+// 整体布局
+.container {
+  background-color: $bg-color;
+  min-height: 100vh;
+  padding: 300rpx 40rpx 100rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+// 顶部信息区
+.header {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 60rpx;
+  padding-top: 0;
+  
+  .brand-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10rpx;
+    
+    .compass-icon {
+        font-size: 72rpx; // 调整指南针图标的大小
+      }
+    
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      
+      .app-name {
+        font-size: 56rpx;
+        font-weight: bold;
+        color: $primary-orange;
+        line-height: 1.2;
+      }
+      
+      .app-slogan {
+        font-size: 28rpx;
+        color: $text-secondary;
+        line-height: 1.2;
+      }
+    }
+  }
+  
+  .robot-icon {
+    width: $robot-icon-size;
+    height: $robot-icon-size;
+  }
+}
+
+// 核心功能区域
+.function-area {
+  width: 100%;
+  max-width: 600rpx; // 限制最大宽度，使按钮在大屏幕上不会太宽
+  display: flex;
+  flex-direction: column;
+  gap: 40rpx;
+  flex: 1;
+  
+  // 功能按钮
+  .function-button {
+    height: $button-height;
+    border-radius: $border-radius;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 40rpx;
+    box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+    
+    &:active {
+      transform: scale(0.98);
+    }
+    
+    // 按钮内容
+    .button-content {
+      display: flex;
+      align-items: center;
+      gap: 20rpx;
+      width: 100%;
+      max-width: 300rpx;
+      
+      .button-icon {
+        width: $button-icon-size;
+        height: $button-icon-size;
+        flex-shrink: 0;
+      }
+      
+      .button-text {
+        font-size: 40rpx;
+        font-weight: 600;
+        color: #FFFFFF;
+        flex: 1;
+        text-align: center;
+      }
+    }
+    
+    // 闪电图标
+    .flash-icon {
+      width: $flash-icon-size;
+      height: $flash-icon-size;
+    }
+    
+    // 按钮颜色
+    &.orange {
+      background-color: $primary-orange;
+    }
+    
+    &.green {
+      background-color: $primary-green;
+    }
+    
+    &.blue {
+      background-color: $primary-blue;
+    }
+  }
+}

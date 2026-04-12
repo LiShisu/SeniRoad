@@ -1,0 +1,51 @@
+/* elder/pages/contact/contact.scss */
+
+.container {
+  background-color: #FFFFFF;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  padding: 40rpx;
+  border-bottom: 1rpx solid #EEEEEE;
+  
+  .back-button {
+    width: 60rpx;
+    height: 60rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48rpx;
+    color: #333333;
+  }
+  
+  .page-title {
+    flex: 1;
+    font-size: 36rpx;
+    font-weight: 600;
+    color: #333333;
+    text-align: center;
+  }
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  
+  .title {
+    font-size: 48rpx;
+    font-weight: bold;
+    color: #333333;
+    margin-bottom: 20rpx;
+  }
+  
+  .description {
+    font-size: 32rpx;
+    color: #999999;
+  }
+}

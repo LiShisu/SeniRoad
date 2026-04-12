@@ -1,0 +1,90 @@
+# 编辑器配置
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+
+# 操作系统
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE & 编辑器
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# FastAPI / Python 依赖与环境
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.pyd
+*.dll
+
+# Python 打包、构建文件
+build/
+dist/
+*.egg-info/
+*.egg
+pip-log.txt
+
+# 前端项目（Vue / React）
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+dist/
+build/
+.output/
+.nuxt/
+.temp/
+.tmp/
+.cache/
+
+# 日志
+logs/
+*.log
+temp/
+tmp/
+
+# 大文件（禁止上传，避免Gitee报错）
+*.pth
+*.pt
+*.bin
+*.h5
+*.ckpt
+*.onnx
+*.model
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+*.exe
+
+# 环境变量、私密配置
+.env
+.env.*
+!.env.example

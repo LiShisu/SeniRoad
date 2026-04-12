@@ -1,0 +1,136 @@
+<!-- edit-profile.wxml -->
+<view class="container" bindtouchstart="onTouchStart" bindtouchmove="onTouchMove" bindtouchend="onTouchEnd">
+  <!-- 顶部安全区域 -->
+  <view class="safe-area"></view>
+  
+  <!-- 头部弧形色块 -->
+  <view class="header-arc" style="height: {{animation.headerArcHeight}}rpx; border-bottom-left-radius: 50% {{animation.headerArcRadius}}%; border-bottom-right-radius: 50% {{animation.headerArcRadius}}%;"></view>
+  
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <view class="back-button" bindtap="goBack">
+      <text class="back-icon">←</text>
+    </view>
+    <view class="page-title">编辑个人资料</view>
+    <view class="placeholder"></view>
+  </view>
+  
+  <!-- 头像区域 -->
+  <view class="avatar-container" style="margin-top: {{animation.avatarContainerTop}}rpx;">
+    <view class="avatar-wrapper" style="width: {{animation.avatarSize}}rpx; height: {{animation.avatarSize}}rpx;" bindtap="chooseAvatar">
+      <block wx:if="{{formData.avatar}}">
+        <image class="avatar" src="{{formData.avatar}}" mode="aspectFill"></image>
+      </block>
+      <block wx:else>
+        <view class="avatar-placeholder">
+          <text class="avatar-placeholder-text">{{formData.nickname ? formData.nickname[0] : '无'}}</text>
+        </view>
+      </block>
+    </view>
+    <view class="avatar-edit-overlay" bindtap="chooseAvatar">
+      <image class="camera-icon" src="/assets/svg/camera-icon.svg" mode="aspectFit" />
+    </view>
+  </view>
+  
+  <!-- 表单卡片 -->
+  <view class="form-card" style="transform: translateY({{animation.formCardTop}}rpx);">
+    
+    <!-- 姓名 -->
+    <view class="form-item">
+      <view class="form-label">姓名*</view>
+      <input 
+        class="form-input" 
+        value="{{formData.name}}" 
+        data-field="name"
+        bindinput="onInputChange"
+        placeholder="请输入姓名"
+        placeholder-style="color: #888; font-size: 36rpx;"
+      />
+    </view>
+
+    <!-- 昵称 -->
+    <view class="form-item">
+      <view class="form-label">昵称</view>
+      <input 
+        class="form-input" 
+        value="{{formData.nickname}}" 
+        data-field="nickname"
+        bindinput="onInputChange"
+        placeholder="请输入昵称"
+        placeholder-style="color: #888; font-size: 36rpx;"
+      />
+    </view>
+
+    <!-- 性别 -->
+    <view class="form-item">
+      <view class="form-label">性别*</view>
+      <view class="gender-selector">
+        <view class="gender-option {{formData.gender === '男' ? 'active' : ''}}" bindtap="selectGender" data-gender="男">
+          <text class="gender-text">男</text>
+        </view>
+        <view class="gender-option {{formData.gender === '女' ? 'active' : ''}}" bindtap="selectGender" data-gender="女">
+          <text class="gender-text">女</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 生日 -->
+    <view class="form-item">
+      <view class="form-label">生日*</view>
+      <view class="picker-container">
+        <view class="picker-trigger" bindtap="showDatePicker">
+          <view class="picker-value">{{birthdayDisplay}}</view>
+          <view class="picker-arrow">▼</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 电话 -->
+    <view class="form-item">
+      <view class="form-label">电话*</view>
+      <input 
+        class="form-input" 
+        value="{{formData.phone}}" 
+        data-field="phone"
+        bindinput="onInputChange"
+        type="number"
+        maxlength="11"
+        placeholder="请输入手机号"
+        placeholder-style="color: #888; font-size: 36rpx;"
+      />
+    </view>
+
+    <!-- 密码 -->
+    <view class="form-item">
+      <view class="form-label">登录密码</view>
+      <view class="password-input-container">
+        <input 
+          class="form-input password-input" 
+          value="{{formData.password}}" 
+          data-field="password"
+          bindinput="onInputChange"
+          password="{{!showPassword}}"
+          placeholder="请输入新密码"
+          placeholder-style="color: #888; font-size: 36rpx;"
+        />
+        <view class="password-toggle" bindtap="togglePassword">
+          <image class="password-toggle-icon" src="{{showPassword ? '/assets/svg/eye-visible.svg' : '/assets/svg/eye-hidden.svg'}}" mode="aspectFit" />
+        </view>
+      </view>
+    </view>
+
+  </view>
+
+  <!-- 保存按钮 -->
+  <button class="save-btn" bindtap="onSave">
+    <text class="save-btn-text">保存</text>
+  </button>
+
+  <!-- 自定义日期选择器 -->
+  <elder-date-picker
+    visible="{{showDatePicker}}"
+    value="{{formData.birthday}}"
+    bind:confirm="onDateConfirm"
+    bind:cancel="onDateCancel"
+  />
+</view>

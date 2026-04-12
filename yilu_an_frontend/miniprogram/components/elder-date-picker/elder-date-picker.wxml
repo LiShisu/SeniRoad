@@ -1,0 +1,60 @@
+<!-- elder-date-picker.wxml -->
+<!-- 遮罩层 -->
+<view class="date-picker-mask" wx:if="{{visible}}" bindtap="onCancel"></view>
+
+<!-- 底部弹出面板 -->
+<view class="date-picker-panel {{visible ? 'show' : ''}}">
+  <!-- 顶部按钮栏 -->
+  <view class="picker-header">
+    <view class="cancel-btn" bindtap="onCancel">取消</view>
+    <view class="confirm-btn" bindtap="onConfirm">确定</view>
+  </view>
+
+  <!-- 日期选择区域 -->
+  <view class="picker-content">
+    <!-- 年份选择 -->
+    <view class="picker-column">
+      <view class="picker-controls">
+        <view class="picker-btn picker-btn-up" bindtap="onYearChange" data-delta="1">
+          <text class="picker-arrow">▲</text>
+        </view>
+        <view class="picker-value {{selectedYear === currentYear ? 'selected' : ''}}">
+          {{selectedYear}}年
+        </view>
+        <view class="picker-btn picker-btn-down" bindtap="onYearChange" data-delta="-1">
+          <text class="picker-arrow">▼</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 月份选择 -->
+    <view class="picker-column">
+      <view class="picker-controls">
+        <view class="picker-btn picker-btn-up" bindtap="onMonthChange" data-delta="1">
+          <text class="picker-arrow">▲</text>
+        </view>
+        <view class="picker-value {{selectedMonth === currentMonth ? 'selected' : ''}}">
+          {{selectedMonth}}月
+        </view>
+        <view class="picker-btn picker-btn-down" bindtap="onMonthChange" data-delta="-1">
+          <text class="picker-arrow">▼</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 日期选择 -->
+    <view class="picker-column">
+      <view class="picker-controls">
+        <view class="picker-btn picker-btn-up" bindtap="onDayChange" data-delta="1">
+          <text class="picker-arrow">▲</text>
+        </view>
+        <view class="picker-value {{selectedDay === currentDay ? 'selected' : ''}}">
+          {{selectedDay}}日
+        </view>
+        <view class="picker-btn picker-btn-down" bindtap="onDayChange" data-delta="-1">
+          <text class="picker-arrow">▼</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

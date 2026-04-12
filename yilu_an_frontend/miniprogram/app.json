@@ -1,0 +1,33 @@
+{
+  "pages": [
+    "elder/pages/index/index",
+    "elder/pages/profile/profile",
+    "elder/pages/editProfile/editProfile",
+    "elder/pages/home/home",
+    "elder/pages/navigate/navigate",
+    "elder/pages/favourites/favourites",
+    "elder/pages/contact/contact",
+    "guard/pages/places/places",
+    "guard/pages/records/records",
+    "guard/pages/map/map",
+    "guard/pages/elders/elders"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationStyle": "custom"
+  },
+  "style": "v2",
+  "rendererOptions": {
+    "skyline": {
+      "defaultDisplayBlock": true,
+      "defaultContentBox": true,
+      "tagNameStyleIsolation": "legacy",
+      "disableABTest": true,
+      "sdkVersionBegin": "3.0.0",
+      "sdkVersionEnd": "15.255.255"
+    }
+  },
+  "componentFramework": "glass-easel",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

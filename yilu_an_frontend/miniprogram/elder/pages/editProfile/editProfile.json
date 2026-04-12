@@ -1,0 +1,5 @@
+{
+  "usingComponents": {
+    "elder-date-picker": "/components/elder-date-picker/elder-date-picker"
+  }
+}

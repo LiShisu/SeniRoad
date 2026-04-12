@@ -1,0 +1,112 @@
+<!-- elder/pages/register/register.wxml -->
+<view class="container">
+  <view class="register-form">
+    <view class="logo">
+      <text class="app-name">颐路安</text>
+      <text class="app-slogan">您的智能出行助手</text>
+    </view>
+    
+    <view class="form-group">
+      <view class="input-wrapper">
+        <text class="input-label">手机号</text>
+        <input 
+          class="input" 
+          type="number" 
+          placeholder="请输入手机号" 
+          bindinput="onPhoneChange"
+          value="{{phone}}"
+        />
+      </view>
+    </view>
+    
+    <view class="form-group">
+      <view class="input-wrapper">
+        <text class="input-label">密码</text>
+        <view class="password-input">
+          <input 
+            class="input" 
+            type="{{showPassword ? 'text' : 'password'}}" 
+            placeholder="请输入密码（至少6位）" 
+            bindinput="onPasswordChange"
+            value="{{password}}"
+          />
+          <text class="toggle-password" bindtap="togglePassword">
+            {{showPassword ? '隐藏' : '显示'}}
+          </text>
+        </view>
+      </view>
+    </view>
+    
+    <view class="form-group">
+      <view class="input-wrapper">
+        <text class="input-label">确认密码</text>
+        <input 
+          class="input" 
+          type="{{showPassword ? 'text' : 'password'}}" 
+          placeholder="请再次输入密码" 
+          bindinput="onConfirmPasswordChange"
+          value="{{confirmPassword}}"
+        />
+      </view>
+    </view>
+    
+    <view class="form-group">
+      <view class="input-wrapper">
+        <text class="input-label">昵称</text>
+        <input 
+          class="input" 
+          type="text" 
+          placeholder="请输入昵称" 
+          bindinput="onNicknameChange"
+          value="{{nickname}}"
+        />
+      </view>
+    </view>
+    
+    <view class="form-group">
+      <view class="role-selector">
+        <text class="input-label">角色</text>
+        <view class="role-options">
+          <view 
+            class="role-option {{role === 'elderly' ? 'active' : ''}}"
+            bindtap="selectRole"
+            data-role="elderly"
+          >
+            老人
+          </view>
+          <view 
+            class="role-option {{role === 'family' ? 'active' : ''}}"
+            bindtap="selectRole"
+            data-role="family"
+          >
+            家属
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <button 
+      class="register-button" 
+      bindtap="register"
+      loading="{{loading}}"
+      disabled="{{loading}}"
+    >
+      注册
+    </button>
+    
+    <button 
+      class="wechat-register-button" 
+      bindtap="wechatRegister"
+      loading="{{wechatLoading}}"
+      disabled="{{wechatLoading}}"
+    >
+      <text class="wechat-icon">🟢</text>
+      微信快捷注册
+    </button>
+    
+    <view class="login-link">
+      <text>已有账号？</text>
+      <navigator url="/elder/pages/login/login" class="link">立即登录</navigator>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,5 @@
+{
+  "usingComponents": {
+    "guard-bottom-nav": "/components/guard-bottom-nav/guard-bottom-nav"
+  }
+}

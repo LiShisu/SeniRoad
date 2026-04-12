@@ -1,0 +1,468 @@
+/* edit-profile.scss */
+// 颜色变量
+$bg-color: #FFF5EB; // 米橙色背景
+$primary-color: #FF8C42; // 熟柿色主色调
+$primary-hover: #FFA066; // 主色调 hover
+$primary-active: #E67E3A; // 主色调 active
+$card-bg: #FFFFFF; // 卡片白色
+$text-dark: #333333; // 深炭灰文字
+$text-light: #888888; // 中灰色文字
+$border-color: #EEEEEE; // 边框颜色
+$input-bg: #F5F5F5; // 输入框背景
+$input-bg-hover: #F0F0F0; // 输入框背景 hover
+$input-bg-active: #E0E0E0; // 输入框背景 active
+$shadow-color: rgba(255, 140, 66, 0.2); // 阴影颜色
+$shadow-color-hover: rgba(255, 140, 66, 0.4); // 阴影颜色 hover
+
+// 适老化字体
+$font-title: 40rpx; // 页面标题
+$font-input: 36rpx; // 输入框文字
+$font-label: 32rpx; // 标签文字
+$font-button: 44rpx; // 按钮文字
+$font-back-icon: 48rpx; // 返回图标字体
+$font-picker-arrow: 28rpx; // 选择器箭头字体
+$font-password-toggle: 40rpx; // 密码切换图标字体
+
+// 尺寸
+$height-input: 100rpx; // 输入框高度
+$height-button: 110rpx; // 按钮高度
+$height-page-header: 200rpx; // 页面标题栏高度
+$height-safe-area: 50rpx; // 安全区域高度
+$width-back-button: 80rpx; // 返回按钮宽度
+$height-back-button: 80rpx; // 返回按钮高度
+$width-password-toggle: 80rpx; // 密码切换按钮宽度
+$avatar-size: 210rpx; // 头像尺寸
+$border-radius: 24rpx; // 通用圆角
+$card-radius: 32rpx; // 卡片圆角
+$button-radius: 72rpx; // 按钮圆角
+$input-radius: 12rpx; // 输入框圆角
+$back-button-radius: 50%; // 返回按钮圆角
+
+// 间距
+$padding-container: 0 20rpx 100rpx; // 容器内边距
+$margin-avatar-bottom: 40rpx; // 头像底部间距
+$margin-form-card-bottom: 60rpx; // 表单卡片底部间距
+$margin-form-item-bottom: 40rpx; // 表单项底部间距
+$padding-form-card: 50rpx; // 表单卡片内边距
+$padding-form-input: 0 20rpx; // 输入框内边距
+$padding-picker-trigger: 0 20rpx; // 选择器触发器内边距
+$margin-form-label-bottom: 20rpx; // 表单标签底部间距
+$gap-gender-selector: 20rpx; // 性别选择器间距
+$gap-password-input: 20rpx; // 密码输入框间距
+
+// 阴影
+$shadow-back-button: 0 2rpx 4rpx rgba(0, 0, 0, 0.2); // 返回按钮阴影
+$shadow-avatar: 0 8rpx 30rpx rgba(0, 0, 0, 0.2); // 头像阴影
+$shadow-form-card: 0 15rpx 40rpx $shadow-color; // 表单卡片阴影
+$shadow-button: 0 8rpx 25rpx $shadow-color; // 按钮阴影
+$shadow-button-hover: 0 12rpx 30rpx $shadow-color-hover; // 按钮阴影 hover
+
+// 边框
+$border-width: 2rpx; // 边框宽度
+$border-width-avatar: 8rpx; // 头像边框宽度
+
+// 动画
+$transition: all 0.3s ease;
+$transition-cubic: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+// 响应式尺寸
+$responsive-font-title: 36rpx;
+$responsive-font-input: 32rpx;
+$responsive-font-label: 28rpx;
+$responsive-font-button: 32rpx;
+$responsive-height-input: 90rpx;
+$responsive-height-button: 100rpx;
+$responsive-padding-form-card: 40rpx;
+$responsive-margin-form-item-bottom: 30rpx;
+$responsive-padding-form-item-bottom: 30rpx;
+$responsive-avatar-size: 140rpx;
+
+.container {
+  min-height: 100vh;
+  background: $bg-color;
+  padding: $padding-container;
+  box-sizing: border-box;
+  position: relative;
+}
+
+// 顶部安全区域
+.safe-area {
+  height: $height-safe-area;
+  width: 100%;
+}
+
+// 头部弧形色块
+.header-arc {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: $primary-color;
+  z-index: 0;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+// 页面标题栏
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: $height-page-header;
+  position: relative;
+  z-index: 1;
+  
+  .back-button {
+    width: $width-back-button;
+    height: $height-back-button;
+    border-radius: $back-button-radius;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10rpx);
+    transition: $transition;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.05);
+    }
+    
+    .back-icon {
+      font-size: $font-back-icon;
+      color: white;
+      font-weight: bold;
+    }
+  }
+  
+  .page-title {
+    font-size: $font-title;
+    font-weight: 600;
+    color: white;
+    text-shadow: $shadow-back-button;
+  }
+  
+  .placeholder {
+    width: $width-back-button;
+  }
+}
+
+// 头像区域
+.avatar-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: $margin-avatar-bottom;
+    position: relative;
+    z-index: 1;
+    transition: $transition-cubic;
+    
+    .avatar-wrapper {
+      border-radius: $back-button-radius;
+      border: $border-width-avatar solid white;
+      box-shadow: $shadow-avatar;
+      overflow: hidden;
+      background: white;
+      transition: $transition-cubic;
+      cursor: pointer;
+      position: relative;
+      
+      &:hover {
+        transform: scale(1.05);
+        box-shadow: 0 12rpx 40rpx rgba(0, 0, 0, 0.25);
+      }
+      
+      .avatar {
+        width: 100%;
+        height: 100%;
+      }
+      
+      .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        background: $primary-color;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        
+        .avatar-placeholder-text {
+          font-size: 80rpx;
+          font-weight: 600;
+          color: white;
+        }
+      }
+    }
+    
+    .avatar-edit-overlay {
+      position: absolute;
+      bottom: -8rpx;
+      right: -8rpx;
+      width: 80rpx;
+      height: 80rpx;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: $transition;
+      z-index: 10;
+      cursor: pointer;
+      
+      &:hover {
+        background: rgba(0, 0, 0, 0.7);
+        transform: scale(1.1);
+      }
+      
+      .camera-icon {
+        width: 50rpx;
+        height: 50rpx;
+        z-index: 11;
+      }
+    }
+  }
+
+// 表单卡片
+.form-card {
+  background: $card-bg;
+  border-radius: $card-radius;
+  padding: $padding-form-card;
+  width: 100%;
+  box-shadow: $shadow-form-card;
+  position: relative;
+  z-index: 1;
+  margin-bottom: $margin-form-card-bottom;
+  transition: $transition-cubic;
+}
+
+// 表单项
+.form-item {
+  margin-bottom: $margin-form-item-bottom;
+  padding-bottom: $margin-form-item-bottom;
+  border-bottom: $border-width solid $border-color;
+  
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+}
+
+// 标签
+.form-label {
+  font-size: $font-label;
+  color: $text-dark;
+  margin-bottom: $margin-form-label-bottom;
+  font-weight: 600;
+  display: block;
+}
+
+// 输入框通用样式
+.form-input {
+  font-size: $font-input;
+  color: $text-dark;
+  height: $height-input;
+  line-height: $height-input;
+  width: 100%;
+  border: none;
+  outline: none;
+  background: $input-bg;
+  border-radius: $input-radius;
+  padding: $padding-form-input;
+  box-sizing: border-box;
+  transition: $transition;
+  
+  &:focus {
+    background: $input-bg-hover;
+    box-shadow: 0 0 0 $border-width $primary-color;
+  }
+}
+
+// 占位符样式
+::placeholder {
+  color: $text-light;
+  font-size: $font-input;
+}
+
+// 性别选择器
+.gender-selector {
+  display: flex;
+  gap: $gap-gender-selector;
+  
+  .gender-option {
+    flex: 1;
+    height: $height-input;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $input-bg;
+    border-radius: $input-radius;
+    transition: $transition;
+    cursor: pointer;
+    
+    &.active {
+      background: $primary-color;
+      
+      .gender-text {
+        color: white;
+      }
+    }
+    
+    &:hover {
+      background: $input-bg-hover;
+      
+      &.active {
+        background: $primary-hover;
+      }
+    }
+    
+    .gender-text {
+      font-size: $font-input;
+      color: $text-dark;
+      font-weight: 500;
+    }
+  }
+}
+
+// Picker 容器
+.picker-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: $height-input;
+  cursor: pointer;
+  
+  .picker-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    background: $input-bg;
+    border-radius: $input-radius;
+    padding: $padding-picker-trigger;
+    box-sizing: border-box;
+    transition: $transition;
+    cursor: pointer;
+    
+    &:hover {
+      background: $input-bg-hover;
+    }
+    
+    &:active {
+      background: $input-bg-active;
+    }
+    
+    .picker-value {
+      font-size: $font-input;
+      color: $text-dark;
+      font-weight: 500;
+    }
+    
+    .picker-arrow {
+      font-size: $font-picker-arrow;
+      color: $text-light;
+    }
+  }
+}
+
+// 密码输入容器
+.password-input-container {
+  display: flex;
+  align-items: center;
+  gap: $gap-password-input;
+  
+  .password-input {
+    flex: 1;
+  }
+  
+  .password-toggle {
+    width: $width-password-toggle;
+    height: $height-input;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $input-bg;
+    border-radius: $input-radius;
+    cursor: pointer;
+    transition: $transition;
+    
+    &:hover {
+      background: $input-bg-hover;
+    }
+    
+    .password-toggle-icon {
+      width: $font-password-toggle;
+      height: $font-password-toggle;
+    }
+  }
+}
+
+// 保存按钮
+.save-btn {
+  background: $primary-color;
+  color: white;
+  font-size: $font-button;
+  border-radius: $button-radius;
+  height: $height-button;
+  line-height: $height-button;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: $shadow-button;
+  transition: $transition;
+  position: relative;
+  z-index: 1;
+  
+  &::after {
+    border: none; // 去除微信默认边框
+  }
+  
+  &:hover {
+    background: $primary-hover;
+    transform: translateY(-3rpx);
+    box-shadow: $shadow-button-hover;
+  }
+  
+  &:active {
+    transform: translateY(0);
+    background: $primary-active;
+  }
+  
+  .save-btn-text {
+    display: inline-block;
+  }
+}
+
+// 响应式设计
+@media (max-width: 375px) {
+  $font-title: $responsive-font-title;
+  $font-input: $responsive-font-input;
+  $font-label: $responsive-font-label;
+  $font-button: $responsive-font-button;
+  $height-input: $responsive-height-input;
+  $height-button: $responsive-height-button;
+  
+  .form-card {
+    padding: $responsive-padding-form-card;
+  }
+  
+  .form-item {
+    margin-bottom: $responsive-margin-form-item-bottom;
+    padding-bottom: $responsive-padding-form-item-bottom;
+  }
+  
+  .avatar-size {
+    width: $responsive-avatar-size;
+    height: $responsive-avatar-size;
+  }
+}
+
+// 无障碍设计
+@media (prefers-reduced-motion: reduce) {
+  .back-button,
+  .save-btn,
+  .gender-option,
+  .picker-trigger,
+  .password-toggle {
+    transition: none;
+  }
+}
