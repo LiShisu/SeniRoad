@@ -26,9 +26,54 @@ Page({
   checkLoginStatus() {
     const token = wx.getStorageSync('access_token');
     if (!token) {
-      // 未登录，跳转到登录页面
-      wx.redirectTo({ url: '/elder/pages/login/login' });
+      // 未登录，使用微信小程序自带的获取用户信息方式登录
+      this.loginWithWeChat();
     }
+  },
+
+  // 使用微信登录
+  loginWithWeChat() {
+    wx.getUserProfile({
+      desc: '用于完善会员资料',
+      success: (res) => {
+        // 获取用户信息成功
+        const userInfo = res.userInfo;
+        console.log('用户信息:', userInfo);
+        
+        // 这里需要调用登录接口获取token
+        // 假设调用登录接口的函数为 loginApi
+        // 实际项目中需要替换为真实的登录接口调用
+        this.loginApi(userInfo);
+      },
+      fail: (err) => {
+        // 用户拒绝授权
+        console.log('用户拒绝授权:', err);
+        // 可以提示用户需要授权才能使用小程序
+        wx.showToast({
+          title: '需要授权才能使用小程序',
+          icon: 'none'
+        });
+      }
+    });
+  },
+
+  // 登录接口调用（示例）
+  loginApi(userInfo) {
+    // 实际项目中需要替换为真实的登录接口调用
+    // 这里模拟登录成功，生成token
+    const mockToken = 'mock_token_' + Date.now();
+    
+    // 存储token
+    wx.setStorageSync('access_token', mockToken);
+    
+    // 登录成功提示
+    wx.showToast({
+      title: '登录成功',
+      icon: 'success'
+    });
+    
+    // 可以在这里刷新页面数据
+    // this.loadData();
   },
 
   /**

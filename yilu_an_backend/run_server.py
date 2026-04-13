@@ -4,7 +4,7 @@ from app.config import settings
 
 def start_fastapi():
     cmd = [
-        "uvicorn",
+        "uv", "run", "uvicorn",
         "app.main:app",
         "--reload",
         "--host", settings.HOST,

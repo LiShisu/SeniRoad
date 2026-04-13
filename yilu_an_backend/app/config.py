@@ -34,11 +34,11 @@ class Settings(BaseSettings):
     VOICE_MODEL: str = "paraformer-realtime-v2"
     TEXT_MODEL: str = "deepseek-ai/DeepSeek-V3.2"
     
-    class Config:  # 配置类
-        # 从环境变量中读取配置
-        env_file = ".env" 
+    model_config = {
+        "env_file": ".env",
         # - 通过 env_file = ".env" 从 .env 文件加载环境变量
         # - 环境变量会覆盖默认值，实现不同环境的配置切换
+    }
 
 @lru_cache()  # 缓存配置实例，避免重复创建
 def get_settings() -> Settings:  # 获取配置实例
