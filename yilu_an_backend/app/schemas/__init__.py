@@ -1,7 +1,6 @@
 # schemas/__init__.py
 
 from .user import (
-    UserCreate,
     UserResponse,
 )
 
@@ -48,7 +47,6 @@ from .voice_log import (
 
 __all__ = [
     # User
-    "UserCreate",
     "UserResponse",
     # Location
     "LocationCreate",

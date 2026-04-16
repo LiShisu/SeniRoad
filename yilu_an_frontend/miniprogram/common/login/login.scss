@@ -1,0 +1,66 @@
+/* elder/pages/login/login.scss */
+
+// 颜色变量
+$bg-color: #fffae8;
+$primary-orange: #FF8C42;
+$text-primary: #333333;
+$text-secondary: #999999;
+$border-color: #E5E5E5;
+$wechat-green: #07C160;
+
+// 尺寸变量
+$border-radius: 25rpx;
+$button-height: 120rpx;
+
+.container {
+  background-color: $bg-color;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  // justify-content: center;
+  padding: 460rpx 40rpx 40rpx;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 1000rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 40rpx;
+}
+
+.wechat-login-button {
+  height: $button-height;
+  width: 100%;
+  max-width: 1000rpx;
+  background-color: $wechat-green;
+  color: #FFFFFF;
+  font-size: 39rpx;
+  font-weight: 600;
+  border-radius: $border-radius;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15rpx;
+  margin-top: 30rpx;
+  
+  // 确保按钮宽度生效
+  min-width: 70%;
+  box-sizing: border-box;
+  
+}
+
+.register-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  font-size: 30rpx;
+  color: $text-secondary;
+  margin-top: 20rpx;
+  
+  .link {
+    color: $primary-orange;
+  }
+}

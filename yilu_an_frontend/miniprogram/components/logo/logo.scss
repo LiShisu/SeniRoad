@@ -1,0 +1,35 @@
+/* components/logo/logo.scss */
+
+// 颜色变量
+$primary-orange: #FF8C42;
+$text-secondary: #999999;
+
+.brand-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+  
+  .compass-icon {
+    font-size: 90rpx; // 调整指南针图标的大小
+  }
+  
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+    .app-name {
+      font-size: 70rpx;
+      font-weight: bold;
+      color: $primary-orange;
+      line-height: 1.6;
+    }
+    
+    .app-slogan {
+      font-size: 28rpx;
+      color: $text-secondary;
+      line-height: 1.2;
+    }
+  }
+}

@@ -6,7 +6,8 @@ from app.dependencies.auth import (
     get_current_user, 
     get_current_active_user, 
     get_user_repository,
-    get_auth_service
+    get_auth_service,
+    get_user_service
 )
 from app.utils.security import create_access_token
 from app.dependencies.services import (
@@ -26,6 +27,7 @@ __all__ = [
     "create_access_token",
     "get_user_repository",
     "get_auth_service",
+    "get_user_service",
     "get_device_repository",
     "get_device_service",
     "get_navigation_record_repository",

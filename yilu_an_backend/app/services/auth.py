@@ -1,100 +1,69 @@
-from app.utils import hash_password, verify_password
 from app.utils.security import create_access_token
 from app.repositories.user_repository import UserRepository
-from app.models import User
-from app.schemas.user import UserCreate, LoginResponse, WechatUserCreate
+from app.models import User, UserRole
+from app.schemas.user import LoginResponse, WechatUserCreate
 from fastapi import HTTPException, status
+import httpx
+import re
+from app.config import settings
 
 class AuthService:
     def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository
     
-    def hash_password(self, password: str) -> str:
-        return hash_password(password)
-    
-    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
-        return verify_password(plain_password, hashed_password)
-    
-    async def register(self, user_data: UserCreate):
-        """用户注册"""
+    async def wechat_register(self, wechat_data: WechatUserCreate):
+        """微信小程序用户注册"""
+        # 验证手机号格式
+        phone_pattern = r'^1[3-9]\d{9}$'
+        if not re.match(phone_pattern, wechat_data.phone):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid phone number format"
+            )
+        
         # 检查手机号是否已存在
-        if self.user_repository.exists_by_phone(user_data.phone):
+        if self.user_repository.exists_by_phone(wechat_data.phone):
+            # 如果手机号已存在，返回现有用户
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Phone number already registered"
             )
+
         
-        # 创建新用户
-        hashed_password = self.hash_password(user_data.password)
-        db_user = User(
-            phone=user_data.phone,
-            nickname=user_data.nickname,
-            password=hashed_password,
-            role=user_data.role,
-            avatar_url=user_data.avatar_url,
-            is_active=True
-        )
+        result = await get_wechat_openid_session_key(wechat_data.code)
         
-        # 保存用户
-        return self.user_repository.create(db_user)
-    
-    async def login(self, phone: str, password: str) -> LoginResponse:
-        """用户登录"""
-        # 查找用户
-        user = self.user_repository.get_by_phone(phone)
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect phone or password",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        
-        # 验证密码
-        if not self.verify_password(password, user.password):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect phone or password",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        
-        # 生成访问令牌
-        access_token = create_access_token(
-            data={"sub": str(user.id)}
-        )
-        
-        return LoginResponse(access_token=access_token)
-    
-    async def wechat_register(self, wechat_data: WechatUserCreate):
-        """微信小程序用户注册"""
-        # 检查openid是否已存在
-        if self.user_repository.exists_by_openid(wechat_data.openid):
-            # 如果openid已存在，返回现有用户
-            return self.user_repository.get_by_openid(wechat_data.openid)
-        
-        # 检查unionid是否已存在
-        if wechat_data.unionid and self.user_repository.exists_by_unionid(wechat_data.unionid):
-            # 如果unionid已存在，返回现有用户
-            return self.user_repository.get_by_unionid(wechat_data.unionid)
-        
+        openid = result.get("openid")
+        session_key = result.get("session_key")
+
+        role = UserRole.ELDERLY if wechat_data.role == "elderly" else UserRole.FAMILY
         # 创建新用户
         db_user = User(
-            openid=wechat_data.openid,
-            unionid=wechat_data.unionid,
-            session_key=wechat_data.session_key,
+            phone=wechat_data.phone,
+            openid=openid,
+            session_key=session_key,
             nickname=wechat_data.nickname,
-            avatar_url=wechat_data.avatar_url,
-            role=wechat_data.role,
+            role=role,
             is_active=True
         )
-        
+
         # 保存用户
-        return self.user_repository.create(db_user)
+        self.user_repository.create(db_user)
+        
+        return {"message": "Registration successful"}
     
-    async def wechat_login(self, openid: str, session_key: str) -> LoginResponse:
+    async def wechat_login(self, code: str) -> LoginResponse:
         """微信小程序用户登录"""
+        
+        # 获取openid和session_key
+        result = await get_wechat_openid_session_key(code)
+        
+        openid = result.get("openid")
+        session_key = result.get("session_key")
+        
         # 查找用户
         user = self.user_repository.get_by_openid(openid)
         if not user:
+            # 用户不存在，返回错误
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="User not found",
@@ -110,5 +79,38 @@ class AuthService:
             data={"sub": str(user.id)}
         )
         
-        return LoginResponse(access_token=access_token)
+        return LoginResponse(access_token=access_token, role=user.role)
 
+async def get_wechat_openid_session_key(code: str) -> dict:
+    """获取微信小程序用户openid和session_key"""
+    # 向微信服务器换取 session_key 和 openid
+    wechat_api_url = settings.WECHAT_API_URL
+    params = {
+        "appid": settings.WECHAT_APPID,  # 需要在配置中添加
+        "secret": settings.WECHAT_APPSECRET,  # 需要在配置中添加
+        "js_code": code,
+        "grant_type": "authorization_code"
+    }
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.get(wechat_api_url, params=params)
+        result = response.json()
+    
+    # 检查微信API返回结果
+    if "errcode" in result and result["errcode"] != 0:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Wechat login failed: {result.get('errmsg', 'Unknown error')}",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    openid = result.get("openid")
+    session_key = result.get("session_key")
+    
+    if not openid or not session_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Failed to get openid or session_key from Wechat",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return {"openid": openid, "session_key": session_key}

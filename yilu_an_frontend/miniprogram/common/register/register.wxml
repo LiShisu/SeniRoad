@@ -1,0 +1,68 @@
+<!-- elder/pages/register/register.wxml -->
+<view class="container">
+  <view class="register-form">
+    <logo />
+    
+    <view class="form-group">
+      <view class="input-wrapper">
+        <span class="input-label">手机号<required-mark /></span>
+        <input 
+          class="input" 
+          type="number" 
+          placeholder="请输入手机号" 
+          bindinput="onPhoneChange"
+          value="{{phone}}"
+        />
+      </view>
+    </view>
+    
+    <view class="form-group">
+      <view class="input-wrapper">
+        <span class="input-label">昵称<required-mark /></span>
+        <input 
+          class="input" 
+          type="text" 
+          placeholder="请输入昵称" 
+          bindinput="onNicknameChange"
+          value="{{nickname}}"
+        />
+      </view>
+    </view>
+    
+    <view class="form-group">
+      <view class="role-selector">
+        <text class="input-label">角色</text>
+        <view class="role-options">
+          <view 
+            class="role-option {{role === 'elderly' ? 'active' : ''}}"
+            bindtap="selectRole"
+            data-role="elderly"
+          >
+            老人
+          </view>
+          <view 
+            class="role-option {{role === 'family' ? 'active' : ''}}"
+            bindtap="selectRole"
+            data-role="family"
+          >
+            家属
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <button 
+      class="register-button" 
+      bindtap="register"
+      loading="{{loading}}"
+      disabled="{{loading}}"
+    >
+      注册
+    </button>
+    
+    <view class="login-link">
+      <text>已有账号？</text>
+      <navigator url="/common/login/login" class="link">立即登录</navigator>
+    </view>
+  </view>
+</view>

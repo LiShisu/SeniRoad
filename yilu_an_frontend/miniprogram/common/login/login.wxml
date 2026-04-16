@@ -1,0 +1,20 @@
+<!-- elder/pages/login/login.wxml -->
+<view class="container">
+  <view class="login-form">
+    <logo />
+    
+    <button 
+      class="wechat-login-button" 
+      bindtap="wechatLogin"
+      loading="{{wechatLoading}}"
+      disabled="{{wechatLoading}}"
+    >
+      微信快捷登录
+    </button>
+    
+    <view class="register-link">
+      <text>还没有账号？</text>
+      <navigator url="/common/register/register" class="link">立即注册</navigator>
+    </view>
+  </view>
+</view>

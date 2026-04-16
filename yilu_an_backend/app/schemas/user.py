@@ -14,17 +14,17 @@ class UserBase(BaseModel):
     avatar_url: Optional[str] = None
     # 微信小程序相关字段
     openid: Optional[str] = None
-    unionid: Optional[str] = None
 """
 ... (三个点) 是 Python 中 Ellipsis 的字面量，在这里作为 Field 的第一个参数（即默认值），
 它有一个特殊的含义：表示这个字段是必填的。
-创建数据模型实例时，必须为 password 提供一个值，否则会引发验证错误。
+创建数据模型实例时，必须为 字段 提供一个值，否则会引发验证错误。
 """
-class UserCreate(UserBase):
-    password: Optional[str] = Field(None, min_length=6)
 
 class UserResponse(UserBase):
-    id: int
+    nickname: str
+    role: UserRole
+    avatar_url: Optional[str] = None
+    phone: str
     is_active: bool
     created_at: datetime
     
@@ -33,19 +33,22 @@ class UserResponse(UserBase):
 
 class WechatUserCreate(BaseModel):
     """微信小程序用户创建模型"""
-    openid: str
-    unionid: Optional[str] = None
-    session_key: str
-    nickname: Optional[str] = None
-    avatar_url: Optional[str] = None
+    code: str
+    nickname: str
+    phone: str
     role: UserRole = Field(default=UserRole.ELDERLY)
+
+class WechatLoginRequest(BaseModel):
+    code: str
 
 class LoginResponse(BaseModel):
     """登录响应模型"""
     access_token: str
     token_type: str = "bearer"
+    role: UserRole
 
 class UserUpdate(BaseModel):
     """用户更新模型"""
     nickname: Optional[str] = None
     avatar_url: Optional[str] = None
+    phone: Optional[str] = None

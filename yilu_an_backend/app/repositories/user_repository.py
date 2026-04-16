@@ -48,14 +48,6 @@ class UserRepository:
         """根据openid获取用户"""
         return self.db.query(User).filter(User.openid == openid).first()
     
-    def get_by_unionid(self, unionid: str) -> Optional[User]:
-        """根据unionid获取用户"""
-        return self.db.query(User).filter(User.unionid == unionid).first()
-    
     def exists_by_openid(self, openid: str) -> bool:
         """检查openid是否已存在"""
         return self.db.query(User).filter(User.openid == openid).first() is not None
-    
-    def exists_by_unionid(self, unionid: str) -> bool:
-        """检查unionid是否已存在"""
-        return self.db.query(User).filter(User.unionid == unionid).first() is not None

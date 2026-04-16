@@ -1,0 +1,7 @@
+<view class="brand-info">
+  <view class="compass-icon">🧭</view>
+  <view class="brand-text">
+    <view class="app-name">颐路安</view>
+    <view class="app-slogan">您的智能出行助手</view>
+  </view>
+</view>

@@ -1,16 +1,18 @@
 {
   "pages": [
-    "elder/pages/index/index",
-    "elder/pages/profile/profile",
-    "elder/pages/editProfile/editProfile",
-    "elder/pages/home/home",
-    "elder/pages/navigate/navigate",
-    "elder/pages/favourites/favourites",
-    "elder/pages/contact/contact",
-    "guard/pages/places/places",
-    "guard/pages/records/records",
-    "guard/pages/map/map",
-    "guard/pages/elders/elders"
+    "elderly/pages/index/index",
+    "elderly/pages/profile/profile",
+    "elderly/pages/editProfile/editProfile",
+    "elderly/pages/home/home",
+    "elderly/pages/navigate/navigate",
+    "elderly/pages/favourites/favourites",
+    "elderly/pages/contact/contact",
+    "family/pages/places/places",
+    "family/pages/records/records",
+    "family/pages/map/map",
+    "family/pages/elders/elders",
+    "common/login/login",
+    "common/register/register"
   ],
   "window": {
     "navigationBarTextStyle": "black",

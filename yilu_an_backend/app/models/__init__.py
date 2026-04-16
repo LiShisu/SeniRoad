@@ -1,5 +1,5 @@
 # models/__init__.py
-from .user import User
+from .user import User, UserRole
 from .binding import Binding
 from .destination import Destination
 from .location import Location
@@ -10,6 +10,7 @@ from .voice_log import VoiceLog
 
 __all__ = [
     "User",
+    "UserRole",
     "Binding",
     "Destination",
     "Location",

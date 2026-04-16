@@ -1,6 +1,6 @@
 // 基础网络请求工具
-import { config } from './config';
-const BASE_URL = config.api.baseUrl; // 替换为实际的API地址
+import { getToken, wechatLogin } from './auth';
+const BASE_URL = 'http://localhost:8000'; // 替换为实际的API地址
 
 // 响应数据类型
 export interface ApiResponse<T = any> {
@@ -18,83 +18,7 @@ export interface RequestConfig {
   token?: boolean;
 }
 
-// 获取token
-const getToken = (): string | null => {
-  return wx.getStorageSync('access_token');
-};
 
-// 保存token
-const saveToken = (token: string): void => {
-  wx.setStorageSync('access_token', token);
-};
-
-// 保存用户信息
-const saveUserInfo = (userInfo: any): void => {
-  wx.setStorageSync('userInfo', userInfo);
-};
-
-// 微信登录并获取token
-const wechatLogin = async (): Promise<string> => {
-  // 显示加载提示
-  wx.showLoading({ title: '正在登录...' });
-  
-  try {
-    // 1. 调用微信登录接口获取code
-    const wxLoginResult = await new Promise<any>((resolve, reject) => {
-      wx.login({
-        success: resolve,
-        fail: reject,
-      });
-    });
-
-    // 2. 调用微信code2Session接口获取openid和session_key
-    const code2SessionResult = await new Promise<any>((resolve, reject) => {
-      wx.request({
-        url: `https://api.weixin.qq.com/sns/jscode2session`,
-        method: 'GET',
-        data: {
-          appid: config.wechat.appid,
-          secret: config.wechat.secret,
-          js_code: wxLoginResult.code,
-          grant_type: 'authorization_code'
-        },
-        success: resolve,
-        fail: reject
-      });
-    });
-
-    // 3. 获取用户信息
-    const userInfoResult = await new Promise<any>((resolve, reject) => {
-      wx.getUserProfile({
-        desc: '用于完善用户资料',
-        success: resolve,
-        fail: reject
-      });
-    });
-
-    // 4. 调用后端微信登录接口
-    const authApi = require('../api/auth').authApi;
-    const response = await authApi.wechatLogin(code2SessionResult.openid, code2SessionResult.session_key);
-
-    // 5. 保存token和用户信息
-    saveToken(response.access_token);
-    saveUserInfo({
-      ...userInfoResult.userInfo,
-      openid: code2SessionResult.openid
-    });
-
-    // 6. 隐藏加载提示
-    wx.hideLoading();
-    wx.showToast({ title: '登录成功', icon: 'success' });
-
-    return response.access_token;
-  } catch (error) {
-    // 隐藏加载提示
-    wx.hideLoading();
-    wx.showToast({ title: '登录失败', icon: 'none' });
-    throw error;
-  }
-};
 
 // 网络请求函数
 export const request = async <T = any>(config: RequestConfig): Promise<T> => {
@@ -151,6 +75,8 @@ export const request = async <T = any>(config: RequestConfig): Promise<T> => {
 
 // 便捷方法
 export const api = {
+//RequestConfig 是一个定义了所有请求选项（如 headers, timeout, data 等）的接口。
+//Omit<RequestConfig, 'url' | 'method'> 是 TypeScript 的一个工具类型，它的作用是从 RequestConfig 类型中排除（omit）掉 url 和 method 这两个属性。
   get: <T = any>(url: string, config?: Omit<RequestConfig, 'url' | 'method'>) => {
     return request<T>({ ...config, url, method: 'GET' });
   },

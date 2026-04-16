@@ -34,6 +34,11 @@ class Settings(BaseSettings):
     VOICE_MODEL: str = "paraformer-realtime-v2"
     TEXT_MODEL: str = "deepseek-ai/DeepSeek-V3.2"
     
+    # 微信小程序配置
+    WECHAT_APPID: str = ""
+    WECHAT_APPSECRET: str = ""
+    WECHAT_API_URL: str = "https://api.weixin.qq.com/sns/jscode2session"
+    
     model_config = {
         "env_file": ".env",
         # - 通过 env_file = ".env" 从 .env 文件加载环境变量

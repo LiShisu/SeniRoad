@@ -1,10 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from app.database import get_db
-from app.dependencies import get_current_active_user
-from app.repositories.user_repository import UserRepository
+from fastapi import APIRouter, Depends
+from app.dependencies import get_current_active_user, get_user_service
 from app.schemas.user import UserResponse, UserUpdate
 from app.models import User
-from sqlalchemy.orm import Session
+from app.services.user import UserService
 
 router = APIRouter()
 
@@ -19,32 +17,23 @@ async def get_profile(
 async def update_profile(
     user_update: UserUpdate,
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    user_service: UserService = Depends(get_user_service)
 ):
     """更新用户信息
     
+    Args:
+        user_update: 更新用户信息的请求体
     - nickname: 昵称（可选）
     - avatar_url: 头像URL（可选）
+    - phone: 手机号（可选）
     """
-    user_repo = UserRepository(db)
-    
-    # 更新用户信息
-    if user_update.nickname is not None:
-        current_user.nickname = user_update.nickname
-    if user_update.avatar_url is not None:
-        current_user.avatar_url = user_update.avatar_url
-    
-    updated_user = user_repo.update(current_user)
+    updated_user = user_service.update_user(current_user, user_update)
     return UserResponse.model_validate(updated_user)
 
 @router.get("/bindings")
 async def get_user_bindings(
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    user_service: UserService = Depends(get_user_service)
 ):
     """获取用户的绑定关系"""
-    # 这里可以根据实际的绑定关系实现
-    return {
-        "elderly_bindings": [binding.family for binding in current_user.bindings_elderly if binding.status == "accepted"],
-        "family_bindings": [binding.elderly for binding in current_user.bindings_family if binding.status == "accepted"]
-    }
+    return user_service.get_user_bindings(current_user)

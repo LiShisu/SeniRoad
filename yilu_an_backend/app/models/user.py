@@ -14,11 +14,9 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     phone = Column(String(20), unique=True, index=True, nullable=True)
     nickname = Column(String(50))
-    password = Column(String(255), nullable=True)
 
     # 微信小程序相关字段
     openid = Column(String(255), unique=True, index=True, nullable=True)
-    unionid = Column(String(255), unique=True, index=True, nullable=True)
     session_key = Column(String(255), nullable=True)
 
     role = Column(Enum(UserRole), nullable=False)

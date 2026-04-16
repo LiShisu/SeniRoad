@@ -8,7 +8,7 @@ from app.database import get_db
 from app.repositories import UserRepository
 from app.models import User
 from app.services.auth import AuthService
-from app.utils.security import create_access_token
+from app.services.user import UserService
 
 # OAuth2 密码流配置
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=settings.OAUTH2_TOKEN_URL)
@@ -98,3 +98,16 @@ def get_auth_service(user_repo: UserRepository = Depends(get_user_repository)):
         AuthService: 认证服务实例
     """
     return AuthService(user_repo)
+
+def get_user_service(user_repo: UserRepository = Depends(get_user_repository)):
+    """获取用户服务
+    
+    创建并返回用户服务实例
+    
+    Args:
+        user_repo: 用户仓库实例
+    
+    Returns:
+        UserService: 用户服务实例
+    """
+    return UserService(user_repo)

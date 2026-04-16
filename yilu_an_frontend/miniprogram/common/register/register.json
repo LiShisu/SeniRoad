@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "logo": "/components/logo/logo",
+    "required-mark": "/components/required-mark/required-mark"
+  }
+}

@@ -1,8 +1,8 @@
 {
   "libVersion": "2.32.3",
-  "projectname": "%E9%A2%90%E8%B7%AF%E5%AE%89",
+  "projectname": "yilu_an_frontend",
   "setting": {
-    "urlCheck": true,
+    "urlCheck": false,
     "coverView": false,
     "lazyloadPlaceholderEnable": false,
     "skylineRenderEnable": true,
@@ -19,5 +19,17 @@
     "checkInvalidKey": true,
     "ignoreDevUnusedFiles": true
   },
-  "condition": {}
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "common/login/login",
+          "pathName": "common/login/login",
+          "query": "",
+          "scene": null,
+          "launchMode": "default"
+        }
+      ]
+    }
+  }
 }

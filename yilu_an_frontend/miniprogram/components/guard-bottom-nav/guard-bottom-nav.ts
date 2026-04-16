@@ -15,14 +15,14 @@ Component({
    */
   data: {
     // 首页相关配置
-    homeIcon: '/guard/images/home.png',
-    homeActiveIcon: '/guard/images/home_active.png',
+    homeIcon: '/family/images/home.png',
+    homeActiveIcon: '/family/images/home_active.png',
     // 位置相关配置
-    locationIcon: '/guard/images/map.png',
-    locationActiveIcon: '/guard/images/map_active.png',
+    locationIcon: '/family/images/map.png',
+    locationActiveIcon: '/family/images/map_active.png',
     // 个人中心相关配置
-    profileIcon: '/guard/images/profile.png',
-    profileActiveIcon: '/guard/images/profile_active.png'
+    profileIcon: '/family/images/profile.png',
+    profileActiveIcon: '/family/images/profile_active.png'
   },
 
   /**

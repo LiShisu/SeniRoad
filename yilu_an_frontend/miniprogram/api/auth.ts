@@ -18,11 +18,11 @@ export interface LoginParams {
 
 // 微信用户注册请求参数
 export interface WechatUserCreate {
-  openid: string;
-  session_key: string;
+  code: string;
+  role: 'elderly' | 'family';
   nickname?: string;
   avatar_url?: string;
-  role?: 'elderly' | 'family';
+  phone: string;
 }
 
 // 用户信息响应
@@ -40,6 +40,7 @@ export interface UserInfo {
 export interface LoginResponse {
   access_token: string;
   token_type: string;
+  role: 'elderly' | 'family';
 }
 
 // 认证相关API
@@ -60,7 +61,7 @@ export const authApi = {
   },
   
   // 微信登录
-  wechatLogin: (openid: string, session_key: string) => {
-    return api.post<LoginResponse>('/api/v1/auth/wechat/login', { openid, session_key }, { token: false });
+  wechatLogin: (code: string) => {
+    return api.post<LoginResponse>('/api/v1/auth/wechat/login', { code }, { token: false });
   },
 };
