@@ -1,4 +1,4 @@
-<!-- elder/pages/register/register.wxml -->
+<!-- elderly/pages/register/register.wxml -->
 <view class="container">
   <view class="register-form">
     <logo />

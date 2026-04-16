@@ -24,3 +24,5 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+
+miniprogram/elderly/pages/editProfile copy/

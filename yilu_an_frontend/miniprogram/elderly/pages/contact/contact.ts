@@ -1,4 +1,4 @@
-// elder/pages/contact/contact.ts
+// elderly/pages/contact/contact.ts
 Page({
 
   /**

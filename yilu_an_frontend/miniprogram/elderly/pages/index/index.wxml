@@ -1,4 +1,4 @@
-<!--elder/pages/index/index.wxml-->
+<!--elderly/pages/index/index.wxml-->
 <view class="container">
   <!-- 顶部信息区 -->
   <view class="header">
@@ -8,7 +8,7 @@
   <!-- 核心功能区域 -->
   <view class="function-area">
     <!-- 导航出门按钮 -->
-    <navigator url="/elder/pages/navigate/navigate" class="function-button orange">
+    <navigator url="/elderly/pages/navigate/navigate" class="function-button orange">
       <view class="button-content">
         <image class="button-icon" src="/assets/svg/navigation-icon.svg" mode="aspectFit" />
         <view class="button-text">导航出门</view>
@@ -17,7 +17,7 @@
     </navigator>
 
     <!-- 个人中心按钮 -->
-    <navigator url="/elder/pages/profile/profile" class="function-button green">
+    <navigator url="/elderly/pages/profile/profile" class="function-button green">
       <view class="button-content">
         <image class="button-icon" src="/assets/svg/user-icon.svg" mode="aspectFit" />
         <view class="button-text">个人中心</view>
@@ -26,7 +26,7 @@
     </navigator>
 
     <!-- 联系家属按钮 -->
-    <navigator url="/elder/pages/contact/contact" class="function-button blue">
+    <navigator url="/elderly/pages/contact/contact" class="function-button blue">
       <view class="button-content">
         <image class="button-icon" src="/assets/svg/phone-icon.svg" mode="aspectFit" />
         <view class="button-text">联系家属</view>

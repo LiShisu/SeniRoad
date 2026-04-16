@@ -34,23 +34,10 @@
   
   <!-- 表单卡片 -->
   <view class="form-card" style="transform: translateY({{animation.formCardTop}}rpx);">
-    
-    <!-- 姓名 -->
-    <view class="form-item">
-      <view class="form-label">姓名*</view>
-      <input 
-        class="form-input" 
-        value="{{formData.name}}" 
-        data-field="name"
-        bindinput="onInputChange"
-        placeholder="请输入姓名"
-        placeholder-style="color: #888; font-size: 36rpx;"
-      />
-    </view>
 
     <!-- 昵称 -->
     <view class="form-item">
-      <view class="form-label">昵称</view>
+      <view class="form-label">昵称<required-mark /></view>
       <input 
         class="form-input" 
         value="{{formData.nickname}}" 
@@ -63,7 +50,7 @@
 
     <!-- 性别 -->
     <view class="form-item">
-      <view class="form-label">性别*</view>
+      <view class="form-label">性别</view>
       <view class="gender-selector">
         <view class="gender-option {{formData.gender === '男' ? 'active' : ''}}" bindtap="selectGender" data-gender="男">
           <text class="gender-text">男</text>
@@ -76,7 +63,7 @@
 
     <!-- 生日 -->
     <view class="form-item">
-      <view class="form-label">生日*</view>
+      <view class="form-label">生日</view>
       <view class="picker-container">
         <view class="picker-trigger" bindtap="showDatePicker">
           <view class="picker-value">{{birthdayDisplay}}</view>
@@ -87,7 +74,7 @@
 
     <!-- 电话 -->
     <view class="form-item">
-      <view class="form-label">电话*</view>
+      <view class="form-label">电话<required-mark /></view>
       <input 
         class="form-input" 
         value="{{formData.phone}}" 
@@ -98,25 +85,6 @@
         placeholder="请输入手机号"
         placeholder-style="color: #888; font-size: 36rpx;"
       />
-    </view>
-
-    <!-- 密码 -->
-    <view class="form-item">
-      <view class="form-label">登录密码</view>
-      <view class="password-input-container">
-        <input 
-          class="form-input password-input" 
-          value="{{formData.password}}" 
-          data-field="password"
-          bindinput="onInputChange"
-          password="{{!showPassword}}"
-          placeholder="请输入新密码"
-          placeholder-style="color: #888; font-size: 36rpx;"
-        />
-        <view class="password-toggle" bindtap="togglePassword">
-          <image class="password-toggle-icon" src="{{showPassword ? '/assets/svg/eye-visible.svg' : '/assets/svg/eye-hidden.svg'}}" mode="aspectFit" />
-        </view>
-      </view>
     </view>
 
   </view>

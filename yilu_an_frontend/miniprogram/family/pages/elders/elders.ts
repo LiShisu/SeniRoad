@@ -1,4 +1,4 @@
-// guard/pages/elders/elders.ts
+// family/pages/elders/elders.ts
 import { checkAndRedirect } from '../../../utils/auth'
 
 Page({

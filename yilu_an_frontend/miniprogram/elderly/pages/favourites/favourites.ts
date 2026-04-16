@@ -1,4 +1,4 @@
-// elder/pages/favourites/favourites.ts
+// elderly/pages/favourites/favourites.ts
 import { checkAndRedirect } from '../../../utils/auth'
 
 Page({

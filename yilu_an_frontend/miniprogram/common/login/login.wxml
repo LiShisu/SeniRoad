@@ -1,4 +1,4 @@
-<!-- elder/pages/login/login.wxml -->
+<!-- elderly/pages/login/login.wxml -->
 <view class="container">
   <view class="login-form">
     <logo />

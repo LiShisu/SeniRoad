@@ -1,4 +1,4 @@
-// guard/pages/records/records.ts
+// family/pages/records/records.ts
 import { checkAndRedirect } from '../../../utils/auth'
 
 Page({

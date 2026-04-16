@@ -1,5 +1,6 @@
 {
   "usingComponents": {
-    "elder-date-picker": "/components/elder-date-picker/elder-date-picker"
+    "elder-date-picker": "/components/elder-date-picker/elder-date-picker",
+    "required-mark": "/components/required-mark/required-mark"
   }
 }

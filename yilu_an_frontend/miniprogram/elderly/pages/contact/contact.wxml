@@ -1,4 +1,4 @@
-<!--elder/pages/contact/contact.wxml-->
+<!--elderly/pages/contact/contact.wxml-->
 <view class="container">
   <view class="header">
     <view class="back-button" bindtap="goBack">

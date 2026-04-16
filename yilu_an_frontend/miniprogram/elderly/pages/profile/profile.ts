@@ -5,7 +5,6 @@ import { userApi } from '../../../api/user'
 Page({
   data: {
     userInfo: {
-      id: 0,
       phone: '',
       nickname: '',
       role: '',
@@ -13,14 +12,6 @@ Page({
       is_active: false,
       created_at: ''
     },
-    menus: [
-      {
-        id: 1,
-        icon: '../../images/settings.png',
-        text: '设置',
-        badge: ''
-      }
-    ],
     loading: false
   },
 
@@ -120,7 +111,6 @@ Page({
         if (res.confirm) {
           // 清除登录状态
           wx.removeStorageSync('access_token')
-          wx.removeStorageSync('userInfo')
           wx.removeStorageSync('userType')
           
           // 跳转到登录页面

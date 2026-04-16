@@ -1,4 +1,4 @@
-// elder/pages/index/index.ts
+// elderly/pages/index/index.ts
 import { checkLoginStatus } from '../../../utils/auth';
 
 Page({

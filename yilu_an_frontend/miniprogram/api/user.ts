@@ -8,7 +8,7 @@ export interface UpdateUserParams {
   avatar_url?: string;
   gender?: '男' | '女';
   birthday?: string;
-  password?: string;
+  phone?: string;
 }
 
 // 绑定关系

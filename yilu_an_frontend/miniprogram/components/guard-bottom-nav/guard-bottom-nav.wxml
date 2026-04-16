@@ -1,13 +1,13 @@
 <view class="bottom-nav">
-  <navigator url="/guard/pages/index/index" class="nav-item {{activeItem === 'home' ? 'active' : ''}}">
+  <navigator url="/family/pages/index/index" class="nav-item {{activeItem === 'home' ? 'active' : ''}}">
     <image src="{{activeItem === 'home' ? homeActiveIcon : homeIcon}}" class="nav-icon"></image>
     <text class="nav-text">首页</text>
   </navigator>
-  <navigator url="/guard/pages/map/map" class="nav-item {{activeItem === 'location' ? 'active' : ''}}">
+  <navigator url="/family/pages/map/map" class="nav-item {{activeItem === 'location' ? 'active' : ''}}">
     <image src="{{activeItem === 'location' ? locationActiveIcon : locationIcon}}" class="nav-icon"></image>
     <text class="nav-text">实时位置</text>
   </navigator>
-  <navigator url="/guard/pages/index/index" class="nav-item {{activeItem === 'profile' ? 'active' : ''}}">
+  <navigator url="/family/pages/index/index" class="nav-item {{activeItem === 'profile' ? 'active' : ''}}">
     <image src="{{activeItem === 'profile' ? profileActiveIcon : profileIcon}}" class="nav-icon"></image>
     <text class="nav-text">个人中心</text>
   </navigator>

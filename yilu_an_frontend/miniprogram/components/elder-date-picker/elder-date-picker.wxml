@@ -1,4 +1,4 @@
-<!-- elder-date-picker.wxml -->
+<!-- elderly-date-picker.wxml -->
 <!-- 遮罩层 -->
 <view class="date-picker-mask" wx:if="{{visible}}" bindtap="onCancel"></view>
 

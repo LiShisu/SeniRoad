@@ -1,4 +1,4 @@
-<!--guard/pages/map/map.wxml-->
+<!--family/pages/map/map.wxml-->
 <view class="container">
   <view class="map-container">
     <image src="../../images/map_placeholder.png" class="map-image"></image>

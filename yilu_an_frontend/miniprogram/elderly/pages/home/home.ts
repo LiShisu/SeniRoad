@@ -1,4 +1,4 @@
-// elder/pages/home/home.ts
+// elderly/pages/home/home.ts
 import { checkAndRedirect } from '../../../utils/auth'
 
 Page({

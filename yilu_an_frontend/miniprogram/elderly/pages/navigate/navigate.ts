@@ -1,4 +1,4 @@
-// elder/pages/navigate/navigate.ts
+// elderly/pages/navigate/navigate.ts
 Page({
 
   /**

@@ -20,7 +20,6 @@
     </view>
       <view class="user-info">
         <text class="user-name">{{userInfo.nickname}}</text>
-        <text class="user-id">ID: {{userInfo.id}}</text>
       </view>
     </view>
   </view>

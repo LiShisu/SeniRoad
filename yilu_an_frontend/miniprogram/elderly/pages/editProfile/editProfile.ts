@@ -5,20 +5,16 @@ import { userApi } from '../../../api/user'
 Page({
   data: {
     formData: {
-      name: '',
       nickname: '',
-      gender: '男',
+      gender: '女',
       birthday: '',
       phone: '',
-      password: '',
       avatar: ''
     },
     loading: false,
     // 用于性别 Picker 的数据
     genderRange: ['男', '女'],
     genderIndex: 0,
-    // 密码显示状态
-    showPassword: true,
     // 触摸事件相关数据
     touchStartY: 0,
     touchMoveY: 0,
@@ -51,13 +47,11 @@ Page({
       const userInfo = await userApi.getProfile()
       this.setData({
         formData: {
-          name: userInfo.nickname,
           nickname: userInfo.nickname,
           phone: userInfo.phone,
           avatar: userInfo.avatar_url || '',
-          gender: '男',
+          gender: '女',
           birthday: '',
-          password: ''
         }
       })
       this.updateBirthdayDisplay();
@@ -90,13 +84,6 @@ Page({
     this.setData({
       'formData.gender': gender,
       genderIndex: gender === '男' ? 0 : 1
-    });
-  },
-  
-  // 切换密码显示状态
-  togglePassword() {
-    this.setData({
-      showPassword: !this.data.showPassword
     });
   },
 
@@ -145,7 +132,7 @@ Page({
 
   // 保存表单
   async onSave() {
-    const { nickname, phone, avatar } = this.data.formData;
+    const { nickname, phone, avatar, gender, birthday } = this.data.formData;
     
     // 简单的验证
     if (!nickname.trim()) {
@@ -162,7 +149,10 @@ Page({
       // 调用更新用户信息接口
       await userApi.updateProfile({
         nickname: nickname,
-        avatar_url: avatar
+        avatar_url: avatar,
+        phone: phone,
+        gender: gender as '男' | '女',
+        birthday: birthday,
       });
 
       wx.showToast({ title: '保存成功', icon: 'success' });
@@ -283,6 +273,7 @@ Page({
   },
 
   // 上传头像
+  // TODO: 实际项目中应该调用上传接口，将图片上传到服务器
   uploadAvatar() {
     wx.showLoading({ title: '上传中...' });
     

@@ -1,4 +1,4 @@
-// guard/pages/places/places.ts
+// family/pages/places/places.ts
 import { checkAndRedirect } from '../../../utils/auth'
 
 Page({

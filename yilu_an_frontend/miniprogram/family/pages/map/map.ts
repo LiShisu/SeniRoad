@@ -1,4 +1,4 @@
-// guard/pages/map/map.ts
+// family/pages/map/map.ts
 import { checkAndRedirect } from '../../../utils/auth'
 
 Page({

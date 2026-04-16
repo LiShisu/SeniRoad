@@ -8,6 +8,7 @@ class UserRole(enum.Enum):
     ELDERLY = "elderly"
     FAMILY = "family"
 
+# TODO: 完善用户模型，添加性别、生日字段
 class User(Base):
     __tablename__ = "users"
     

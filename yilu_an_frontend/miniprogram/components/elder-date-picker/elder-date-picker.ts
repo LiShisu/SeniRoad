@@ -1,4 +1,4 @@
-// elder-date-picker.ts
+// elderly-date-picker.ts
 Component({
   properties: {
     visible: {
