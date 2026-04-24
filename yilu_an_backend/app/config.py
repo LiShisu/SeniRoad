@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     
     # API密钥
     AMAP_API_KEY: str = ""
+    TENCENT_MAP_API_KEY: str = ""
     
     # JWT配置
     JWT_SECRET_KEY: str = "your-secret-key"
@@ -19,7 +20,7 @@ class Settings(BaseSettings):
     WS_HEARTBEAT_INTERVAL: int = 30
     
     # OAuth2配置
-    OAUTH2_TOKEN_URL: str = "/api/v1/auth/login"
+    OAUTH2_TOKEN_URL: str = "/api/v1/auth/wechat/login"
     
     # CORS配置
     CORS_ORIGINS: list = ["*"]  # 生产环境应该指定具体域名

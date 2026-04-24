@@ -10,10 +10,7 @@ from .location import (
     LocationUpdate,
 )
 
-from .destination import (
-    DestinationCreate,
-    DestinationResponse,
-)
+
 
 from .binding import (
     BindingCreate,
@@ -21,11 +18,6 @@ from .binding import (
     BindingUnbind,
 )
 
-from .device import (
-    DeviceCreate,
-    DeviceUpdate,
-    DeviceResponse,
-)
 
 from .favorite_place import (
     FavoritePlaceCreate,
@@ -52,17 +44,11 @@ __all__ = [
     "LocationCreate",
     "LocationResponse",
     "LocationUpdate",
-    # Destination
-    "DestinationCreate",
-    "DestinationResponse",
+
     # Binding
     "BindingCreate",
     "BindingResponse",
     "BindingUnbind",
-    # Device
-    "DeviceCreate",
-    "DeviceUpdate",
-    "DeviceResponse",
     # FavoritePlace
     "FavoritePlaceCreate",
     "FavoritePlaceUpdate",

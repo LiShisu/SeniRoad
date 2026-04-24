@@ -52,9 +52,9 @@ async def list_bindings(
     
     # 根据用户角色获取绑定关系
     if current_user.role == "elderly":
-        bindings = binding_repo.get_by_elderly_id(current_user.id)
+        bindings = binding_repo.get_by_elderly_id(current_user.user_id)
     else:  # family
-        bindings = binding_repo.get_by_family_id(current_user.id)
+        bindings = binding_repo.get_by_family_id(current_user.user_id)
     
     return [BindingResponse.model_validate(binding) for binding in bindings]
 
@@ -84,7 +84,7 @@ async def unbind(
         )
     
     # 检查用户是否有权限解除绑定
-    if current_user.id not in [binding.elderly_id, binding.family_id]:
+    if current_user.user_id not in [binding.elderly_id, binding.family_id]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="无权解除此绑定关系"
@@ -110,7 +110,7 @@ async def approve_binding(
         )
     
     # 只有老人可以批准绑定请求
-    if binding.elderly_id != current_user.id:
+    if binding.elderly_id != current_user.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="只有老人可以批准绑定请求"
@@ -139,7 +139,7 @@ async def reject_binding(
         )
     
     # 只有老人可以拒绝绑定请求
-    if binding.elderly_id != current_user.id:
+    if binding.elderly_id != current_user.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="只有老人可以拒绝绑定请求"

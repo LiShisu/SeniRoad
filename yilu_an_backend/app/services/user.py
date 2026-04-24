@@ -1,5 +1,6 @@
 from app.repositories.user_repository import UserRepository
 from app.models import User
+from app.models.user import UserRole
 from app.schemas.user import UserUpdate
 
 class UserService:
@@ -15,6 +16,10 @@ class UserService:
         # 更新用户信息
         if user_update.nickname is not None:
             user.nickname = user_update.nickname
+        if user_update.gender is not None:
+            user.gender = user_update.gender
+        if user_update.birthday is not None:
+            user.birthday = user_update.birthday
         if user_update.avatar_url is not None:
             user.avatar_url = user_update.avatar_url
         if user_update.phone is not None:

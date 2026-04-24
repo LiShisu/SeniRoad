@@ -8,7 +8,7 @@ class UserRepository:
     
     def get_by_id(self, user_id: int) -> Optional[User]:
         """根据ID获取用户"""
-        return self.db.query(User).filter(User.id == user_id).first()
+        return self.db.query(User).filter(User.user_id == user_id).first()
     
     def get_by_phone(self, phone: str) -> Optional[User]:
         """根据手机号获取用户"""

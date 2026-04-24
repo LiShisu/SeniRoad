@@ -9,7 +9,7 @@ class BindingRepository:
     
     def get_by_id(self, binding_id: int) -> Optional[Binding]:
         """根据ID获取绑定关系"""
-        return self.db.query(Binding).filter(Binding.id == binding_id).first()
+        return self.db.query(Binding).filter(Binding.binding_id == binding_id).first()
     
     def get_by_elderly_id(self, elderly_id: int) -> List[Binding]:
         """根据老人ID获取绑定关系"""

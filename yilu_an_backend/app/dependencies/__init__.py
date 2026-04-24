@@ -11,8 +11,6 @@ from app.dependencies.auth import (
 )
 from app.utils.security import create_access_token
 from app.dependencies.services import (
-    get_device_repository,
-    get_device_service,
     get_navigation_record_repository,
     get_navigation_record_service,
     get_voice_log_repository,
@@ -28,8 +26,6 @@ __all__ = [
     "get_user_repository",
     "get_auth_service",
     "get_user_service",
-    "get_device_repository",
-    "get_device_service",
     "get_navigation_record_repository",
     "get_navigation_record_service",
     "get_voice_log_repository",

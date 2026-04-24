@@ -2,8 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.services.navigation import NavigationService
 from app.services.ai_parser import AIParserService
 from app.dependencies import get_current_active_user
-from app.repositories.destination_repository import DestinationRepository
-from app.schemas.destination import DestinationResponse
 from app.models import User
 from app.database import get_db
 from sqlalchemy.orm import Session
@@ -49,13 +47,3 @@ async def plan_route(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"规划路线失败: {str(e)}"
         )
-
-@router.get("/common-destinations", response_model=List[DestinationResponse])
-async def get_common_destinations(
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
-):
-    """获取常用地点列表"""
-    dest_repo = DestinationRepository(db)
-    destinations = dest_repo.get_common_destinations(current_user.id)
-    return [DestinationResponse.model_validate(dest) for dest in destinations]

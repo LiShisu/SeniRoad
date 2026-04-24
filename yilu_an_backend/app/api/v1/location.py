@@ -25,7 +25,7 @@ async def update_location(
     """
     location_repo = LocationRepository(db)
     location = location_repo.create_location(
-        user_id=current_user.id,
+        user_id=current_user.user_id,
         latitude=location_data.latitude,
         longitude=location_data.longitude,
         address=location_data.address,
@@ -49,7 +49,7 @@ async def get_location_history(
     """
     location_repo = LocationRepository(db)
     locations = location_repo.get_by_user_id(
-        user_id=current_user.id,
+        user_id=current_user.user_id,
         start_time=start_time,
         end_time=end_time,
         limit=limit
@@ -63,7 +63,7 @@ async def get_latest_location(
 ):
     """获取最新位置"""
     location_repo = LocationRepository(db)
-    location = location_repo.get_latest_by_user_id(current_user.id)
+    location = location_repo.get_latest_by_user_id(current_user.user_id)
     if not location:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

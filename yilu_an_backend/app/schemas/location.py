@@ -15,7 +15,7 @@ class LocationUpdate(LocationBase):
     pass
 
 class LocationResponse(LocationBase):
-    id: int
+    location_id: int
     user_id: int
     created_at: datetime
     

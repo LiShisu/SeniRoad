@@ -1,15 +1,16 @@
-# 数据访问层（Repositories）
-# 负责封装数据库CRUD操作，与Spring Boot的Repository层对应
-
-from app.repositories.user_repository import UserRepository
-from app.repositories.location_repository import LocationRepository
-from app.repositories.destination_repository import DestinationRepository
-from app.repositories.binding_repository import BindingRepository
+# repositories/__init__.py
+from . import elderly_family_binding
+from . import elderly_location
+from . import elderly_favorite_places
+from . import navigation_stats
+from . import voice_interaction_logs
+from .user_repository import UserRepository
 
 __all__ = [
-    "UserRepository",
-    "LocationRepository",
-    "DestinationRepository",
-    "BindingRepository"
+    "elderly_family_binding",
+    "elderly_location",
+    "elderly_favorite_places",
+    "navigation_stats",
+    "voice_interaction_logs",
+    "UserRepository"
 ]
-

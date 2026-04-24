@@ -12,6 +12,10 @@ from app.services.user import UserService
 
 # OAuth2 密码流配置
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=settings.OAUTH2_TOKEN_URL)
+### tokenUrl 的主要作用
+# - API 文档生成 ：用于在 Swagger UI 中生成认证按钮，方便测试
+# - 客户端指导 ：告诉客户端应该向哪个端点请求令牌
+# - 不参与令牌验证 ：它本身不参与令牌的验证过程   
 
 async def get_current_user(
     token: str = Depends(oauth2_scheme),

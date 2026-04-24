@@ -1,6 +1,9 @@
 // 基础网络请求工具
 import { getToken, wechatLogin } from './auth';
 const BASE_URL = 'http://localhost:8000'; // 替换为实际的API地址
+// const BASE_URL = 'http://qe9fd263.natappfree.cc';
+
+
 
 // 响应数据类型
 export interface ApiResponse<T = any> {

@@ -16,20 +16,21 @@
       
     </navigator>
 
-    <!-- 个人中心按钮 -->
-    <navigator url="/elderly/pages/profile/profile" class="function-button green">
-      <view class="button-content">
-        <image class="button-icon" src="/assets/svg/user-icon.svg" mode="aspectFit" />
-        <view class="button-text">个人中心</view>
-      </view>
-      
-    </navigator>
-
     <!-- 联系家属按钮 -->
     <navigator url="/elderly/pages/contact/contact" class="function-button blue">
       <view class="button-content">
         <image class="button-icon" src="/assets/svg/phone-icon.svg" mode="aspectFit" />
         <view class="button-text">联系家属</view>
+      </view>
+      
+    </navigator>
+
+    <!-- TODO:改成系统设置页面 -->
+    <!-- 个人中心按钮 -->
+    <navigator url="/elderly/pages/profile/profile" class="function-button green">
+      <view class="button-content">
+        <image class="button-icon" src="/assets/svg/user-icon.svg" mode="aspectFit" />
+        <view class="button-text">个人中心</view>
       </view>
       
     </navigator>

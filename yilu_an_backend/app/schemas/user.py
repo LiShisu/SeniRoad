@@ -11,6 +11,8 @@ class UserBase(BaseModel):
     phone: Optional[str] = Field(None, min_length=11, max_length=20)
     nickname: Optional[str] = None
     role: UserRole = Field(default=UserRole.ELDERLY)
+    gender: Optional[int] = Field(None, ge=0, le=9)
+    birthday: Optional[str] = None
     avatar_url: Optional[str] = None
     # 微信小程序相关字段
     openid: Optional[str] = None
@@ -23,6 +25,8 @@ class UserBase(BaseModel):
 class UserResponse(UserBase):
     nickname: str
     role: UserRole
+    gender: Optional[int] = None
+    birthday: Optional[str] = None
     avatar_url: Optional[str] = None
     phone: str
     is_active: bool
@@ -50,5 +54,7 @@ class LoginResponse(BaseModel):
 class UserUpdate(BaseModel):
     """用户更新模型"""
     nickname: Optional[str] = None
+    gender: Optional[int] = Field(None, ge=0, le=9)
+    birthday: Optional[str] = None
     avatar_url: Optional[str] = None
     phone: Optional[str] = None

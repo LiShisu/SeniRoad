@@ -13,7 +13,7 @@ class BindingCreate(BaseModel):
     family_id: int
 
 class BindingResponse(BaseModel):
-    id: int
+    binding_id: int
     elderly_id: int
     family_id: int
     status: BindingStatus

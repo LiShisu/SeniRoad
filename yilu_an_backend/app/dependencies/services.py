@@ -1,42 +1,17 @@
 from sqlalchemy.orm import Session
 from fastapi import Depends
 from app.database import get_db
-from app.repositories.device_repository import DeviceRepository
+
 from app.repositories.navigation_record_repository import NavigationRecordRepository
 from app.repositories.voice_log_repository import VoiceLogRepository
-from app.services.device import DeviceService
+from app.repositories.user_repository import UserRepository
+from app.repositories.binding_repository import BindingRepository
+from app.repositories.location_repository import LocationRepository
 from app.services.navigation_record import NavigationRecordService
 from app.services.voice_log import VoiceLogService
+from app.services.user import UserService
 from app.services.ai_parser import AIParserService
 from app.services.navigation import NavigationService
-
-# Device 相关依赖
-def get_device_repository(db: Session = Depends(get_db)):
-    """获取设备仓库
-    
-    创建并返回设备仓库实例
-    
-    Args:
-        db: 数据库会话
-    
-    Returns:
-        DeviceRepository: 设备仓库实例
-    """
-    return DeviceRepository(db)
-
-def get_device_service(device_repo: DeviceRepository = Depends(get_device_repository)):
-    """获取设备服务
-    
-    创建并返回设备服务实例
-    
-    Args:
-        device_repo: 设备仓库实例
-    
-    Returns:
-        DeviceService: 设备服务实例
-    """
-    return DeviceService(device_repo)
-
 
 
 # NavigationRecord 相关依赖
@@ -114,3 +89,58 @@ def get_navigation_service():
         NavigationService: 导航服务实例
     """
     return NavigationService()
+
+# User 相关依赖
+def get_user_repository(db: Session = Depends(get_db)):
+    """获取用户仓库
+    
+    创建并返回用户仓库实例
+    
+    Args:
+        db: 数据库会话
+    
+    Returns:
+        UserRepository: 用户仓库实例
+    """
+    return UserRepository(db)
+
+def get_user_service(user_repo: UserRepository = Depends(get_user_repository)):
+    """获取用户服务
+    
+    创建并返回用户服务实例
+    
+    Args:
+        user_repo: 用户仓库实例
+    
+    Returns:
+        UserService: 用户服务实例
+    """
+    return UserService(user_repo)
+
+# Binding 相关依赖
+def get_binding_repository(db: Session = Depends(get_db)):
+    """获取绑定仓库
+    
+    创建并返回绑定仓库实例
+    
+    Args:
+        db: 数据库会话
+    
+    Returns:
+        BindingRepository: 绑定仓库实例
+    """
+    return BindingRepository(db)
+
+# Location 相关依赖
+def get_location_repository(db: Session = Depends(get_db)):
+    """获取位置仓库
+    
+    创建并返回位置仓库实例
+    
+    Args:
+        db: 数据库会话
+    
+    Returns:
+        LocationRepository: 位置仓库实例
+    """
+    return LocationRepository(db)

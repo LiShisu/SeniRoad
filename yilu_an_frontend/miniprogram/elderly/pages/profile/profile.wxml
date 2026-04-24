@@ -30,7 +30,7 @@
     <view class="menu-section">
       <view class="menu-item" bindtap="handleMenuClick" data-id="1">
         <view class="menu-left">
-          <text class="menu-text">设置</text>
+          <text class="menu-text">编辑信息</text>
         </view>
       </view>
     </view>

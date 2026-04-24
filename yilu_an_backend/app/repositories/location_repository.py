@@ -9,7 +9,7 @@ class LocationRepository:
     
     def get_by_id(self, location_id: int) -> Optional[Location]:
         """根据ID获取位置"""
-        return self.db.query(Location).filter(Location.id == location_id).first()
+        return self.db.query(Location).filter(Location.location_id == location_id).first()
     
     def get_by_user_id(self, user_id: int, limit: int = 100) -> List[Location]:
         """根据用户ID获取位置列表"""
