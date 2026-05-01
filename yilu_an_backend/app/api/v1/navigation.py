@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.services.navigation import NavigationService
-from app.services.ai_parser import AIParserService
+from app.agent.destination_parse_agent import DestinationParseAgent
 from app.dependencies import get_current_active_user
 from app.models import User
 from app.database import get_db
@@ -14,7 +14,7 @@ async def plan_route(
     request: dict,
     current_user: User = Depends(get_current_active_user),
     nav_service: NavigationService = Depends(),
-    ai_parser: AIParserService = Depends()
+    destination_agent: DestinationParseAgent = Depends()
 ):
     """规划导航路线
     
@@ -33,11 +33,13 @@ async def plan_route(
                 detail="起点和终点不能为空"
             )
         
-        # 如果目的地是名称，尝试解析
         if not "," in destination:
-            parsed_result = await ai_parser.parse_destination(destination)
-            # 这里需要根据实际的AI解析结果格式进行处理
-            # 暂时假设解析结果包含坐标
+            parsed_result = destination_agent.process_text_input(destination)
+            if "error" not in parsed_result:
+                destination = parsed_result.get("destination", destination)
+            else:
+                destination = "116.397428,39.90923"
+        else:
             destination = "116.397428,39.90923"
         
         route_data = await nav_service.plan_route(origin, destination, priority)

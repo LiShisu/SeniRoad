@@ -13,20 +13,20 @@ class DestinationParseAgent:
             audio_file_path: 音频文件路径
 
         Returns:
-            Dict: 包含解析结果的字典，格式为 {"destination": "目的地名称或地址"}
+            Dict: 包含解析结果的字典，格式为 {"voice_text": "语音转文本结果", "destination": "目的地名称或地址"}
         """
         try:
             # 1. 语音转文本
             voice_text = speech_to_text(audio_file_path)
             if voice_text == "ASR Error":
-                return {"destination": "", "error": "语音解析失败"}
+                return {"voice_text": "", "destination": "", "error": "语音解析失败"}
 
             # 2. 解析文本获取目的地
             destination = self._parse_destination(voice_text)
             
-            return {"destination": destination}
+            return {"voice_text": voice_text, "destination": destination}
         except Exception as e:
-            return {"destination": "", "error": str(e)}
+            return {"voice_text": "", "destination": "", "error": str(e)}
     
     def _parse_destination(self, text: str) -> str:
         """从文本中解析目的地

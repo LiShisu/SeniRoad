@@ -1,16 +1,15 @@
-# repositories/__init__.py
-from . import elderly_family_binding
-from . import elderly_location
-from . import elderly_favorite_places
-from . import navigation_stats
-from . import voice_interaction_logs
 from .user_repository import UserRepository
+from .binding_repository import BindingRepository
+from .location_repository import LocationRepository
+from .navigation_record_repository import NavigationRecordRepository
+from .voice_log_repository import VoiceLogRepository
+from .favorite_place_repository import FavoritePlaceRepository
 
 __all__ = [
-    "elderly_family_binding",
-    "elderly_location",
-    "elderly_favorite_places",
-    "navigation_stats",
-    "voice_interaction_logs",
-    "UserRepository"
+    "UserRepository",
+    "BindingRepository",
+    "LocationRepository",
+    "NavigationRecordRepository",
+    "VoiceLogRepository",
+    "FavoritePlaceRepository"
 ]

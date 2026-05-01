@@ -9,7 +9,7 @@ class FavoritePlaceBase(BaseModel):
     longitude: Decimal = Field(..., ge=-180, le=180, description="经度")
     address: str = Field(..., min_length=1, max_length=500, description="详细地址")
     source_type: int = Field(1, ge=1, le=2, description="来源: 1-家属预设, 2-自动识别")
-    is_active: int = Field(1, ge=0, le=1, description="是否激活")
+    is_active: bool = Field(True, description="是否激活")
 
 class FavoritePlaceCreate(FavoritePlaceBase):
     pass
@@ -20,10 +20,10 @@ class FavoritePlaceUpdate(BaseModel):
     longitude: Optional[Decimal] = Field(None, ge=-180, le=180, description="经度")
     address: Optional[str] = Field(None, min_length=1, max_length=500, description="详细地址")
     source_type: Optional[int] = Field(None, ge=1, le=2, description="来源")
-    is_active: Optional[int] = Field(None, ge=0, le=1, description="是否激活")
+    is_active: Optional[bool] = Field(None, description="是否激活")
 
 class FavoritePlaceResponse(FavoritePlaceBase):
     place_id: int
-    
+
     class Config:
         from_attributes = True

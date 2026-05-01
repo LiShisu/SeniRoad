@@ -3,7 +3,6 @@
 
 from app.services.location import LocationService
 from app.services.navigation import NavigationService
-from app.services.ai_parser import AIParserService
 from app.services.notification import NotificationService
 from app.services.user import UserService
 
@@ -11,7 +10,6 @@ from app.services.user import UserService
 __all__ = [
     "LocationService",
     "NavigationService",
-    "AIParserService",
     "NotificationService",
     "UserService"
 ]
