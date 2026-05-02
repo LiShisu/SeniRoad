@@ -48,6 +48,10 @@ class UserRepository:
         """根据openid获取用户"""
         return self.db.query(User).filter(User.openid == openid).first()
     
+    def get_by_openid_and_role(self, openid: str, role: UserRole) -> Optional[User]:
+        """根据openid和role获取用户"""
+        return self.db.query(User).filter(User.openid == openid, User.role == role).first()
+    
     def exists_by_openid(self, openid: str) -> bool:
         """检查openid是否已存在"""
         return self.db.query(User).filter(User.openid == openid).first() is not None

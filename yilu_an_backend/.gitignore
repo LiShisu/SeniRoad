@@ -37,3 +37,7 @@ test_multi_agent.py
 api_documentation.md
 
 *.ipynb
+
+alembic/
+alembic.ini
+*.pyc

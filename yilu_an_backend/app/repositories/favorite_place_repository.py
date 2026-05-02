@@ -18,6 +18,9 @@ class FavoritePlaceRepository:
             FavoritePlace.source_type == source_type
         ).all()
 
+    def get_by_tag_id(self, tag_id: int) -> List[FavoritePlace]:
+        return self.db.query(FavoritePlace).filter(FavoritePlace.tag_id == tag_id).all()
+
     def get_active_places(self, user_id: int) -> List[FavoritePlace]:
         return self.db.query(FavoritePlace).filter(
             FavoritePlace.user_id == user_id,

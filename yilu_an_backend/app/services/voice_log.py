@@ -1,4 +1,3 @@
-from sqlalchemy.orm import Session
 from app.models.voice_log import VoiceLog
 from app.schemas.voice_log import VoiceLogCreate, VoiceLogUpdate, VoiceLogResponse
 from app.repositories.voice_log_repository import VoiceLogRepository
@@ -6,8 +5,8 @@ from typing import List, Optional
 from datetime import datetime, timedelta
 
 class VoiceLogService:
-    def __init__(self, db: Session):
-        self.voice_log_repo = VoiceLogRepository(db)
+    def __init__(self, voice_log_repo: VoiceLogRepository):
+        self.voice_log_repo = voice_log_repo
 
     def get_log_by_id(self, log_id: int) -> Optional[VoiceLogResponse]:
         log = self.voice_log_repo.get_by_id(log_id)

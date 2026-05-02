@@ -75,10 +75,12 @@ async def get_location(
 
 @router.delete("/user/{user_id}/old", response_model=dict)
 async def delete_old_locations(
-    user_id: int,
+    user_id: int = None,
     days: int = Query(30, ge=1, le=365),
     current_user: User = Depends(get_current_active_user),
     location_service: LocationService = Depends(get_location_service)
 ):
+    if user_id is None:
+        user_id = current_user.user_id
     deleted_count = location_service.delete_old_locations(user_id, days)
     return {"deleted_count": deleted_count}

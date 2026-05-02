@@ -25,6 +25,12 @@ from .favorite_place import (
     FavoritePlaceResponse,
 )
 
+from .tag import (
+    TagCreate,
+    TagUpdate,
+    TagResponse,
+)
+
 from .navigation_record import (
     NavigationRecordCreate,
     NavigationRecordUpdate,
@@ -53,6 +59,10 @@ __all__ = [
     "FavoritePlaceCreate",
     "FavoritePlaceUpdate",
     "FavoritePlaceResponse",
+    # Tag
+    "TagCreate",
+    "TagUpdate",
+    "TagResponse",
     # NavigationRecord
     "NavigationRecordCreate",
     "NavigationRecordUpdate",

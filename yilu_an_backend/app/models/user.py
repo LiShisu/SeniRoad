@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum, Date, BigInteger, SmallInteger, CheckConstraint
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum, Date, BigInteger, SmallInteger, CheckConstraint, UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.database import Base
 import enum
@@ -12,9 +12,9 @@ class User(Base):
     __tablename__ = "users"
 
     user_id = Column(BigInteger, primary_key=True, autoincrement=True)
-    phone = Column(String(20), unique=True, nullable=True)
+    phone = Column(String(20), unique=True, nullable=False)
     nickname = Column(String(50), nullable=True)
-    openid = Column(String(255), unique=True, nullable=False)
+    openid = Column(String(255), nullable=False)
     role = Column(Enum(UserRole), nullable=False)
     gender = Column(SmallInteger, nullable=True, default=9)
     birthday = Column(Date, nullable=True)
@@ -25,6 +25,7 @@ class User(Base):
 
     __table_args__ = (
         CheckConstraint("gender IN (0, 1, 9)", name="ck_users_gender"),
+        UniqueConstraint("openid", "role", name="uq_users_openid_role"),
     )
 
     locations = relationship("Location", back_populates="user")

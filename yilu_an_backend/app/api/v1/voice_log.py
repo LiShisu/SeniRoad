@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 from app.schemas.voice_log import VoiceLogCreate, VoiceLogUpdate, VoiceLogResponse
 from app.services.voice_log import VoiceLogService
@@ -14,15 +14,19 @@ async def create_voice_log(
     voice_log_service: VoiceLogService = Depends(get_voice_log_service),
     current_user: User = Depends(get_current_active_user)
 ):
+    if log.user_id is None:
+        log.user_id = current_user.user_id
     return voice_log_service.create_log(log)
 
 @router.get("/", response_model=List[VoiceLogResponse])
 async def get_voice_logs(
-    user_id: int,
+    user_id: int = None,
     limit: int = 100,
     voice_log_service: VoiceLogService = Depends(get_voice_log_service),
     current_user: User = Depends(get_current_active_user)
 ):
+    if user_id is None:
+        user_id = current_user.user_id
     return voice_log_service.get_logs_by_user_id(user_id, limit)
 
 @router.get("/record/{record_id}", response_model=List[VoiceLogResponse])
@@ -36,21 +40,25 @@ async def get_voice_logs_by_record(
 
 @router.get("/time-range/{user_id}", response_model=List[VoiceLogResponse])
 async def get_voice_logs_by_time_range(
-    user_id: int,
-    start_time: datetime,
-    end_time: datetime,
+    user_id: int = None,
+    start_time: datetime = None,
+    end_time: datetime = None,
     voice_log_service: VoiceLogService = Depends(get_voice_log_service),
     current_user: User = Depends(get_current_active_user)
 ):
+    if user_id is None:
+        user_id = current_user.user_id
     return voice_log_service.get_logs_by_time_range(user_id, start_time, end_time)
 
 @router.get("/recent/{user_id}", response_model=List[VoiceLogResponse])
 async def get_recent_voice_logs(
-    user_id: int,
+    user_id: int = None,
     hours: int = 24,
     voice_log_service: VoiceLogService = Depends(get_voice_log_service),
     current_user: User = Depends(get_current_active_user)
 ):
+    if user_id is None:
+        user_id = current_user.user_id
     return voice_log_service.get_recent_logs(user_id, hours)
 
 @router.get("/{log_id}", response_model=VoiceLogResponse)
@@ -97,10 +105,12 @@ async def delete_voice_log(
 
 @router.delete("/user/{user_id}/old", response_model=dict)
 async def delete_old_voice_logs(
-    user_id: int,
+    user_id: int = None,
     days: int = 30,
     voice_log_service: VoiceLogService = Depends(get_voice_log_service),
     current_user: User = Depends(get_current_active_user)
 ):
+    if user_id is None:
+        user_id = current_user.user_id
     deleted_count = voice_log_service.delete_old_logs(user_id, days)
     return {"deleted_count": deleted_count}

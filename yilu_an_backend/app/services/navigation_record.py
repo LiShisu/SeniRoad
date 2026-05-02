@@ -1,4 +1,3 @@
-from sqlalchemy.orm import Session
 from app.models.navigation_record import NavigationRecord
 from app.schemas.navigation_record import NavigationRecordCreate, NavigationRecordUpdate, NavigationRecordResponse
 from app.repositories.navigation_record_repository import NavigationRecordRepository
@@ -6,8 +5,8 @@ from typing import List, Optional
 from datetime import datetime
 
 class NavigationRecordService:
-    def __init__(self, db: Session):
-        self.navigation_record_repo = NavigationRecordRepository(db)
+    def __init__(self, navigation_record_repo: NavigationRecordRepository):
+        self.navigation_record_repo = navigation_record_repo
     
     def get_record_by_id(self, record_id: int) -> Optional[NavigationRecordResponse]:
         """根据ID获取导航记录"""

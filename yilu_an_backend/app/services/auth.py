@@ -1,10 +1,10 @@
 from app.utils.security import create_access_token
+from app.utils.validators import validate_phone
 from app.repositories.user_repository import UserRepository
 from app.models import User, UserRole
 from app.schemas.user import LoginResponse, WechatUserCreate
 from fastapi import HTTPException, status
 import httpx
-import re
 from app.config import settings
 
 class AuthService:
@@ -12,8 +12,7 @@ class AuthService:
         self.user_repository = user_repository
 
     async def wechat_register(self, wechat_data: WechatUserCreate):
-        phone_pattern = r'^1[3-9]\d{9}$'
-        if not re.match(phone_pattern, wechat_data.phone):
+        if not validate_phone(wechat_data.phone):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid phone number format"
@@ -28,14 +27,11 @@ class AuthService:
         result = await get_wechat_openid_session_key(wechat_data.code)
 
         openid = result.get("openid")
-
-        role = UserRole.ELDERLY if wechat_data.role == "elderly" else UserRole.FAMILY
-
         db_user = User(
             phone=wechat_data.phone,
             openid=openid,
             nickname=wechat_data.nickname,
-            role=role,
+            role=wechat_data.role,
             is_active=True
         )
 
@@ -43,16 +39,43 @@ class AuthService:
 
         return {"message": "Registration successful"}
 
-    async def wechat_login(self, code: str) -> LoginResponse:
+    async def wechat_login(self, code: str, role: UserRole) -> LoginResponse:
         result = await get_wechat_openid_session_key(code)
 
         openid = result.get("openid")
-
-        user = self.user_repository.get_by_openid(openid)
+        user = self.user_repository.get_by_openid_and_role(openid, role)
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="User not found",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        access_token = create_access_token(
+            data={"sub": str(user.user_id)}
+        )
+
+        return LoginResponse(access_token=access_token, role=user.role)
+
+    async def phone_login(self, phone: str) -> LoginResponse:
+        if not validate_phone(phone):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid phone number format"
+            )
+
+        user = self.user_repository.get_by_phone(phone)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User is not active",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 

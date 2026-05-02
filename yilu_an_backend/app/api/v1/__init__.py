@@ -3,6 +3,8 @@ from .auth import router as auth_router
 from .user import router as user_router
 from .binding import router as binding_router
 from .location import router as location_router
+from .favorite_place import router as favorite_place_router
+from .tag import router as tag_router
 
 from .navigation import router as navigation_router
 from .navigation_record import router as navigation_record_router
@@ -18,6 +20,8 @@ router.include_router(auth_router, prefix="/auth", tags=["认证"])
 router.include_router(user_router, prefix="/users", tags=["用户"])
 router.include_router(binding_router, prefix="/bindings", tags=["绑定"])
 router.include_router(location_router, prefix="/locations", tags=["位置"])
+router.include_router(favorite_place_router, prefix="/favorite-places", tags=["收藏地点"])
+router.include_router(tag_router, prefix="/tags", tags=["标签"])
 
 router.include_router(navigation_router, prefix="/navigation", tags=["导航"])
 router.include_router(voice_log_router, prefix="/voice-logs", tags=["语音日志"])

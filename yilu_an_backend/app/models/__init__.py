@@ -5,6 +5,7 @@ from .location import Location
 from .favorite_place import FavoritePlace
 from .navigation_record import NavigationRecord
 from .voice_log import VoiceLog
+from .tag import Tag
 # from app.views.elderly_family_binding import ElderlyFamilyBindingView
 # from app.views.elderly_location import ElderlyLocationView
 # from app.views.elderly_favorite_places import ElderlyFavoritePlacesView
@@ -19,6 +20,7 @@ __all__ = [
     "FavoritePlace",
     "NavigationRecord",
     "VoiceLog",
+    "Tag",
     # "ElderlyFamilyBindingView",
     # "ElderlyLocationView",
     # "ElderlyFavoritePlacesView",

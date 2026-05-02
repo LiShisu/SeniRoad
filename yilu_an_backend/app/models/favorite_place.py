@@ -7,6 +7,7 @@ class FavoritePlace(Base):
 
     place_id = Column(BigInteger, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    tag_id = Column(BigInteger, ForeignKey("tags.tag_id", ondelete="SET NULL"), nullable=True)
     place_name = Column(String(100), nullable=False)
     latitude = Column(Numeric(10, 8), nullable=False)
     longitude = Column(Numeric(11, 8), nullable=False)
@@ -20,3 +21,5 @@ class FavoritePlace(Base):
     )
 
     user = relationship("User", back_populates="favorite_places")
+    tag = relationship("Tag", back_populates="favorite_places")
+

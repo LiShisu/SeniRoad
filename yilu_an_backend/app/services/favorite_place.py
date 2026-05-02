@@ -1,12 +1,11 @@
-from sqlalchemy.orm import Session
 from app.models.favorite_place import FavoritePlace
 from app.schemas.favorite_place import FavoritePlaceCreate, FavoritePlaceUpdate, FavoritePlaceResponse
 from app.repositories.favorite_place_repository import FavoritePlaceRepository
 from typing import List, Optional
 
 class FavoritePlaceService:
-    def __init__(self, db: Session):
-        self.favorite_place_repo = FavoritePlaceRepository(db)
+    def __init__(self, favorite_place_repo: FavoritePlaceRepository):
+        self.favorite_place_repo = favorite_place_repo
 
     def get_place_by_id(self, place_id: int) -> Optional[FavoritePlaceResponse]:
         place = self.favorite_place_repo.get_by_id(place_id)
@@ -20,6 +19,10 @@ class FavoritePlaceService:
 
     def get_places_by_user_and_source(self, user_id: int, source_type: int) -> List[FavoritePlaceResponse]:
         places = self.favorite_place_repo.get_by_user_and_source(user_id, source_type)
+        return [FavoritePlaceResponse.model_validate(place) for place in places]
+
+    def get_places_by_tag(self, tag_id: int) -> List[FavoritePlaceResponse]:
+        places = self.favorite_place_repo.get_by_tag_id(tag_id)
         return [FavoritePlaceResponse.model_validate(place) for place in places]
 
     def get_active_places(self, user_id: int) -> List[FavoritePlaceResponse]:
@@ -37,6 +40,7 @@ class FavoritePlaceService:
             longitude=place_data.longitude,
             address=place_data.address,
             source_type=place_data.source_type,
+            tag_id=place_data.tag_id,
             is_active=place_data.is_active
         )
 
@@ -61,6 +65,8 @@ class FavoritePlaceService:
             place.address = place_data.address
         if place_data.source_type is not None:
             place.source_type = place_data.source_type
+        if place_data.tag_id is not None:
+            place.tag_id = place_data.tag_id
         if place_data.is_active is not None:
             place.is_active = place_data.is_active
 

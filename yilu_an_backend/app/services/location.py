@@ -1,4 +1,3 @@
-from sqlalchemy.orm import Session
 from app.models.location import Location
 from app.schemas.location import LocationCreate, LocationResponse
 from app.repositories.location_repository import LocationRepository
@@ -6,8 +5,8 @@ from typing import List, Optional
 from datetime import datetime, timedelta
 
 class LocationService:
-    def __init__(self, db: Session):
-        self.location_repo = LocationRepository(db)
+    def __init__(self, location_repo: LocationRepository):
+        self.location_repo = location_repo
 
     def get_by_id(self, location_id: int) -> Optional[LocationResponse]:
         location = self.location_repo.get_by_id(location_id)

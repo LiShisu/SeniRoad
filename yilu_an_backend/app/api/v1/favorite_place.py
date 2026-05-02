@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List
+from typing import List, Optional
 from app.schemas.favorite_place import FavoritePlaceCreate, FavoritePlaceUpdate, FavoritePlaceResponse
 from app.services.favorite_place import FavoritePlaceService
 from app.dependencies import get_favorite_place_service, get_current_active_user
@@ -14,6 +14,8 @@ async def create_favorite_place(
     current_user: User = Depends(get_current_active_user)
 ):
     """创建常用地点"""
+    if place.user_id is None:
+        place.user_id = current_user.user_id
     try:
         return favorite_place_service.create_place(place)
     except ValueError as e:
@@ -24,8 +26,9 @@ async def create_favorite_place(
 
 @router.get("/", response_model=List[FavoritePlaceResponse])
 async def get_favorite_places(
-    user_id: int,
+    user_id: int = None,
     source_type: int = None,
+    tag_id: int = None,
     active_only: bool = False,
     favorite_place_service: FavoritePlaceService = Depends(get_favorite_place_service),
     current_user: User = Depends(get_current_active_user)
@@ -36,10 +39,14 @@ async def get_favorite_places(
     - source_type: 来源类型（可选，1-家属预设, 2-自动识别）
     - active_only: 是否只获取活跃地点
     """
+    if user_id is None:
+        user_id = current_user.user_id
     if active_only:
         return favorite_place_service.get_active_places(user_id)
-    if source_type:
+    if source_type is not None:
         return favorite_place_service.get_places_by_user_and_source(user_id, source_type)
+    if tag_id is not None:
+        return favorite_place_service.get_places_by_tag(tag_id)
     return favorite_place_service.get_places_by_user_id(user_id)
 
 @router.get("/{place_id}", response_model=FavoritePlaceResponse)

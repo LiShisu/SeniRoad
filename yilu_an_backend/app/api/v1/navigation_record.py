@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 from app.schemas.navigation_record import NavigationRecordCreate, NavigationRecordUpdate, NavigationRecordResponse
 from app.services.navigation_record import NavigationRecordService
@@ -14,12 +14,13 @@ async def create_navigation_record(
     navigation_record_service: NavigationRecordService = Depends(get_navigation_record_service),
     current_user: User = Depends(get_current_active_user)
 ):
-    """创建导航记录"""
+    if record.user_id is None:
+        record.user_id = current_user.user_id
     return navigation_record_service.create_record(record)
 
 @router.get("/", response_model=List[NavigationRecordResponse])
 async def get_navigation_records(
-    user_id: int,
+    user_id: int = None,
     status: int = None,
     navigation_record_service: NavigationRecordService = Depends(get_navigation_record_service),
     current_user: User = Depends(get_current_active_user)
@@ -29,22 +30,25 @@ async def get_navigation_records(
     - user_id: 用户ID
     - status: 状态（可选，1-进行中, 2-完成, 3-取消）
     """
+    if user_id is None:
+        user_id = current_user.user_id
     if status:
         return navigation_record_service.get_records_by_status(user_id, status)
     return navigation_record_service.get_records_by_user_id(user_id)
 
 @router.get("/user/{user_id}/active", response_model=List[NavigationRecordResponse])
 async def get_active_navigation_records(
-    user_id: int,
+    user_id: int = None,
     navigation_record_service: NavigationRecordService = Depends(get_navigation_record_service),
     current_user: User = Depends(get_current_active_user)
 ):
-    """获取用户的进行中导航记录"""
+    if user_id is None:
+        user_id = current_user.user_id
     return navigation_record_service.get_active_records(user_id)
 
 @router.get("/user/{user_id}/completed", response_model=List[NavigationRecordResponse])
 async def get_completed_navigation_records(
-    user_id: int,
+    user_id: int = None,
     start_date: datetime = None,
     end_date: datetime = None,
     navigation_record_service: NavigationRecordService = Depends(get_navigation_record_service),
@@ -55,6 +59,8 @@ async def get_completed_navigation_records(
     - start_date: 开始日期（可选）
     - end_date: 结束日期（可选）
     """
+    if user_id is None:
+        user_id = current_user.user_id
     return navigation_record_service.get_completed_records(user_id, start_date, end_date)
 
 @router.get("/{record_id}", response_model=NavigationRecordResponse)
@@ -123,7 +129,6 @@ async def cancel_navigation_record(
     navigation_record_service: NavigationRecordService = Depends(get_navigation_record_service),
     current_user: User = Depends(get_current_active_user)
 ):
-    """取消导航记录"""
     cancelled_record = navigation_record_service.cancel_record(record_id)
     if not cancelled_record:
         raise HTTPException(

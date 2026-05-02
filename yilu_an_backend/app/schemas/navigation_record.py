@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 
 class NavigationRecordBase(BaseModel):
-    user_id: int = Field(..., description="用户ID")
+    user_id: Optional[int] = Field(None, description="用户ID")
     start_time: datetime = Field(..., description="导航开始时间")
     end_time: Optional[datetime] = Field(None, description="结束时间")
     origin_lat: Optional[Decimal] = Field(None, ge=-90, le=90, description="起点纬度")
