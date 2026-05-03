@@ -5,6 +5,7 @@ from typing import Dict
 
 router = APIRouter()
 
+# 废弃
 @router.post("/process-voice")
 async def process_voice(
     audio_file: UploadFile = File(...),

@@ -1,5 +1,6 @@
 // common/register/register.ts
-import { authApi, RegisterParams } from '../../api/auth';
+import { authApi,} from '../../api/auth';
+import { wechatLogin } from '../../utils/auth';
 
 Page({
   data: {
@@ -69,9 +70,24 @@ Page({
         phone: phone,
       });
 
-      // 注册成功，跳转到登录页面
-      wx.showToast({ title: '注册成功', icon: 'success' });
-      wx.redirectTo({ url: '/common/login/login' });
+      // 注册成功，自动登录并跳转首页
+      wx.showToast({ title: '注册成功，正在登录...', icon: 'success', duration: 1500 });
+      
+      // 延迟执行自动登录，确保用户能看到成功提示
+      setTimeout(async () => {
+        try {
+          await wechatLogin(role as 'elderly' | 'family');
+          wx.showToast({ title: '登录成功', icon: 'success', duration: 1500 });
+          setTimeout(() => {
+            wx.reLaunch({ url: `/${role}/pages/index/index` });
+          }, 1000);
+        } catch (error: any) {
+          wx.showToast({ title: error.message || '自动登录失败，请手动登录', icon: 'none', duration: 2000 });
+          setTimeout(() => {
+            wx.redirectTo({ url: '/common/login/login' });
+          }, 2000);
+        }
+      }, 1500);
     } catch (error: any) {
       wx.showToast({ title: error.message || '注册失败', icon: 'none' });
     } finally {

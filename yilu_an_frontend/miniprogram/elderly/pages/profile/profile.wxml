@@ -9,15 +9,8 @@
   <view class="profile-section">
     <view class="avatar-container">
       <view class="avatar-wrapper" bindtap="chooseAvatar">
-      <block wx:if="{{userInfo.avatar_url}}">
-        <image class="avatar" src="{{userInfo.avatar_url}}" mode="aspectFill"></image>
-      </block>
-      <block wx:else>
-        <view class="avatar-placeholder">
-          <text class="avatar-placeholder-text">{{userInfo.nickname ? userInfo.nickname[0] : '无'}}</text>
-        </view>
-      </block>
-    </view>
+        <avatar avatar-url="{{userInfo.avatar_url}}" nickname="{{userInfo.nickname}}" />
+      </view>
       <view class="user-info">
         <text class="user-name">{{userInfo.nickname}}</text>
       </view>

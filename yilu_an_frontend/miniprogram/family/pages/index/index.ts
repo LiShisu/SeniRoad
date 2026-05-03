@@ -1,62 +1,78 @@
 // index.ts
-// 获取应用实例
-const app = getApp<IAppOption>()
-const defaultAvatarUrl = 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0'
-import { checkAndRedirect } from '../../../utils/auth'
+import { getCurrentElder } from '../../storage';
 
 Page({
   data: {
-    motto: 'Hello World',
-    userInfo: {
-      avatarUrl: defaultAvatarUrl,
-      nickName: '',
-    },
-    hasUserInfo: false,
-    canIUseGetUserProfile: wx.canIUse('getUserProfile'),
-    canIUseNicknameComp: wx.canIUse('input.type.nickname'),
+    elderName: '请选择监护老人',
+    currentLocation: '未获取到位置',
+    lastUpdate: '未知',
+    navigationStatus: '未出行',
+    currentElderId: ''
   },
 
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad() {
-    // 检查用户类型权限
-    checkAndRedirect('family')
+    console.log('family index load')
+    // checkAndRedirect('family')
+    this.loadCurrentElderInfo();
   },
 
-  // 事件处理函数
-  bindViewTap() {
+  /**
+   * 生命周期函数--监听页面显示
+   */
+  onShow() {
+    this.loadCurrentElderInfo();
+  },
+
+  /**
+   * 加载当前监护老人信息
+   */
+  loadCurrentElderInfo() {
+    const currentElder = getCurrentElder();
+    if (currentElder) {
+      this.setData({
+        elderName: currentElder.name,
+        currentElderId: currentElder.id
+      });
+    }
+  },
+
+  /**
+   * 切换老人
+   */
+  switchElder() {
+    wx.showToast({
+      title: '切换老人',
+      icon: 'none'
+    })
+  },
+
+  /**
+   * 跳转预设常用地点
+   */
+  goToPlaces() {
     wx.navigateTo({
-      url: '../logs/logs',
+      url: '/family/pages/places/places'
     })
   },
-  onChooseAvatar(e: any) {
-    const { avatarUrl } = e.detail
-    const { nickName } = this.data.userInfo
-    this.setData({
-      "userInfo.avatarUrl": avatarUrl,
-      hasUserInfo: nickName && avatarUrl && avatarUrl !== defaultAvatarUrl,
+
+  /**
+   * 跳转出行记录
+   */
+  goToRecords() {
+    wx.navigateTo({
+      url: '/family/pages/records/records'
     })
   },
-  onInputChange(e: any) {
-    const nickName = e.detail.value
-    const { avatarUrl } = this.data.userInfo
-    this.setData({
-      "userInfo.nickName": nickName,
-      hasUserInfo: nickName && avatarUrl && avatarUrl !== defaultAvatarUrl,
+
+  /**
+   * 跳转老人管理
+   */
+  goToElders() {
+    wx.navigateTo({
+      url: '/family/pages/elders/elders'
     })
-  },
-  getUserProfile() {
-    // 推荐使用wx.getUserProfile获取用户信息，开发者每次通过该接口获取用户个人信息均需用户确认，开发者妥善保管用户快速填写的头像昵称，避免重复弹窗
-    wx.getUserProfile({
-      desc: '展示用户信息', // 声明获取用户个人信息后的用途，后续会展示在弹窗中，请谨慎填写
-      success: (res) => {
-        console.log(res)
-        this.setData({
-          userInfo: res.userInfo,
-          hasUserInfo: true
-        })
-      }
-    })
-  },
+  }
 })

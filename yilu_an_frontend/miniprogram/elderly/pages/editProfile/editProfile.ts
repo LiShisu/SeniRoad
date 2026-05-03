@@ -6,15 +6,21 @@ Page({
   data: {
     formData: {
       nickname: '',
-      gender: '女',
+      gender: 9, // 0-男，1-女，9-未知
       birthday: '',
       phone: '',
       avatar: ''
     },
     loading: false,
-    // 用于性别 Picker 的数据
-    genderRange: ['男', '女'],
-    genderIndex: 0,
+    // 性别映射
+    genderMap: {
+      0: '男',
+      1: '女',
+      9: '未知'
+    },
+    // 记录上次点击时间，用于双击取消
+    lastGenderClickTime: 0,
+    lastGenderClickValue: -1,
     // 触摸事件相关数据
     touchStartY: 0,
     touchMoveY: 0,
@@ -50,8 +56,8 @@ Page({
           nickname: userInfo.nickname,
           phone: userInfo.phone,
           avatar: userInfo.avatar_url || '',
-          gender: '女',
-          birthday: '',
+          gender: userInfo.gender,
+          birthday: userInfo.birthday || '',
         }
       })
       this.updateBirthdayDisplay();
@@ -70,20 +76,29 @@ Page({
     });
   },
 
-  // 处理性别选择
-  onGenderChange(e: any) {
-    const index = e.detail.value;
-    this.setData({
-      'formData.gender': this.data.genderRange[index]
-    });
-  },
-  
-  // 选择性别（按钮方式）
+  // 选择性别（按钮方式），支持双击取消选择
   selectGender(e: any) {
-    const gender = e.currentTarget.dataset.gender;
+    const gender = parseInt(e.currentTarget.dataset.gender);
+    const now = Date.now();
+    const lastClickTime = this.data.lastGenderClickTime;
+    const lastClickValue = this.data.lastGenderClickValue;
+    
+    // 检测双击：300ms内点击同一按钮
+    if (now - lastClickTime < 300 && lastClickValue === gender && this.data.formData.gender === gender) {
+      // 双击同一按钮，取消选择（设为未知）
+      this.setData({
+        'formData.gender': 9,
+        lastGenderClickTime: 0,
+        lastGenderClickValue: -1
+      });
+      return;
+    }
+    
+    // 正常点击，设置性别
     this.setData({
       'formData.gender': gender,
-      genderIndex: gender === '男' ? 0 : 1
+      lastGenderClickTime: now,
+      lastGenderClickValue: gender
     });
   },
 
@@ -151,7 +166,7 @@ Page({
         nickname: nickname,
         avatar_url: avatar,
         phone: phone,
-        gender: gender as '男' | '女',
+        gender: gender as 0 | 1 | 9,
         birthday: birthday,
       });
 

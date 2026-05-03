@@ -1,2 +1,50 @@
-<!--family/pages/places/places.wxml-->
-<text>family/pages/places/places.wxml</text>
+<view class="container">
+  <!-- 顶部背景 -->
+  <view class="header-bg">
+    <!-- 自定义顶部导航栏 -->
+    <view class="nav-bar">
+      <view class="nav-left" bindtap="goBack">
+        <td-icon name="chevron-left" size="48rpx" color="#FFFFFF" />
+      </view>
+      <view class="nav-title">预设常用地点</view>
+      <view class="nav-right" bindtap="toggleManage">
+        <text class="manage-text">{{isManage ? '完成' : '管理'}}</text>
+      </view>
+    </view>
+
+    <!-- 描述行 -->
+    <view class="desc-row">
+      <text class="desc-text">管理老人常用出行地点</text>
+      <view class="add-btn" bindtap="addPlace">添加</view>
+    </view>
+  </view>
+
+  <!-- 提示条 -->
+  <view class="tip-bar">
+    <text class="tip-icon">提示：</text>
+    <text>添加的地点将同步到老人端，方便一键导航</text>
+  </view>
+
+  <!-- 地点列表 -->
+  <view class="place-list">
+    <view 
+      class="place-card" 
+      wx:for="{{places}}" 
+      wx:key="place_id"
+      bindtap="goToDetail"
+      data-place="{{item}}"
+    >
+      <view class="place-info">
+        <text class="place-name">{{item.place_name}}</text>
+        <text class="place-address">{{item.address}}</text>
+      </view>
+      <view class="place-actions" wx:if="{{isManage}}">
+        <text class="action-btn edit" bindtap="editPlace" data-place="{{item}}" catchtap>编辑</text>
+        <text class="action-btn delete" bindtap="deletePlace" data-place="{{item}}" catchtap>删除</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部留白 -->
+  <view class="bottom-space"></view>
+</view>

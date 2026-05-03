@@ -1,32 +1,63 @@
-<!--index.wxml-->
-<navigation-bar title="Weixin" back="{{false}}" color="black" background="#FFF"></navigation-bar>
-<scroll-view class="scrollarea" scroll-y type="list">
-  <view class="container">
-    <view class="userinfo">
-      <block wx:if="{{canIUseNicknameComp && !hasUserInfo}}">
-        <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-          <image class="avatar" src="{{userInfo.avatarUrl}}"></image>
-        </button>
-        <view class="nickname-wrapper">
-          <text class="nickname-label">昵称</text>
-          <input type="nickname" class="nickname-input" placeholder="请输入昵称" bind:change="onInputChange" />
-        </view>
-      </block>
-      <block wx:elif="{{!hasUserInfo}}">
-        <button wx:if="{{canIUseGetUserProfile}}" bindtap="getUserProfile"> 获取头像昵称 </button>
-        <view wx:else> 请使用2.10.4及以上版本基础库 </view>
-      </block>
-      <block wx:else>
-        <image bindtap="bindViewTap" class="userinfo-avatar" src="{{userInfo.avatarUrl}}" mode="cover"></image>
-        <text class="userinfo-nickname">{{userInfo.nickName}}</text>
-      </block>
+<view class="container">
+  <!-- 头部信息区 -->
+  <view class="header-section">
+    <view class="avatar">
+      <avatar nickname="{{elderName}}" background-color="#FFFFFF" text-color="#4B8AFF" />
     </view>
-    <view class="usermotto">
-      <text class="user-motto">{{motto}}</text>
+    <view class="info">
+      <text class="name">{{elderName}}</text>
+      <text class="subtitle-text">实时守护家人出行安全</text>
+    </view>
+    <view class="switch-icon" bindtap="switchElder">
+      <image src="/assets/svg/refresh-icon.svg" class="switch-img"></image>
     </view>
   </view>
-</scroll-view>
+
+  <!-- 状态卡片 -->
+  <view class="status-card">
+    <view class="status-header">
+      <view class="online-status">
+        <view class="dot online"></view>
+        <text class="online-text">在线状态</text>
+      </view>
+      <view class="safe-tag">安全</view>
+    </view>
+    <view class="info-row">
+      <text class="info-label">📍 当前位置：</text>
+      <text class="info-value">{{currentLocation}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">⏱️ 最后更新：</text>
+      <text class="info-value">{{lastUpdate}}</text>
+    </view>
+    <view class="info-row last">
+      <text class="info-label">🚶 出行状态：</text>
+      <text class="info-value">{{navigationStatus}}</text>
+    </view>
+  </view>
+
+  <!-- 快捷入口卡片 -->
+  <view class="quick-entry-section">
+    <view class="entry-card" bindtap="goToPlaces">
+      <image src="/assets/svg/compass-icon.svg" class="entry-icon"></image>
+      <text>预设常用地点</text>
+      <text class="arrow">›</text>
+    </view>
+    <view class="entry-card" bindtap="goToRecords">
+      <image src="/assets/svg/navigation-icon.svg" class="entry-icon"></image>
+      <text>出行记录查询</text>
+      <text class="arrow">›</text>
+    </view>
+    <view class="entry-card" bindtap="goToElders">
+      <image src="/assets/svg/user-icon.svg" class="entry-icon"></image>
+      <text>老人管理</text>
+      <text class="arrow">›</text>
+    </view>
+  </view>
+
+  <!-- 底部安全区 -->
+  <view class="bottom-safe-area"></view>
+</view>
 
 <!-- 底部导航栏 -->
 <guard-bottom-nav activeItem="home" />
-

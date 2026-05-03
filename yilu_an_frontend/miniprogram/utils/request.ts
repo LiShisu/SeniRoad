@@ -1,7 +1,8 @@
 // 基础网络请求工具
 import { getToken, wechatLogin } from './auth';
-const BASE_URL = 'http://localhost:8000'; // 替换为实际的API地址
-// const BASE_URL = 'http://qe9fd263.natappfree.cc';
+import { API_BASE_URL } from './config';
+
+const BASE_URL = API_BASE_URL;
 
 
 
@@ -52,16 +53,30 @@ export const request = async <T = any>(config: RequestConfig): Promise<T> => {
         
         if (statusCode >= 200 && statusCode < 300) {
           resolve(responseData as T);
-        } else if (statusCode === 401) {
-          // 未登录状态，触发自动登录
-          wechatLogin().then(() => {
-            // 登录成功后重新发起请求
-            request(config).then(resolve).catch(reject);
-          }).catch(reject);
+        // } else if (statusCode === 401) {
+        //   // 检查是否是登录相关接口，如果是则直接抛出错误，避免无限循环
+        //   const isAuthEndpoint = url.includes('/auth/login') ||
+        //                           url.includes('/auth/register') ||
+        //                           url.includes('/auth/wechat');
+
+        //   if (isAuthEndpoint) {
+        //     // 登录接口返回401，直接抛出错误
+        //     const errorMessage = typeof responseData === 'object' && responseData !== null
+        //       ? (responseData as any).detail || (responseData as any).message || '登录失败，请检查凭证'
+        //       : '登录失败，请检查凭证';
+        //     reject(new Error(errorMessage));
+        //   } else {
+        //     // 其他接口返回401，尝试自动重新登录
+        //     wechatLogin().then(() => {
+        //       // 登录成功后重新发起请求
+        //       request(config).then(resolve).catch(reject);
+        //     }).catch(reject);
+        //   }
         } else {
           // 处理其他错误
-          const errorMessage = typeof responseData === 'object' && responseData !== null 
-            ? (responseData as any).message 
+          // 优先提取detail字段（FastAPI HTTPException格式），其次提取message字段
+          const errorMessage = typeof responseData === 'object' && responseData !== null
+            ? (responseData as any).detail || (responseData as any).message || `请求失败：${statusCode}`
             : `请求失败：${statusCode}`;
           reject(new Error(errorMessage));
         }

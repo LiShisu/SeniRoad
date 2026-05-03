@@ -35,48 +35,48 @@ export interface NavigationRecord {
 export const navigationRecordApi = {
   // 创建导航记录
   createRecord: (params: CreateNavigationRecordParams) => {
-    return api.post<NavigationRecord>('/api/v1/navigation-records/', params);
+    return api.post<NavigationRecord>('/navigation-records/', params);
   },
   
   // 获取导航记录列表
   getRecords: (userId: number, status?: number) => {
-    return api.get<NavigationRecord[]>('/api/v1/navigation-records/', { data: { user_id: userId, status } });
+    return api.get<NavigationRecord[]>('/navigation-records/', { data: { user_id: userId, status } });
   },
   
   // 获取用户的进行中导航记录
   getActiveRecords: (userId: number) => {
-    return api.get<NavigationRecord[]>(`/api/v1/navigation-records/user/${userId}/active`);
+    return api.get<NavigationRecord[]>(`/navigation-records/user/${userId}/active`);
   },
   
   // 获取用户的已完成导航记录
   getCompletedRecords: (userId: number, startDate?: string, endDate?: string) => {
-    return api.get<NavigationRecord[]>(`/api/v1/navigation-records/user/${userId}/completed`, {
+    return api.get<NavigationRecord[]>(`/navigation-records/user/${userId}/completed`, {
       data: { start_date: startDate, end_date: endDate }
     });
   },
   
   // 根据ID获取导航记录
   getRecordById: (recordId: number) => {
-    return api.get<NavigationRecord>(`/api/v1/navigation-records/${recordId}`);
+    return api.get<NavigationRecord>(`/navigation-records/${recordId}`);
   },
   
   // 更新导航记录
   updateRecord: (recordId: number, params: UpdateNavigationRecordParams) => {
-    return api.put<NavigationRecord>(`/api/v1/navigation-records/${recordId}`, params);
+    return api.put<NavigationRecord>(`/navigation-records/${recordId}`, params);
   },
   
   // 删除导航记录
   deleteRecord: (recordId: number) => {
-    return api.delete(`/api/v1/navigation-records/${recordId}`);
+    return api.delete(`/navigation-records/${recordId}`);
   },
   
   // 完成导航记录
   completeRecord: (recordId: number) => {
-    return api.patch<NavigationRecord>(`/api/v1/navigation-records/${recordId}/complete`);
+    return api.patch<NavigationRecord>(`/navigation-records/${recordId}/complete`);
   },
   
   // 取消导航记录
   cancelRecord: (recordId: number) => {
-    return api.patch<NavigationRecord>(`/api/v1/navigation-records/${recordId}/cancel`);
+    return api.patch<NavigationRecord>(`/navigation-records/${recordId}/cancel`);
   },
 };

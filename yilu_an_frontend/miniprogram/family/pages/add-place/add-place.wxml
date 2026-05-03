@@ -1,0 +1,115 @@
+<view class="container">
+  <!-- 自定义顶部导航栏 -->
+  <view class="nav-bar">
+    <view class="nav-left" bindtap="goBack">
+      <td-icon name="chevron-left" size="48rpx" color="#333333" />
+    </view>
+    <view class="nav-title">{{isEdit ? '编辑地点' : '添加地点'}}</view>
+    <view class="nav-right"></view>
+  </view>
+
+  <!-- 表单 -->
+  <view class="form">
+    <!-- 地点名称 -->
+    <view class="form-item">
+      <view class="form-label">
+        <text class="required-mark">*</text>
+        <text>地点名称</text>
+      </view>
+      <td-input placeholder="例如：儿子家、市人民医院" value="{{placeName}}" bind:change="onPlaceNameChange" />
+    </view>
+
+    <!-- 位置搜索和地图 -->
+    <view class="form-item location-section">
+      <view class="form-label">
+        <text class="required-mark">*</text>
+        <text>选择位置</text>
+      </view>
+      
+      <!-- 搜索框 -->
+      <view class="search-container">
+        <view class="search-input-wrapper">
+          <td-icon name="search" size="36rpx" color="#999999" />
+          <input 
+            class="search-input" 
+            placeholder="搜索地点" 
+            value="{{searchKeyword}}"
+            bindinput="onSearchInput"
+            bindconfirm="onSearchConfirm"
+            bindfocus="onSearchFocus"
+          />
+          <text class="search-cancel" bindtap="cancelSearch" wx:if="{{isSearching}}">取消</text>
+        </view>
+      </view>
+
+      <!-- 搜索结果列表 -->
+      <view class="search-results" wx:if="{{showSearchResults && (searchResults.length > 0 || isSearching)}}">
+        <view wx:if="{{isSearching && searchResults.length === 0}}" class="search-loading">
+          <text>搜索中...</text>
+        </view>
+        <view 
+          class="search-result-item" 
+          wx:for="{{searchResults}}" 
+          wx:key="id"
+          bindtap="selectSearchResult"
+          data-location="{{item}}"
+        >
+          <view class="result-icon">
+            <td-icon name="location" size="32rpx" color="#4B8AFF" />
+          </view>
+          <view class="result-info">
+            <text class="result-title">{{item.title}}</text>
+            <text class="result-address">{{item.address}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 无搜索结果 -->
+      <view class="no-results" wx:if="{{showSearchResults && !isSearching && searchResults.length === 0 && searchKeyword}}">
+        <text>未找到相关地点</text>
+      </view>
+
+      <!-- 地图容器 -->
+      <view class="map-container">
+        <map
+          id="locationMap"
+          class="map"
+          latitude="{{latitude}}"
+          longitude="{{longitude}}"
+          scale="16"
+          show-location
+          markers="{{markers}}"
+          bindtap="onMapTap"
+          bindregionchange="onRegionChange"
+        ></map>
+        
+        <!-- 中心点标记 -->
+        <view class="center-marker">
+          <td-icon name="location" size="48rpx" color="#4B8AFF" />
+        </view>
+      </view>
+
+      <!-- 选中地址显示 -->
+      <view class="selected-address" wx:if="{{selectedAddress}}">
+        <td-icon name="location" size="32rpx" color="#4B8AFF" />
+        <text class="address-text">{{selectedAddress}}</text>
+      </view>
+    </view>
+
+    <!-- 详细地址 -->
+    <view class="form-item">
+      <view class="form-label">
+        <text>详细地址</text>
+      </view>
+      <td-input placeholder="输入楼号、单元、门牌号等信息" value="{{detailAddress}}" bind:change="onDetailAddressChange" />
+    </view>
+
+    <!-- 提交按钮 -->
+    <view class="submit-section">
+      <td-button theme="primary" size="large" block bindtap="submitForm">保存</td-button>
+    </view>
+  </view>
+
+  <!-- 底部留白 -->
+  <view class="bottom-space"></view>
+</view>

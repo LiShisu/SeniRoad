@@ -24,11 +24,11 @@ export interface NavigationRoute {
 export const navigationApi = {
   // 规划导航路线
   planRoute: (params: PlanRouteParams) => {
-    return api.post<NavigationRoute>('/api/v1/navigation/plan', params);
+    return api.post<NavigationRoute>('/navigation/plan', params);
   },
   
   // 获取常用地点列表
   getCommonDestinations: () => {
-    return api.get<Destination[]>('/api/v1/navigation/common-destinations');
+    return api.get<Destination[]>('/navigation/common-destinations');
   },
 };

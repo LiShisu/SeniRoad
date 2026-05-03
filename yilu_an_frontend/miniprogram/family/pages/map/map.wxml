@@ -1,37 +1,42 @@
-<!--family/pages/map/map.wxml-->
 <view class="container">
+  <!-- 自定义顶部导航栏 -->
+  <view class="nav-bar">
+    <view class="nav-left" bindtap="goBack">
+      <td-icon name="chevron-left" size="48rpx" color="#333333" />
+    </view>
+    <view class="nav-title">实时位置</view>
+    <view class="nav-right"></view>
+  </view>
+
+  <!-- 地图容器 -->
   <view class="map-container">
-    <image src="../../images/map_placeholder.png" class="map-image"></image>
-    <view class="location-marker">
-      <text class="marker-text">老人位置</text>
-    </view>
-  </view>
-  
-  <view class="info-panel">
-    <view class="info-item">
-      <text class="info-label">当前位置</text>
-      <text class="info-value">北京市朝阳区建国路88号</text>
-    </view>
-    <view class="info-item">
-      <text class="info-label">最后更新</text>
-      <text class="info-value">2024-01-01 12:00:00</text>
-    </view>
-    <view class="info-item">
-      <text class="info-label">状态</text>
-      <text class="info-value status-normal">正常</text>
-    </view>
-  </view>
-  
-  <view class="control-buttons">
-    <view class="control-btn" bindtap="refreshLocation">
-      <text class="btn-text">刷新位置</text>
-    </view>
-    <view class="control-btn" bindtap="callElder">
-      <text class="btn-text">联系老人</text>
-    </view>
+    <map
+      id="map"
+      class="map"
+      longitude="{{longitude}}"
+      latitude="{{latitude}}"
+      scale="16"
+      show-location="{{false}}"
+      markers="{{markers}}"
+    ></map>
   </view>
 
-  <!-- 底部导航栏 -->
-  <guard-bottom-nav activeItem="location" />
-
+  <!-- 底部浮层 -->
+  <view class="bottom-panel">
+    <view class="location-info">
+      <text class="location-title">{{locationTitle}}</text>
+      <text class="location-detail">{{locationDetail}}</text>
+      <text class="update-time">{{updateTime}}</text>
+    </view>
+    <view class="action-buttons">
+      <button class="action-btn" bindtap="makeCall">
+        <td-icon name="call" size="36rpx" />
+        <text style="font-size: 28rpx;">打电话</text>
+      </button>
+      <button class="action-btn" bindtap="sendMessage">
+        <td-icon name="chat" size="36rpx" />
+        <text style="font-size: 28rpx;">发消息</text>
+      </button>
+    </view>
+  </view>
 </view>

@@ -1,3 +1,8 @@
 {
-  "usingComponents": {}
+  "usingComponents": {
+    "td-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon",
+    "td-tag": "/miniprogram_npm/tdesign-miniprogram/tag/tag",
+    "avatar": "/components/avatar/avatar"
+  },
+  "navigationStyle": "custom"
 }

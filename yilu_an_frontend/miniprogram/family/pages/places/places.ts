@@ -1,69 +1,126 @@
-// family/pages/places/places.ts
-import { checkAndRedirect } from '../../../utils/auth'
+import { favoritePlacesApi } from '../../../api/favorite-places';
+import type { FavoritePlace } from '../../../api/favorite-places';
+import { getCurrentElder } from '../../storage';
 
 Page({
-
-  /**
-   * 页面的初始数据
-   */
   data: {
-
+    isManage: false,
+    places: [] as FavoritePlace[]
   },
 
   /**
-   * 生命周期函数--监听页面加载
+   * 页面加载
    */
   onLoad() {
-    // 检查用户类型权限
-    checkAndRedirect('family')
+    this.loadFavoritePlaces();
   },
 
   /**
-   * 生命周期函数--监听页面初次渲染完成
+   * 加载常用地点列表
    */
-  onReady() {
-
+  loadFavoritePlaces() {
+    const elder = getCurrentElder();
+    if (!elder) {
+      wx.showToast({
+        title: '请选择监护老人',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    favoritePlacesApi.getFavoritePlaces({ 
+      user_id: parseInt(elder.id),
+      active_only: true 
+    })
+      .then((res) => {
+        this.setData({
+          places: res || []
+        });
+        console.log('常用地点列表:', res || []);
+      })
+      .catch((err) => {
+        console.error('获取常用地点失败:', err);
+        wx.showToast({
+          title: '获取地点失败',
+          icon: 'none'
+        });
+      });
   },
 
   /**
-   * 生命周期函数--监听页面显示
+   * 返回上一页
    */
-  onShow() {
-
+  goBack() {
+    wx.navigateBack();
   },
 
   /**
-   * 生命周期函数--监听页面隐藏
+   * 切换管理模式
    */
-  onHide() {
-
+  toggleManage() {
+    this.setData({
+      isManage: !this.data.isManage
+    });
   },
 
   /**
-   * 生命周期函数--监听页面卸载
+   * 添加地点
    */
-  onUnload() {
-
+  addPlace() {
+    wx.navigateTo({
+      url: '/family/pages/add-place/add-place'
+    });
   },
 
   /**
-   * 页面相关事件处理函数--监听用户下拉动作
+   * 查看地点详情
    */
-  onPullDownRefresh() {
-
+  goToDetail(e: any) {
+    if (this.data.isManage) return;
+    const place = e.currentTarget.dataset.place;
+    wx.showToast({
+      title: `查看${place.place_name}`,
+      icon: 'none'
+    });
   },
 
   /**
-   * 页面上拉触底事件的处理函数
+   * 编辑地点
    */
-  onReachBottom() {
-
+  editPlace(e: any) {
+    const place = e.currentTarget.dataset.place;
+    wx.navigateTo({
+      url: `/family/pages/add-place/add-place?place_id=${place.place_id}`
+    });
   },
 
   /**
-   * 用户点击右上角分享
+   * 删除地点
    */
-  onShareAppMessage() {
-
+  deletePlace(e: any) {
+    const place = e.currentTarget.dataset.place;
+    wx.showModal({
+      title: '确认删除',
+      content: `确定要删除"${place.place_name}"吗？`,
+      success: (res) => {
+        if (res.confirm) {
+          favoritePlacesApi.deleteFavoritePlace(place.place_id)
+            .then(() => {
+              wx.showToast({
+                title: '已删除',
+                icon: 'success'
+              });
+              this.loadFavoritePlaces();
+            })
+            .catch((err) => {
+              console.error('删除地点失败:', err);
+              wx.showToast({
+                title: '删除失败',
+                icon: 'none'
+              });
+            });
+        }
+      }
+    });
   }
-})
+});

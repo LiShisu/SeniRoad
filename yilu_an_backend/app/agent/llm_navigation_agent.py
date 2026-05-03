@@ -5,6 +5,7 @@ from fastapi import UploadFile
 from typing import Dict, Any
 from langchain import agents
 
+# 废弃导航Agent，使用多Agent导航系统
 class LLMNavigationAgent:
     def __init__(self):
         self.llm = text_llm

@@ -52,13 +52,14 @@
     <view class="form-item">
       <view class="form-label">性别</view>
       <view class="gender-selector">
-        <view class="gender-option {{formData.gender === '男' ? 'active' : ''}}" bindtap="selectGender" data-gender="男">
+        <view class="gender-option {{formData.gender === 0 ? 'active' : ''}}" bindtap="selectGender" data-gender="0">
           <text class="gender-text">男</text>
         </view>
-        <view class="gender-option {{formData.gender === '女' ? 'active' : ''}}" bindtap="selectGender" data-gender="女">
+        <view class="gender-option {{formData.gender === 1 ? 'active' : ''}}" bindtap="selectGender" data-gender="1">
           <text class="gender-text">女</text>
         </view>
       </view>
+      <view class="gender-tip" wx:if="{{formData.gender === 9}}">未选择性别</view>
     </view>
 
     <!-- 生日 -->

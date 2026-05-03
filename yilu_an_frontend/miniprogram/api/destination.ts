@@ -26,11 +26,11 @@ export interface Destination {
 export const destinationApi = {
   // 获取目的地列表
   getDestinations: () => {
-    return api.get<Destination[]>('/api/v1/destinations/');
+    return api.get<Destination[]>('/destinations/');
   },
   
   // 创建目的地
   createDestination: (params: CreateDestinationParams) => {
-    return api.post<Destination>('/api/v1/destinations/', params);
+    return api.post<Destination>('/destinations/', params);
   },
 };

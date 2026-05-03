@@ -6,7 +6,7 @@ import { UserInfo } from './auth';
 export interface UpdateUserParams {
   nickname?: string;
   avatar_url?: string;
-  gender?: '男' | '女';
+  gender?: 0 | 1 | 9;
   birthday?: string;
   phone?: string;
 }
@@ -28,16 +28,16 @@ export interface BindingsResponse {
 export const userApi = {
   // 获取当前用户信息
   getProfile: () => {
-    return api.get<UserInfo>('/api/v1/users/profile');
+    return api.get<UserInfo>('/users/profile');
   },
   
   // 更新用户信息
   updateProfile: (params: UpdateUserParams) => {
-    return api.put<UserInfo>('/api/v1/users/profile', params);
+    return api.put<UserInfo>('/users/profile', params);
   },
   
   // 获取用户的绑定关系
   getBindings: () => {
-    return api.get<BindingsResponse>('/api/v1/users/bindings');
+    return api.get<BindingsResponse>('/users/bindings');
   },
 };

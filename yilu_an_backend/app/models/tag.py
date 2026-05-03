@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 from datetime import datetime, timezone
 
+# TODO: 待加入user_id字段，实现个性化标签管理
 class Tag(Base):
     __tablename__ = "tags"
 

@@ -1,5 +1,11 @@
 {
   "pages": [
+    "family/pages/index/index",
+    "family/pages/places/places",
+    "family/pages/add-place/add-place",
+    "family/pages/records/records",
+    "family/pages/map/map",
+    "family/pages/elders/elders",
     "elderly/pages/index/index",
     "elderly/pages/profile/profile",
     "elderly/pages/editProfile/editProfile",
@@ -7,10 +13,6 @@
     "elderly/pages/navigate/navigate",
     "elderly/pages/favourites/favourites",
     "elderly/pages/contact/contact",
-    "family/pages/places/places",
-    "family/pages/records/records",
-    "family/pages/map/map",
-    "family/pages/elders/elders",
     "common/login/login",
     "common/register/register"
   ],
@@ -18,6 +20,14 @@
     "navigationBarTextStyle": "black",
     "navigationStyle": "custom"
   },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "需要获取您的位置信息，以便您更方便地添加常用地点"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getLocation"
+  ],
   "rendererOptions": {
     "skyline": {
       "defaultDisplayBlock": true,

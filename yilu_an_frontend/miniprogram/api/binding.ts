@@ -3,49 +3,49 @@ import { api } from '../utils/request';
 
 // 创建绑定关系请求参数
 export interface CreateBindingParams {
-  elderly_id: number;
-  family_id: number;
+  elderly_phone: string;
 }
 
 // 解除绑定关系请求参数
 export interface UnbindParams {
-  elderly_id: number;
-  family_id: number;
+  elderly_phone: string;
 }
 
 // 绑定关系
 export interface Binding {
-  id: number;
+  binding_id: number;
   elderly_id: number;
+  elderly_nickname: string;
   family_id: number;
   status: string;
   created_at: string;
+  approved_at: string | null;
 }
 
 // 绑定相关API
 export const bindingApi = {
   // 创建绑定关系
-  createBinding: (params: CreateBindingParams) => {
-    return api.post<Binding>('/api/v1/bindings/', params);
+  createBinding: (data: CreateBindingParams) => {
+    return api.post<Binding>('/bindings/bind', data);
   },
-  
+
   // 获取绑定关系列表
   getBindings: () => {
-    return api.get<Binding[]>('/api/v1/bindings/');
+    return api.get<Binding[]>('/bindings/');
   },
-  
+
   // 解除绑定关系
-  unbind: (params: UnbindParams) => {
-    return api.post('/api/v1/bindings/unbind', params);
+  unbind: (data: UnbindParams) => {
+    return api.post('/bindings/unbind', data);
   },
-  
+
   // 批准绑定请求
   approveBinding: (bindingId: number) => {
-    return api.put<Binding>(`/api/v1/bindings/${bindingId}/approve`);
+    return api.put<Binding>(`/bindings/${bindingId}/approve`);
   },
-  
+
   // 拒绝绑定请求
   rejectBinding: (bindingId: number) => {
-    return api.put<Binding>(`/api/v1/bindings/${bindingId}/reject`);
+    return api.put<Binding>(`/bindings/${bindingId}/reject`);
   },
 };

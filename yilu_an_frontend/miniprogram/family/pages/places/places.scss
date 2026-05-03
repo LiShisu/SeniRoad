@@ -1,1 +1,151 @@
-/* family/pages/places/places.wxss */
+page {
+  background-color: #F5F5F5;
+  padding: 0;
+  margin: 0;
+}
+
+.container {
+  background-color: #F5F5F5;
+}
+
+/* 顶部背景 */
+.header-bg {
+  background: linear-gradient(180deg, #4B8AFF 0%, #3A7CE8 100%);
+  padding-bottom: 16rpx;
+  padding-top: 32rpx;
+  width: 100%;
+  height: 200rpx;
+  margin-bottom: 30rpx;
+}
+
+/* 导航栏 */
+.nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16rpx;
+  height: 88rpx;
+}
+
+.nav-left {
+  padding: 8rpx;
+}
+
+.nav-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #FFFFFF;
+}
+
+.nav-right {
+  padding: 8rpx 16rpx;
+}
+
+.manage-text {
+  font-size: 28rpx;
+  color: #FFFFFF;
+}
+
+/* 描述行 */
+.desc-row {
+  height: 88rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16rpx;
+}
+
+.desc-text {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.add-btn {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 32rpx;
+  padding: 12rpx 32rpx;
+  font-size: 28rpx;
+  color: #FFFFFF;
+}
+
+/* 提示条 */
+.tip-bar {
+  background-color: #FFF9E6;
+  border-radius: 0;
+  padding: 12rpx 16rpx;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 90%;
+  margin-bottom: 30rpx;
+}
+
+.tip-bar text {
+  font-size: 26rpx;
+  color: #999999;
+}
+
+.tip-icon {
+  color: #FFB800;
+  font-weight: bold;
+}
+
+/* 地点列表 */
+.place-list {
+  width: 90%;
+}
+
+.place-card {
+  background-color: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  margin-bottom: 12rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.place-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  flex: 1;
+}
+
+.place-name {
+  font-size: 32rpx;
+  color: #333333;
+  font-weight: 500;
+}
+
+.place-address {
+  font-size: 26rpx;
+  color: #999999;
+}
+
+.place-actions {
+  display: flex;
+  gap: 16rpx;
+}
+
+.action-btn {
+  font-size: 24rpx;
+  border-radius: 20rpx;
+  padding: 8rpx 20rpx;
+}
+
+.action-btn.edit {
+  background-color: #E6F0FF;
+  color: #4B8AFF;
+}
+
+.action-btn.delete {
+  background-color: #FFF2F0;
+  color: #FF7875;
+}
+
+.bottom-space {
+  height: 40rpx;
+}

@@ -1,69 +1,68 @@
-// family/pages/map/map.ts
-import { checkAndRedirect } from '../../../utils/auth'
-
+// map.ts
 Page({
-
-  /**
-   * 页面的初始数据
-   */
   data: {
-
+    longitude: 116.397128,
+    latitude: 39.907387,
+    locationTitle: '北京市朝阳区XX小区附近',
+    locationDetail: '朝阳北路与建国路交叉口东200米',
+    updateTime: '更新于 刚刚',
+    markers: [
+      {
+        id: 1,
+        longitude: 116.397128,
+        latitude: 39.907387,
+        iconPath: '/assets/images/location-marker.png',
+        width: 50,
+        height: 50
+      }
+    ]
   },
 
   /**
-   * 生命周期函数--监听页面加载
+   * 返回上一页
+   */
+  goBack() {
+    wx.navigateBack()
+  },
+
+  /**
+   * 打电话
+   */
+  makeCall() {
+    wx.makePhoneCall({
+      phoneNumber: '13800138000',
+      success: () => {
+        console.log('拨打电话成功')
+      },
+      fail: () => {
+        console.log('拨打电话失败')
+      }
+    })
+  },
+
+  /**
+   * 发消息
+   */
+  sendMessage() {
+    wx.showToast({
+      title: '发消息功能',
+      icon: 'none'
+    })
+  },
+
+  /**
+   * 页面加载
    */
   onLoad() {
-    // 检查用户类型权限
-    checkAndRedirect('family')
-  },
-
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-
+    // 获取当前位置
+    wx.getLocation({
+      type: 'gcj02',
+      success: (res) => {
+        this.setData({
+          latitude: res.latitude,
+          longitude: res.longitude
+        })
+      }
+    })
   }
 })

@@ -1,2 +1,60 @@
-<!--family/pages/records/records.wxml-->
-<text>family/pages/records/records.wxml</text>
+<view class="container">
+  <!-- 自定义顶部导航栏 -->
+  <view class="nav-bar">
+    <view class="nav-left" bindtap="goBack">
+      <td-icon name="chevron-left" size="48rpx" color="#333333" />
+    </view>
+    <view class="nav-title">出行记录查询</view>
+    <view class="nav-right"></view>
+  </view>
+
+  <!-- 标签切换 -->
+  <td-tabs value="{{currentTab}}" bind:change="onTabChange">
+    <td-tab-panel value="all" label="全部" />
+    <td-tab-panel value="today" label="今日" />
+    <td-tab-panel value="week" label="本周" />
+    <td-tab-panel value="month" label="本月" />
+  </td-tabs>
+
+  <!-- 统计卡片 -->
+  <view class="stats-section">
+    <view class="stat-item">
+      <text class="stat-value">{{stats.trips}}</text>
+      <text class="stat-label">出行次数</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value">{{stats.distance}}</text>
+      <text class="stat-label">总里程</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value">{{stats.duration}}</text>
+      <text class="stat-label">户外时长</text>
+    </view>
+  </view>
+
+  <!-- 历史记录列表 -->
+  <td-cell-group class="records-list">
+    <td-cell wx:for="{{records}}" wx:key="id" hover>
+      <view slot="note" class="record-note">
+        <view class="record-header">
+          <text class="record-time">{{item.time}}</text>
+          <td-tag wx:if="{{item.deviation}}" theme="danger" variant="light" size="small">偏离路线</td-tag>
+        </view>
+        <view class="record-path">{{item.path}}</view>
+        <view class="record-meta">
+          <text class="meta-item">{{item.distance}}</text>
+          <text class="meta-item">{{item.duration}}</text>
+        </view>
+        <view class="record-link" bindtap="viewDetail" data-id="{{item.id}}">
+          查看轨迹详情
+          <td-icon name="chevron-right" size="28rpx" color="#4B8AFF" />
+        </view>
+      </view>
+    </td-cell>
+  </td-cell-group>
+
+  <!-- 底部留白 -->
+  <view class="bottom-space"></view>
+</view>

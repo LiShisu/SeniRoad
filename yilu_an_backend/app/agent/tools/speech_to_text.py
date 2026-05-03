@@ -1,6 +1,7 @@
 from langchain_core.tools import tool
 from dashscope.audio.asr import Recognition
 from fastapi import UploadFile
+from app.config import settings
 import tempfile
 import os
 
@@ -9,7 +10,7 @@ def speech_to_text(audio_file: UploadFile) -> str:
     """将前端上传的音频文件转换为文本"""
     try:
         # 保存上传的音频文件为临时文件
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
+        with tempfile.NamedTemporaryFile(dir=settings.TEMP_DIR, delete=False, suffix=".wav") as temp_file:
             content = audio_file.file.read()
             temp_file.write(content)
             temp_file_path = temp_file.name

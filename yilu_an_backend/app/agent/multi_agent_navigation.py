@@ -34,7 +34,7 @@
 """
 
 import asyncio
-from typing import TypedDict, Annotated, Sequence
+from typing import TypedDict, Annotated, Sequence, Dict, Any, Optional
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 from langgraph.graph import StateGraph, END
 from langchain.agents import create_agent
@@ -58,7 +58,7 @@ class TravelState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], "messages"]
     origin: str
     destination: str
-    route_result: str
+    route_result: Dict[str, Any]
     weather_result: str
     final_advice: str
 
@@ -109,6 +109,7 @@ async def setup_mcp_tools():
 route_agent = None
 weather_agent = None
 advisor_agent = None
+_agents_initialized = False
 
 
 def create_agents():
@@ -116,12 +117,15 @@ def create_agents():
 
     每个Agent使用create_agent工厂函数创建，绑定不同的工具集和系统提示词。
     """
-    global route_agent, weather_agent, advisor_agent
+    global route_agent, weather_agent, advisor_agent, _agents_initialized
+
+    if _agents_initialized:
+        return
 
     route_system_prompt = """你是一个专业的路线规划Agent，擅长规划出行路线。
 
 你的职责：
-- 根据用户提供的出发地和目的地，规划最优路线
+- 根据用户提供的出发地和目的地，若提供经纬度则使用经纬度，否则根据地址规划最优路线
 - 支持多种出行方式：驾车、步行、骑行、公交
 - 提供详细的路线步骤、距离、预计时间等信息
 - 用中文友好地描述路线信息
@@ -137,7 +141,7 @@ def create_agents():
 
 你的职责：
 - 查询用户指定城市的当前天气情况
-- 提供天气现象、温度、风力、湿度、空气质量等信息
+- 提供天气现象，温度、风力、湿度、空气质量等信息
 - 根据天气情况给出简单的出行建议（如：适合外出、记得带伞等）
 
 当调用天气查询工具时：
@@ -185,6 +189,8 @@ def create_agents():
         system_prompt=advisor_system_prompt
     )
 
+    _agents_initialized = True
+
 
 async def route_node(state: TravelState) -> dict:
     """路线规划节点
@@ -208,11 +214,56 @@ async def route_node(state: TravelState) -> dict:
 
     try:
         result = await route_agent.ainvoke({"messages": route_messages})
-        route_result = result["messages"][-1].content
-    except Exception as e:
-        route_result = f"路线规划失败: {str(e)}"
+        route_text = result["messages"][-1].content
 
-    return {"route_result": route_result}
+        route_data = _parse_route_result(route_text, origin, destination)
+
+    except Exception as e:
+        route_data = {
+            "text": f"路线规划失败: {str(e)}",
+            "origin": origin,
+            "destination": destination,
+            "distance": "",
+            "duration": "",
+            "steps": [],
+            "polyline": ""
+        }
+
+    return {"route_result": route_data}
+
+
+def _parse_route_result(route_text: str, origin: str, destination: str) -> Dict[str, Any]:
+    import re
+
+    distance_match = re.search(r"距离[：:]\s*(\d+[\u4e00-\u9fa5a-zA-Z]+)", route_text)
+    duration_match = re.search(r"预计[时长]?[：:]\s*(\d+[\u4e00-\u9fa5a-zA-Z]+)", route_text)
+
+    distance = distance_match.group(1) if distance_match else ""
+    duration = duration_match.group(1) if duration_match else ""
+
+    steps = []
+    step_matches = re.findall(r"第(\d+)步[：:]?\s*([^。]+)", route_text)
+    for step_num, instruction in step_matches:
+        steps.append({
+            "step_number": int(step_num),
+            "instruction": instruction.strip(),
+            "distance": "",
+            "duration": "",
+            "polyline": ""
+        })
+
+    polyline_match = re.search(r"坐标[：:]\s*\[([^\]]+)\]", route_text)
+    polyline = polyline_match.group(1) if polyline_match else ""
+
+    return {
+        "text": route_text,
+        "origin": origin,
+        "destination": destination,
+        "distance": distance,
+        "duration": duration,
+        "steps": steps,
+        "polyline": polyline
+    }
 
 
 async def weather_node(state: TravelState) -> dict:
@@ -260,6 +311,8 @@ async def advisor_node(state: TravelState) -> dict:
     origin = state["origin"]
     destination = state["destination"]
 
+    route_text = route_result.get("text", "") if isinstance(route_result, dict) else route_result
+
     advisor_messages = [
         HumanMessage(content=f"""请根据以下信息，为老人出行生成一份完整的注意事项清单：
 
@@ -267,7 +320,7 @@ async def advisor_node(state: TravelState) -> dict:
 目的地：{destination}
 
 路线信息：
-{route_result}
+{route_text}
 
 天气信息：
 {weather_result}
@@ -287,42 +340,19 @@ async def advisor_node(state: TravelState) -> dict:
     }
 
 
-def should_continue(state: TravelState) -> str:
-    """条件路由函数
+def route_should_continue(state: TravelState) -> str:
+    if state.get("weather_result"):
+        return "advisor"
+    return "weather"
 
-    决定工作流的下一个节点：
-    - 如果route_result和weather_result都存在，执行advisor_node
-    - 否则结束
 
-    Args:
-        state: 当前出行状态
-
-    Returns:
-        str: 下一个节点名称或END
-    """
-    if state.get("route_result") and state.get("weather_result"):
+def weather_should_continue(state: TravelState) -> str:
+    if state.get("route_result"):
         return "advisor"
     return END
 
 
 def create_travel_graph() -> StateGraph:
-    """创建出行规划工作流图
-
-    使用LangGraph的StateGraph构建包含三个节点的有向图：
-    1. route_node - 路线规划（可并行）
-    2. weather_node - 天气查询（可并行）
-    3. advisor_node - 出行顾问（在前两者完成后执行）
-
-    工作流：
-    start -> [route_node, weather_node] (并行)
-                    ↓
-              advisor_node
-                    ↓
-                  end
-
-    Returns:
-        StateGraph: 构建好的工作流图
-    """
     workflow = StateGraph(TravelState)
 
     workflow.add_node("route", route_node)
@@ -333,20 +363,29 @@ def create_travel_graph() -> StateGraph:
 
     workflow.add_conditional_edges(
         "route",
-        should_continue,
+        route_should_continue,
         {
-            "advisor": "weather"
+            "advisor": "advisor",
+            "weather": "weather"
         }
     )
 
-    workflow.add_edge("weather", "advisor")
+    workflow.add_conditional_edges(
+        "weather",
+        weather_should_continue,
+        {
+            "advisor": "advisor",
+            "END": END
+        }
+    )
+
     workflow.add_edge("advisor", END)
 
     return workflow.compile()
 
 
-async def plan_travel(origin: str, destination: str) -> str:
-    """出行规划主函数
+async def plan_travel(origin: str, destination: str) -> Dict[str, Any]:
+    """出行规划主函数，使用 Orchestrator(LangGraph 动态调度)
 
     用户入口函数，接收出发地和目的地，返回完整的出行建议。
 
@@ -363,17 +402,21 @@ async def plan_travel(origin: str, destination: str) -> str:
         messages=[HumanMessage(content=f"我需要从 {origin} 到 {destination} 的出行规划")],
         origin=origin,
         destination=destination,
-        route_result="",
+        route_result={},
         weather_result="",
         final_advice=""
     )
 
     result = await graph.ainvoke(initial_state)
 
-    return result["final_advice"]
+    return {
+        "route": result["route_result"],
+        "weather": result["weather_result"],
+        "advice": result["final_advice"]
+    }
 
 
-async def plan_travel_parallel(origin: str, destination: str) -> str:
+async def plan_travel_parallel(origin: str, destination: str) -> Dict[str, Any]:
     """出行规划主函数（并行优化版本）
 
     使用并行执行优化：同时调用RouteAgent和WeatherAgent，
@@ -386,11 +429,12 @@ async def plan_travel_parallel(origin: str, destination: str) -> str:
     Returns:
         str: 包含路线、天气和出行建议的完整回复
     """
+
     route_task = route_node(TravelState(
         messages=[],
         origin=origin,
         destination=destination,
-        route_result="",
+        route_result={},
         weather_result="",
         final_advice=""
     ))
@@ -399,7 +443,7 @@ async def plan_travel_parallel(origin: str, destination: str) -> str:
         messages=[],
         origin=origin,
         destination=destination,
-        route_result="",
+        route_result={},
         weather_result="",
         final_advice=""
     ))
@@ -410,16 +454,28 @@ async def plan_travel_parallel(origin: str, destination: str) -> str:
         messages=[],
         origin=origin,
         destination=destination,
-        route_result=route_result.get("route_result", ""),
+        route_result=route_result.get("route_result", {}),
         weather_result=weather_result.get("weather_result", ""),
         final_advice=""
     )
 
     advisor_result = await advisor_node(combined_state)
 
-    return advisor_result.get("final_advice", "抱歉，无法生成出行建议。")
+    return {
+        "route": combined_state["route_result"],
+        "weather": combined_state["weather_result"],
+        "advice": advisor_result.get("final_advice", "抱歉，无法生成出行建议。")
+    }
 
 
+class MultiAgentNavigation:
+    _initialized = False
+
+    def __init__(self):
+        pass
+
+    async def plan_travel(self, origin: str, destination: str) -> Dict[str, Any]:
+        return await plan_travel_parallel(origin, destination)
 # async def main():
 #     """主函数 - 演示完整的多Agent协作流程
 
@@ -461,3 +517,5 @@ async def plan_travel_parallel(origin: str, destination: str) -> str:
 
 # if __name__ == "__main__":
 #     asyncio.run(main())
+
+

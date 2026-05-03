@@ -1,3 +1,9 @@
 {
-  "usingComponents": {}
+  "usingComponents": {
+    "td-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon",
+    "td-button": "/miniprogram_npm/tdesign-miniprogram/button/button",
+    "td-cell": "/miniprogram_npm/tdesign-miniprogram/cell/cell",
+    "td-cell-group": "/miniprogram_npm/tdesign-miniprogram/cell-group/cell-group"
+  },
+  "navigationStyle": "custom"
 }

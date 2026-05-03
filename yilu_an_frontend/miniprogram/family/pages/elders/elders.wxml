@@ -1,2 +1,51 @@
-<!--family/pages/elders/elders.wxml-->
-<text>family/pages/elders/elders.wxml</text>
+<view class="container">
+  <!-- 自定义顶部导航栏 -->
+  <view class="nav-bar">
+    <view class="nav-left" bindtap="goBack">
+      <td-icon name="chevron-left" size="48rpx" color="#333333" />
+    </view>
+    <view class="nav-title">老人管理</view>
+    <view class="nav-right"></view>
+  </view>
+
+  <!-- 统计行 -->
+  <view class="stats-row">
+    <text class="stats-text">已绑定监护对象 {{elders.length}} 位</text>
+    <view class="add-btn" bindtap="showAddModal">
+      <td-icon name="add" size="32rpx" color="#4B8AFF" />
+      <text class="add-btn-text">添加老人</text>
+    </view>
+  </view>
+
+  <!-- 老人卡片列表 -->
+  <view class="elders-list">
+    <view class="elder-card" wx:for="{{elders}}" wx:key="id">
+      <avatar class="avatar" nickname="{{item.name}}" background-color="{{item.avatarConfig.bgColor}}" text-color="{{item.avatarConfig.textColor}}" />
+      <view class="info">
+        <text class="name">{{item.name}}</text>
+      </view>
+      <view class="actions">
+        <td-tag wx:if="{{item.isCurrent}}" theme="success" variant="light" size="small">当前监护</td-tag>
+        <text wx:else class="switch-btn" bindtap="switchCurrent" data-id="{{item.id}}">切换</text>
+        <text class="delete-btn" bindtap="deleteElder" data-id="{{item.id}}">解绑</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部留白 -->
+  <view class="bottom-space"></view>
+
+  <!-- 添加老人弹窗 -->
+  <view class="modal-mask" wx:if="{{showAddModal}}" bindtap="hideAddModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-title">添加老人</view>
+      <view class="input-group">
+        <input class="phone-input" type="number" maxlength="11" placeholder="请输入老人手机号" value="{{inputPhone}}" bindinput="onPhoneInput" />
+      </view>
+      <view class="modal-btns">
+        <view class="cancel-btn" bindtap="hideAddModal">取消</view>
+        <view class="confirm-btn" bindtap="confirmAdd">确认绑定</view>
+      </view>
+    </view>
+  </view>
+</view>

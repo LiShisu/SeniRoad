@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     # 服务器配置
     HOST: str = "0.0.0.0"
     PORT: int = 8000
+    TEMP_DIR: str = "temp"
     
     # LLM 配置
     LLM_API_KEY: str = ""

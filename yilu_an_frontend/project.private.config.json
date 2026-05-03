@@ -24,7 +24,7 @@
       "list": [
         {
           "name": "common/login/login",
-          "pathName": "common/login/login",
+          "pathName": "family/pages/index/index",
           "query": "",
           "scene": null,
           "launchMode": "default"

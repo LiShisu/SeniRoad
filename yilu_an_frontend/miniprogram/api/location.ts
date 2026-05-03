@@ -31,16 +31,16 @@ export interface HistoryParams {
 export const locationApi = {
   // 更新实时位置
   updateLocation: (params: UpdateLocationParams) => {
-    return api.post<Location>('/api/v1/locations/update', params);
+    return api.post<Location>('/locations/update', params);
   },
   
   // 查询历史轨迹
   getHistory: (params?: HistoryParams) => {
-    return api.get<Location[]>('/api/v1/locations/history', { data: params });
+    return api.get<Location[]>('/locations/history', { data: params });
   },
   
   // 获取最新位置
   getLatest: () => {
-    return api.get<Location>('/api/v1/locations/latest');
+    return api.get<Location>('/locations/latest');
   },
 };

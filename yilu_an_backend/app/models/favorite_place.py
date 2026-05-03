@@ -12,7 +12,7 @@ class FavoritePlace(Base):
     latitude = Column(Numeric(10, 8), nullable=False)
     longitude = Column(Numeric(11, 8), nullable=False)
     address = Column(String(500), nullable=False)
-    source_type = Column(Integer, nullable=False, default=1)
+    source_type = Column(Integer, nullable=False, default=1)  # 1-家属预设, 2-自动识别
     is_active = Column(Boolean, nullable=False, default=True)
 
     __table_args__ = (

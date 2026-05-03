@@ -1,18 +1,55 @@
 // 权限检查工具
+let isStorageReady = false;
+
+// 安全的存储 API 包装函数
+function safeGetStorageSync(key: string): any {
+  if (!isStorageReady) {
+    return '';
+  }
+  try {
+    return wx.getStorageSync(key);
+  } catch (error) {
+    console.warn(`安全获取存储失败: ${key}`, error);
+    return '';
+  }
+}
+
+function safeSetStorageSync(key: string, value: any): void {
+  try {
+    wx.setStorageSync(key, value);
+  } catch (error) {
+    console.warn(`安全设置存储失败: ${key}`, error);
+  }
+}
+
+function safeRemoveStorageSync(key: string): void {
+  try {
+    wx.removeStorageSync(key);
+  } catch (error) {
+    console.warn(`安全删除存储失败: ${key}`, error);
+  }
+}
+
+// 初始化存储系统准备状态
+export function initStorage() {
+  setTimeout(() => {
+    isStorageReady = true;
+  }, 200);
+}
+
 /**
  * 检查用户是否有权限访问当前页面
  * @param requiredType 需要的用户类型 ('elderly' 或 'family')
  * @returns 是否有权限
  */
 export function checkPermission(requiredType: 'elderly' | 'family'): boolean {
-  // 从全局数据或本地存储获取用户类型
   const app = getApp()
   let userType = app.globalData?.userType || ''
-  
+
   if (!userType) {
-    userType = wx.getStorageSync('userType') || ''
+    userType = safeGetStorageSync('userType') || ''
   }
-  
+
   return userType === requiredType
 }
 
@@ -23,20 +60,17 @@ export function checkPermission(requiredType: 'elderly' | 'family'): boolean {
 export function checkAndRedirect(requiredType: 'elderly' | 'family') {
   if (!checkPermission(requiredType)) {
     const app = getApp()
-    const userType = app.globalData?.userType || wx.getStorageSync('userType') || ''
-    
+    const userType = app.globalData?.userType || safeGetStorageSync('userType') || ''
+
     if (userType) {
-      // 如果用户已登录但类型不匹配，跳转到对应类型的首页
-      const homeUrl = userType === 'elderly' 
-        ? '/elderly/pages/index/index' 
+      const homeUrl = userType === 'elderly'
+        ? '/elderly/pages/index/index'
         : '/family/pages/index/index'
-      
+
       wx.redirectTo({
         url: homeUrl
       })
     } else {
-      // 如果用户未登录，跳转到登录页（如果有的话）
-      // 这里暂时跳转到老人端首页，实际项目中应该有专门的登录页
       wx.redirectTo({
         url: '/common/login/login'
       })
@@ -46,24 +80,33 @@ export function checkAndRedirect(requiredType: 'elderly' | 'family') {
 
 // 获取token
 export const getToken = (): string | null => {
-  return wx.getStorageSync('access_token');
+  return safeGetStorageSync('access_token') || null;
 };
 
 // 保存token
 export const saveToken = (token: string): void => {
-  wx.setStorageSync('access_token', token);
+  safeSetStorageSync('access_token', token);
 };
 
 // 保存用户类型
 export const saveUserRole = (role: string): void => {
-  wx.setStorageSync('userType', role);
+  safeSetStorageSync('userType', role);
+};
+
+// 删除token
+export const removeToken = (): void => {
+  safeRemoveStorageSync('access_token');
+};
+
+// 删除用户类型
+export const removeUserRole = (): void => {
+  safeRemoveStorageSync('userType');
 };
 
 // 微信登录并获取token
-export const wechatLogin = async (): Promise<'elderly' | 'family'> => {
-  
+export const wechatLogin = async (role?: 'elderly' | 'family'): Promise<'elderly' | 'family'> => {
+
   try {
-    // 1. 调用微信登录接口获取code
     const wxLoginResult = await new Promise<any>((resolve, reject) => {
       wx.login({
         success: resolve,
@@ -71,19 +114,42 @@ export const wechatLogin = async (): Promise<'elderly' | 'family'> => {
       });
     });
 
-    // 2. 直接将code发送给后端服务器进行登录操作
     const authApi = require('../api/auth').authApi;
-    const response = await authApi.wechatLogin(wxLoginResult.code);
+    const response = await authApi.wechatLogin(wxLoginResult.code, role);
 
     console.log('登录成功:', response);
-    // 3. 保存token和用户信息
     saveToken(response.access_token);
     saveUserRole(response.role);
-    
-    // 保存用户类型到全局数据
-    getApp().globalData.userType = response.role;
+
+    const app = getApp();
+    if (app && app.globalData) {
+      app.globalData.userType = response.role;
+    }
     return response.role;
   } catch (error) {
+    console.error('登录失败:', error);
+    throw error;
+  }
+};
+
+// 手机号登录并获取token
+export const phoneLogin = async (phone: string): Promise<'elderly' | 'family'> => {
+
+  try {
+    const authApi = require('../api/auth').authApi;
+    const response = await authApi.phoneLogin(phone);
+
+    console.log('手机号登录成功:', response);
+    saveToken(response.access_token);
+    saveUserRole(response.role);
+
+    const app = getApp();
+    if (app && app.globalData) {
+      app.globalData.userType = response.role;
+    }
+    return response.role;
+  } catch (error) {
+    console.error('手机号登录失败:', error);
     throw error;
   }
 };
@@ -93,32 +159,27 @@ export const wechatLogin = async (): Promise<'elderly' | 'family'> => {
  * @returns Promise<boolean> 是否已登录
  */
 export async function checkLoginStatus(): Promise<boolean> {
-  const token = wx.getStorageSync('access_token');
+  const token = safeGetStorageSync('access_token');
   if (!token) {
-    // 未登录，跳转到登录页面
     wx.redirectTo({
       url: '/common/login/login'
     });
     return false;
   }
-  
-  // 检查 session_key 是否过期
+
   try {
     await new Promise<void>((resolve, reject) => {
       wx.checkSession({
         success: () => {
-          // session_key 未过期，登录态有效
           resolve();
         },
         fail: () => {
-          // session_key 已过期，需要重新登录
           reject(new Error('Session expired'));
         }
       });
     });
     return true;
   } catch (error) {
-    // session_key 已过期，跳转到登录页面
     wx.redirectTo({
       url: '/common/login/login'
     });

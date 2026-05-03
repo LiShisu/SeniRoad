@@ -1,21 +1,6 @@
 // 认证相关接口
 import { api } from '../utils/request';
 
-// 用户注册请求参数
-export interface RegisterParams {
-  phone: string;
-  password: string;
-  nickname?: string;
-  role?: 'elderly' | 'family';
-  avatar_url?: string;
-}
-
-// 用户登录请求参数
-export interface LoginParams {
-  username: string;
-  password: string;
-}
-
 // 微信用户注册请求参数
 export interface WechatUserCreate {
   code: string;
@@ -31,6 +16,8 @@ export interface UserInfo {
   phone: string;
   nickname: string;
   role: string;
+  gender: number;
+  birthday: string | null;
   avatar_url: string | null;
   is_active: boolean;
   created_at: string;
@@ -45,23 +32,18 @@ export interface LoginResponse {
 
 // 认证相关API
 export const authApi = {
-  // 用户注册
-  register: (params: RegisterParams) => {
-    return api.post<UserInfo>('/api/v1/auth/register', params, { token: false });
-  },
-  
-  // 用户登录
-  login: (params: LoginParams) => {
-    return api.post<LoginResponse>('/api/v1/auth/login', params, { token: false });
-  },
-  
   // 微信注册
   wechatRegister: (wechatData: WechatUserCreate) => {
-    return api.post<UserInfo>('/api/v1/auth/wechat/register', wechatData, { token: false });
+    return api.post<UserInfo>('/auth/wechat/register', wechatData, { token: false });
   },
-  
+
   // 微信登录
-  wechatLogin: (code: string) => {
-    return api.post<LoginResponse>('/api/v1/auth/wechat/login', { code }, { token: false });
+  wechatLogin: (code: string, role?: 'elderly' | 'family') => {
+    return api.post<LoginResponse>('/auth/wechat/login', { code, role }, { token: false });
+  },
+
+  // 手机号登录
+  phoneLogin: (phone: string) => {
+    return api.post<LoginResponse>('/auth/phone/login', { phone }, { token: false });
   },
 };

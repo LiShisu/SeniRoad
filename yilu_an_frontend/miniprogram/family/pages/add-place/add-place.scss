@@ -1,0 +1,203 @@
+page {
+  background-color: #FFFFFF;
+  padding: 0;
+  margin: 0;
+}
+
+.container {
+  padding-bottom: 40rpx;
+}
+
+/* 导航栏 */
+.nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 32rpx;
+  padding-top: 32rpx;
+  height: 88rpx;
+}
+
+.nav-left {
+  padding: 8rpx;
+}
+
+.nav-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.nav-right {
+  width: 80rpx;
+}
+
+/* 表单 */
+.form {
+  padding: 0 32rpx;
+}
+
+.form-item {
+  margin-bottom: 32rpx;
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  font-size: 28rpx;
+  color: #333333;
+  margin-bottom: 16rpx;
+}
+
+.required-mark {
+  color: #FF4D4F;
+  margin-right: 8rpx;
+}
+
+/* 位置选择区域 */
+.location-section {
+  background-color: #F5F5F5;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-left: -32rpx;
+  margin-right: -32rpx;
+  padding-left: 32rpx;
+  padding-right: 32rpx;
+  margin-bottom: 0;
+}
+
+.location-section .form-label {
+  margin-bottom: 16rpx;
+}
+
+/* 搜索框 */
+.search-container {
+  margin-bottom: 16rpx;
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  background-color: #FFFFFF;
+  border-radius: 40rpx;
+  padding: 16rpx 24rpx;
+  gap: 16rpx;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333333;
+}
+
+.search-cancel {
+  font-size: 28rpx;
+  color: #4B8AFF;
+  padding: 8rpx;
+}
+
+/* 搜索结果列表 */
+.search-results {
+  max-height: 400rpx;
+  overflow-y: auto;
+  background-color: #FFFFFF;
+  border-radius: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 20rpx 24rpx;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.result-icon {
+  margin-right: 16rpx;
+  margin-top: 4rpx;
+}
+
+.result-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.result-title {
+  font-size: 28rpx;
+  color: #333333;
+  font-weight: 500;
+}
+
+.result-address {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+/* 无搜索结果 */
+.no-results {
+  background-color: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 40rpx 24rpx;
+  text-align: center;
+  margin-bottom: 16rpx;
+}
+
+.no-results text {
+  font-size: 28rpx;
+  color: #999999;
+}
+
+/* 地图容器 */
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 360rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  background-color: #E6E6E6;
+}
+
+.map {
+  width: 100%;
+  height: 100%;
+}
+
+.center-marker {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* 选中地址显示 */
+.selected-address {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 16rpx;
+  padding: 16rpx;
+  background-color: #FFFFFF;
+  border-radius: 8rpx;
+}
+
+.address-text {
+  font-size: 28rpx;
+  color: #333333;
+}
+
+/* 门牌号输入区域 */
+.submit-section {
+  margin-top: 48rpx;
+}
+
+.bottom-space {
+  height: 40rpx;
+}

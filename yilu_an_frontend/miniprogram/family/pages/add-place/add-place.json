@@ -1,0 +1,10 @@
+{
+  "usingComponents": {
+    "td-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon",
+    "td-input": "/miniprogram_npm/tdesign-miniprogram/input/input",
+    "td-button": "/miniprogram_npm/tdesign-miniprogram/button/button",
+    "td-radio": "/miniprogram_npm/tdesign-miniprogram/radio/radio",
+    "td-radio-group": "/miniprogram_npm/tdesign-miniprogram/radio-group/radio-group"
+  },
+  "navigationStyle": "custom"
+}

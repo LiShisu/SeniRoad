@@ -2,16 +2,76 @@
 <view class="container">
   <view class="login-form">
     <logo />
-    
-    <button 
-      class="wechat-login-button" 
-      bindtap="wechatLogin"
+
+    <button
+      class="wechat-login-button {{hideWechatButton ? 'hidden' : ''}}"
+      bindtap="toggleWechatLogin"
       loading="{{wechatLoading}}"
       disabled="{{wechatLoading}}"
     >
       微信快捷登录
     </button>
-    
+
+    <view class="wechat-login-section {{showWechatLogin ? 'show' : ''}}">
+      <view class="role-selector">
+        <text class="role-label">请选择您的身份</text>
+        <view class="role-options">
+          <view
+            class="role-option {{selectedRole === 'elderly' ? 'active' : ''}}"
+            bindtap="selectRole"
+            data-role="elderly"
+          >
+            老人
+          </view>
+          <view
+            class="role-option {{selectedRole === 'family' ? 'active' : ''}}"
+            bindtap="selectRole"
+            data-role="family"
+          >
+            家属
+          </view>
+        </view>
+      </view>
+      <button
+        class="wechat-confirm-button"
+        bindtap="confirmWechatLogin"
+        loading="{{wechatLoading}}"
+        disabled="{{wechatLoading || !selectedRole}}"
+      >
+        确认登录
+      </button>
+    </view>
+
+    <button
+      class="phone-login-button {{hidePhoneButton ? 'hidden' : ''}}"
+      bindtap="togglePhoneInput"
+      loading="{{phoneLoading}}"
+      disabled="{{phoneLoading}}"
+    >
+      手机号登录
+    </button>
+
+    <view class="phone-input-section {{showPhoneInput ? 'show' : ''}}">
+      <view class="input-wrapper">
+        <input
+          class="phone-input"
+          type="number"
+          placeholder="请输入手机号"
+          bindinput="onPhoneInput"
+          value="{{phoneNumber}}"
+          maxlength="11"
+        />
+      </view>
+      <button
+        class="login-submit-button"
+        bindtap="submitPhoneLogin"
+        loading="{{phoneLoading}}"
+        disabled="{{phoneLoading || !phoneNumber}}"
+      >
+        登录
+      </button>
+    </view>
+
     <view class="register-link">
       <text>还没有账号？</text>
       <navigator url="/common/register/register" class="link">立即注册</navigator>

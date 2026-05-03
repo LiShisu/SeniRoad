@@ -3,19 +3,16 @@ from typing import List, Optional
 from app.schemas.favorite_place import FavoritePlaceCreate, FavoritePlaceUpdate, FavoritePlaceResponse
 from app.services.favorite_place import FavoritePlaceService
 from app.dependencies import get_favorite_place_service, get_current_active_user
-from app.models import User
+from app.models import User, UserRole
 
 router = APIRouter()
 
 @router.post("/", response_model=FavoritePlaceResponse, status_code=status.HTTP_201_CREATED)
 async def create_favorite_place(
     place: FavoritePlaceCreate,
-    favorite_place_service: FavoritePlaceService = Depends(get_favorite_place_service),
-    current_user: User = Depends(get_current_active_user)
+    favorite_place_service: FavoritePlaceService = Depends(get_favorite_place_service)
 ):
-    """创建常用地点"""
-    if place.user_id is None:
-        place.user_id = current_user.user_id
+    """家属为老人创建常用地点"""
     try:
         return favorite_place_service.create_place(place)
     except ValueError as e:
@@ -40,7 +37,14 @@ async def get_favorite_places(
     - active_only: 是否只获取活跃地点
     """
     if user_id is None:
-        user_id = current_user.user_id
+        if current_user.role == UserRole.ELDERLY:
+            user_id = current_user.user_id
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="缺少用户ID参数"
+            )
+    
     if active_only:
         return favorite_place_service.get_active_places(user_id)
     if source_type is not None:

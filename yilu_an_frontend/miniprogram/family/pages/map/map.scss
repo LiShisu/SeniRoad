@@ -1,73 +1,121 @@
-/* family/pages/map/map.wxss */
-.container {
-  padding-bottom: 100rpx; /* 为底部导航栏留出空间 */
+page {
+  background-color: #ffffff;
+  padding: 0;
+  margin: 0;
+  height: 100vh;
 }
 
+.container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 导航栏 */
+.nav-bar {
+  position: absolute;
+  top: 100rpx;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 32rpx;
+  padding-top: 32rpx;
+  height: 88rpx;
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+.nav-left {
+  padding: 8rpx;
+}
+
+.nav-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.nav-right {
+  width: 80rpx;
+}
+
+/* 地图容器 */
 .map-container {
-  width: 100%;
-  height: 500rpx;
+  flex: 1;
   position: relative;
 }
 
-.map-image {
+.map {
   width: 100%;
   height: 100%;
-  object-fit: cover;
 }
 
-.location-marker {
+/* 底部浮层 */
+.bottom-panel {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: rgba(255, 69, 0, 0.8);
-  color: white;
-  padding: 10rpx 20rpx;
-  border-radius: 20rpx;
-  font-size: 32rpx;
-  font-weight: bold;
-}
-
-.info-panel {
-  background-color: white;
-  margin: 20rpx;
-  padding: 20rpx;
-  border-radius: 10rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-}
-
-.info-item {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20%;
+  background-color: #fafafa;
+  border-radius: 48rpx 48rpx 0 0;
+  padding: 32rpx;
+  padding-top: 48rpx;
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 15rpx;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.location-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  margin-bottom: 32rpx;
+}
+
+.location-title {
   font-size: 32rpx;
-}
-
-.info-label {
-  color: #666;
-}
-
-.info-value {
-  color: #333;
+  color: #333333;
   font-weight: 500;
 }
 
-.status-normal {
-  color: #52c41a;
+.location-detail {
+  font-size: 28rpx;
+  color: #999999;
 }
 
-.control-buttons {
+.update-time {
+  font-size: 24rpx;
+  color: #999999;
+  text-align: right;
+  margin-top: 8rpx;
+}
+
+.action-buttons {
   display: flex;
-  justify-content: space-around;
-  margin: 20rpx;
+  gap: 24rpx;
+  margin-top: 32rpx;
 }
 
-.control-btn {
-  background-color: #1890ff;
-  color: white;
-  padding: 20rpx 40rpx;
-  border-radius: 50rpx;
-  font-size: 32rpx;
-  font-weight: 500;
+.action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  height: 88rpx;
+  background-color: #4B8AFF;
+  border: none;
+  border-radius: 16rpx;
+  color: #ffffff;
+  font-size: 28rpx;
+  overflow: hidden;
 }
 
+.action-btn::after {
+  border: none;
+}

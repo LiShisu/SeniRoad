@@ -3,6 +3,7 @@ from app.schemas.favorite_place import FavoritePlaceCreate, FavoritePlaceUpdate,
 from app.repositories.favorite_place_repository import FavoritePlaceRepository
 from typing import List, Optional
 
+
 class FavoritePlaceService:
     def __init__(self, favorite_place_repo: FavoritePlaceRepository):
         self.favorite_place_repo = favorite_place_repo
@@ -33,17 +34,7 @@ class FavoritePlaceService:
         if self.favorite_place_repo.exists_by_name(place_data.user_id, place_data.place_name):
             raise ValueError("常用地点名称已存在")
 
-        place = FavoritePlace(
-            user_id=place_data.user_id,
-            place_name=place_data.place_name,
-            latitude=place_data.latitude,
-            longitude=place_data.longitude,
-            address=place_data.address,
-            source_type=place_data.source_type,
-            tag_id=place_data.tag_id,
-            is_active=place_data.is_active
-        )
-
+        place = FavoritePlace(**place_data.model_dump())
         created_place = self.favorite_place_repo.create(place)
         return FavoritePlaceResponse.model_validate(created_place)
 
@@ -56,19 +47,9 @@ class FavoritePlaceService:
             if place_data.place_name != place.place_name and \
                self.favorite_place_repo.exists_by_name(place.user_id, place_data.place_name):
                 raise ValueError("常用地点名称已存在")
-            place.place_name = place_data.place_name
-        if place_data.latitude is not None:
-            place.latitude = place_data.latitude
-        if place_data.longitude is not None:
-            place.longitude = place_data.longitude
-        if place_data.address is not None:
-            place.address = place_data.address
-        if place_data.source_type is not None:
-            place.source_type = place_data.source_type
-        if place_data.tag_id is not None:
-            place.tag_id = place_data.tag_id
-        if place_data.is_active is not None:
-            place.is_active = place_data.is_active
+
+        for field, value in place_data.model_dump(exclude_unset=True).items():
+            setattr(place, field, value)
 
         updated_place = self.favorite_place_repo.update(place)
         return FavoritePlaceResponse.model_validate(updated_place)

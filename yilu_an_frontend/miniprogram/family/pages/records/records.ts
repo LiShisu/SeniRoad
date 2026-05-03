@@ -1,69 +1,64 @@
-// family/pages/records/records.ts
-import { checkAndRedirect } from '../../../utils/auth'
-
+// records.ts
 Page({
-
-  /**
-   * 页面的初始数据
-   */
   data: {
-
+    currentTab: 'month',
+    stats: {
+      trips: '28',
+      distance: '15.6km',
+      duration: '42h'
+    },
+    records: [
+      {
+        id: 1,
+        time: '2026-03-23 上午',
+        path: '- 家 - 永辉超市 - 家',
+        distance: '2.3km',
+        duration: '45分钟',
+        deviation: false
+      },
+      {
+        id: 2,
+        time: '2026-03-22 下午',
+        path: '- 家 - 公园 - 家',
+        distance: '1.5km',
+        duration: '1小时30分钟',
+        deviation: true
+      },
+      {
+        id: 3,
+        time: '2026-03-21 上午',
+        path: '- 家 - 市人民医院 - 家',
+        distance: '5.2km',
+        duration: '2小时',
+        deviation: false
+      }
+    ]
   },
 
   /**
-   * 生命周期函数--监听页面加载
+   * 返回上一页
    */
-  onLoad() {
-    // 检查用户类型权限
-    checkAndRedirect('family')
+  goBack() {
+    wx.navigateBack()
   },
 
   /**
-   * 生命周期函数--监听页面初次渲染完成
+   * 标签切换
    */
-  onReady() {
-
+  onTabChange(e: any) {
+    this.setData({
+      currentTab: e.detail.value
+    })
   },
 
   /**
-   * 生命周期函数--监听页面显示
+   * 查看轨迹详情
    */
-  onShow() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-
+  viewDetail(e: any) {
+    const { id } = e.currentTarget.dataset
+    wx.showToast({
+      title: `查看轨迹${id}`,
+      icon: 'none'
+    })
   }
 })

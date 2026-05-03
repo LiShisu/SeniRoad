@@ -5,6 +5,7 @@ from typing import Dict
 import tempfile
 import os
 
+# 废弃导航Agent，使用多Agent导航系统
 class NavigationAgent:
     def __init__(self, navigation_service: NavigationService, destination_agent: DestinationParseAgent):
         self.destination_agent = destination_agent

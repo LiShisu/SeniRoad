@@ -1,1 +1,190 @@
-/* family/pages/elders/elders.wxss */
+page {
+  background-color: #FFFFFF;
+  padding: 0;
+  margin: 0;
+}
+
+.container {
+  padding-bottom: 40rpx;
+}
+
+/* 导航栏 */
+.nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 32rpx;
+  padding-top: 32rpx;
+  height: 88rpx;
+}
+
+.nav-left {
+  padding: 8rpx;
+}
+
+.nav-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.nav-right {
+  width: 80rpx;
+}
+
+/* 统计行 */
+.stats-row {
+  padding: 16rpx 32rpx 32rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stats-text {
+  font-size: 32rpx;
+  color: #333333;
+}
+
+.add-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 24rpx;
+  background-color: #EEF4FF;
+  border-radius: 32rpx;
+}
+
+.add-btn-text {
+  font-size: 28rpx;
+  color: #4B8AFF;
+}
+
+/* 老人卡片列表 */
+.elders-list {
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.elder-card {
+  background-color: #FFFFFF;
+  border-radius: 24rpx;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 32rpx;
+  display: flex;
+  align-items: flex-start;
+  gap: 24rpx;
+}
+
+.avatar {
+  width: 100rpx;
+  height: 100rpx;
+  flex-shrink: 0;
+}
+
+.info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16rpx;
+}
+
+.switch-btn {
+  font-size: 28rpx;
+  color: #4B8AFF;
+}
+
+.delete-btn {
+  font-size: 28rpx;
+  color: #FF4D4F;
+}
+
+.bottom-space {
+  height: 40rpx;
+}
+
+/* 添加弹窗 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  width: 600rpx;
+  background-color: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 48rpx;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333333;
+  text-align: center;
+  margin-bottom: 48rpx;
+}
+
+.input-group {
+  margin-bottom: 48rpx;
+}
+
+.phone-input {
+  width: 100%;
+  height: 88rpx;
+  background-color: #F5F5F5;
+  border-radius: 16rpx;
+  padding: 0 32rpx;
+  font-size: 32rpx;
+  box-sizing: border-box;
+}
+
+.modal-btns {
+  display: flex;
+  gap: 24rpx;
+}
+
+.cancel-btn {
+  flex: 1;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #F5F5F5;
+  border-radius: 16rpx;
+  font-size: 32rpx;
+  color: #666666;
+}
+
+.confirm-btn {
+  flex: 1;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #4B8AFF;
+  border-radius: 16rpx;
+  font-size: 32rpx;
+  color: #FFFFFF;
+}

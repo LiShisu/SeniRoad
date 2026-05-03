@@ -1,5 +1,5 @@
 // index.ts
-import { checkAndRedirect } from '../../../utils/auth'
+import { checkAndRedirect, removeToken, removeUserRole } from '../../../utils/auth'
 import { userApi } from '../../../api/user'
 
 Page({
@@ -109,9 +109,9 @@ Page({
       content: '确定要退出登录吗？',
       success: (res) => {
         if (res.confirm) {
-          // 清除登录状态
-          wx.removeStorageSync('access_token')
-          wx.removeStorageSync('userType')
+          // 清除登录状态（使用安全的方式）
+          removeToken();
+          removeUserRole();
           
           // 跳转到登录页面
           wx.reLaunch({

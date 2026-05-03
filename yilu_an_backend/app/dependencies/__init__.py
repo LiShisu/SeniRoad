@@ -24,6 +24,7 @@ from app.dependencies.services import (
     get_destination_parse_agent,
     get_navigation_agent,
     get_llm_navigation_agent,
+    get_multi_agent_navigation,
     get_tag_repository,
     get_tag_service
 )
@@ -48,6 +49,7 @@ __all__ = [
     "get_destination_parse_agent",
     "get_navigation_agent",
     "get_llm_navigation_agent",
+    "get_multi_agent_navigation",
     "get_tag_repository",
     "get_tag_service"
 ]

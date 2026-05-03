@@ -1,6 +1,9 @@
 {
   "usingComponents": {
-    "navigation-bar": "/components/navigation-bar/navigation-bar",
-    "guard-bottom-nav": "/components/guard-bottom-nav/guard-bottom-nav"
-  }
+    "td-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon",
+    "td-progress": "/miniprogram_npm/tdesign-miniprogram/progress/progress",
+    "guard-bottom-nav": "/components/guard-bottom-nav/guard-bottom-nav",
+    "avatar": "/components/avatar/avatar"
+  },
+  "navigationStyle": "custom"
 }

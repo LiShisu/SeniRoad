@@ -321,6 +321,14 @@ $responsive-avatar-size: 140rpx;
   }
 }
 
+// 性别提示
+.gender-tip {
+  font-size: $font-label;
+  color: $text-light;
+  text-align: center;
+  margin-top: 20rpx;
+}
+
 // Picker 容器
 .picker-container {
   display: flex;
