@@ -2,25 +2,16 @@ page {
   background-color: #FFFFFF;
   padding: 0;
   margin: 0;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
-}
-
-.container {
-  padding: 0;
-  padding-bottom: 120rpx;
-  // padding-top: 10rpx;
-  width: 100%;
-  box-sizing: border-box;
 }
 
 /* 头部信息区 */
 .header-section {
   display: flex;
   align-items: flex-start;
-  padding: 200rpx 32rpx 90rpx;
+  padding: 100rpx 32rpx 60rpx 32rpx;
   background: linear-gradient(135deg, #4B8AFF 0%, #6BA3FF 100%);
   width: 100%;
   box-sizing: border-box;
@@ -64,7 +55,7 @@ page {
 /* 状态卡片 */
 .status-card {
   margin: 24rpx 20rpx;
-  padding: 100rpx;
+  padding: 60rpx;
   border-radius: 24rpx;
   background: linear-gradient(135deg, #E8F4FF 0%, #D4E8FF 100%);
 }

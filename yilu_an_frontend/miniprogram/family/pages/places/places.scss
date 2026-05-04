@@ -97,14 +97,27 @@ page {
 }
 
 .place-card {
-  background-color: #FFFFFF;
-  border-radius: 16rpx;
-  padding: 20rpx;
-  margin-bottom: 12rpx;
+  background-color: #ffffff;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  padding-left: 40rpx;
+  margin-bottom: 24rpx;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.place-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 10rpx;
+  background: linear-gradient(180deg, #4B8AFF 0%, #3A7CE8 100%);
+  // border-radius: 60rpx;
 }
 
 .place-info {
@@ -115,25 +128,28 @@ page {
 }
 
 .place-name {
-  font-size: 32rpx;
+  font-size: 36rpx;
   color: #333333;
   font-weight: 500;
+  margin-bottom: 12rpx;
 }
 
 .place-address {
-  font-size: 26rpx;
-  color: #999999;
+  font-size: 25rpx;
+  color: #666666;
+  line-height: 1.5;
 }
 
 .place-actions {
   display: flex;
-  gap: 16rpx;
+  gap: 24rpx;
 }
 
 .action-btn {
-  font-size: 24rpx;
-  border-radius: 20rpx;
-  padding: 8rpx 20rpx;
+  font-size: 30rpx;
+  border-radius: 32rpx;
+  padding: 16rpx 40rpx;
+  font-weight: 500;
 }
 
 .action-btn.edit {
@@ -143,7 +159,7 @@ page {
 
 .action-btn.delete {
   background-color: #FFF2F0;
-  color: #FF7875;
+  color: #FF5252;
 }
 
 .bottom-space {

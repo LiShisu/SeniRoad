@@ -205,7 +205,8 @@ Page({
 
   searchLocation(keyword: string) {
     this.setData({ isSearching: true, searchResults: [] });
-    
+    console.log('搜索关键词:', keyword);
+    console.log('当前城市:', this.data.currentCity);
     gaodePlaceSearch(keyword, this.data.currentCity)
       .then((results) => {
         this.setData({

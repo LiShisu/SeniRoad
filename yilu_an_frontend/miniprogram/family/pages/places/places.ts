@@ -16,6 +16,13 @@ Page({
   },
 
   /**
+   * 页面显示
+   */
+  onShow() {
+    this.loadFavoritePlaces();
+  },
+
+  /**
    * 加载常用地点列表
    */
   loadFavoritePlaces() {
