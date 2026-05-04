@@ -16,7 +16,10 @@ export interface Binding {
   binding_id: number;
   elderly_id: number;
   elderly_nickname: string;
+  elderly_phone: string | null;
   family_id: number;
+  family_nickname: string;
+  family_phone: string | null;
   status: string;
   created_at: string;
   approved_at: string | null;

@@ -18,6 +18,10 @@ class BindingService:
             response = BindingResponse.model_validate(binding)
             if binding.elderly:
                 response.elderly_nickname = binding.elderly.nickname
+                response.elderly_phone = binding.elderly.phone
+            if binding.family:
+                response.family_phone = binding.family.phone
+                response.family_nickname = binding.family.nickname
             return response
         return None
 
@@ -32,6 +36,10 @@ class BindingService:
             response = BindingResponse.model_validate(binding)
             if binding.elderly:
                 response.elderly_nickname = binding.elderly.nickname
+                response.elderly_phone = binding.elderly.phone
+            if binding.family:
+                response.family_phone = binding.family.phone
+                response.family_nickname = binding.family.nickname
             responses.append(response)
         return responses
 
@@ -57,6 +65,11 @@ class BindingService:
         created_binding = self.binding_repo.create(binding)
         response = BindingResponse.model_validate(created_binding)
         response.elderly_nickname = elderly_user.nickname
+        response.elderly_phone = elderly_user.phone
+        family_user = self.user_repo.get_by_id(binding_data.family_id)
+        if family_user:
+            response.family_phone = family_user.phone
+            response.family_nickname = family_user.nickname
         return response
 
     def unbind(self, unbind_data: BindingUnbind) -> None:
@@ -86,6 +99,10 @@ class BindingService:
         response = BindingResponse.model_validate(updated_binding)
         if binding.elderly:
             response.elderly_nickname = binding.elderly.nickname
+            response.elderly_phone = binding.elderly.phone
+        if binding.family:
+            response.family_phone = binding.family.phone
+            response.family_nickname = binding.family.nickname
         return response
 
     def reject_binding(self, binding_id: int, user_id: int) -> BindingResponse:
@@ -101,4 +118,8 @@ class BindingService:
         response = BindingResponse.model_validate(updated_binding)
         if binding.elderly:
             response.elderly_nickname = binding.elderly.nickname
+            response.elderly_phone = binding.elderly.phone
+        if binding.family:
+            response.family_phone = binding.family.phone
+            response.family_nickname = binding.family.nickname
         return response

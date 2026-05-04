@@ -1,5 +1,7 @@
 {
   "usingComponents": {
-    "elder-bottom-nav": "/components/elder-bottom-nav/elder-bottom-nav"
+    "elder-bottom-nav": "/components/elder-bottom-nav/elder-bottom-nav",
+    "avatar": "/components/avatar/avatar",
+    "td-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon"
   }
 }

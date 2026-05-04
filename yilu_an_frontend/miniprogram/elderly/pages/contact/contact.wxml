@@ -4,10 +4,26 @@
     <view class="back-button" bindtap="goBack">
       <text>←</text>
     </view>
-    <view class="page-title">联系家属</view>
+    <view class="page-title">选择要联系的家属</view>
   </view>
   <view class="content">
-    <view class="title">联系家属功能开发中</view>
-    <view class="description">敬请期待</view>
+    <view class="title" wx:if="{{families.length === 0}}">暂无绑定的家属</view>
+    <view class="families-list" wx:else>
+      <view class="family-card" wx:for="{{families}}" wx:key="family_id">
+        <avatar 
+          class="avatar-component" 
+          nickname="{{item.family_nickname}}" 
+          index="{{index}}"
+        />
+        <view class="info">
+          <text class="name">{{item.family_nickname}}</text>
+          <text class="phone">{{item.family_phone || '暂无电话'}}</text>
+        </view>
+        <view class="call-btn" bindtap="callFamily" data-phone="{{item.family_phone}}" wx:if="{{item.family_phone}}">
+          <td-icon name="call" size="32rpx" color="#F5222D" />
+          <text class="call-text">拨号</text>
+        </view>
+      </view>
+    </view>
   </view>
 </view>

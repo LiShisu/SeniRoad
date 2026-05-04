@@ -20,9 +20,10 @@
   <!-- 老人卡片列表 -->
   <view class="elders-list">
     <view class="elder-card" wx:for="{{elders}}" wx:key="id">
-      <avatar class="avatar" nickname="{{item.name}}" background-color="{{item.avatarConfig.bgColor}}" text-color="{{item.avatarConfig.textColor}}" />
+      <avatar class="avatar" nickname="{{item.name}}" index="{{index}}" />
       <view class="info">
         <text class="name">{{item.name}}</text>
+        <text class="phone" wx:if="{{item.phone}}">{{item.phone}}</text>
       </view>
       <view class="actions">
         <td-tag wx:if="{{item.isCurrent}}" theme="success" variant="light" size="small">当前监护</td-tag>

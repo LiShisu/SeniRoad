@@ -2,50 +2,102 @@
 
 .container {
   background-color: #FFFFFF;
-  min-height: 100vh;
+  // min-height: 100vh;
 }
 
 .header {
   display: flex;
   align-items: center;
-  padding: 40rpx;
-  border-bottom: 1rpx solid #EEEEEE;
-  
+  padding: 32rpx 40rpx;
+
   .back-button {
-    width: 60rpx;
-    height: 60rpx;
+    width: 80rpx;
+    height: 80rpx;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 48rpx;
     color: #333333;
+    border-radius: 50%;
+    background-color: #F5F5F5;
   }
-  
+
   .page-title {
     flex: 1;
-    font-size: 36rpx;
+    font-size: 44rpx;
     font-weight: 600;
     color: #333333;
     text-align: center;
+    margin-left: 20rpx;
   }
 }
 
 .content {
+  padding: 0 32rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 80vh;
-  
+
   .title {
-    font-size: 48rpx;
-    font-weight: bold;
-    color: #333333;
-    margin-bottom: 20rpx;
-  }
-  
-  .description {
     font-size: 32rpx;
     color: #999999;
+    margin-top: 200rpx;
+  }
+}
+
+.families-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.family-card {
+  background: linear-gradient(135deg, #E6F0FF 0%, #D1E4FF 100%);
+  border-radius: 32rpx;
+  padding: 40rpx 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.avatar-component {
+  width: 120rpx;
+  height: 120rpx;
+  flex-shrink: 0;
+  margin-right: 32rpx;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  flex: 1;
+
+  .name {
+    font-size: 36rpx;
+    font-weight: 600;
+    color: #333333;
+  }
+
+  .phone {
+    font-size: 28rpx;
+    color: #666666;
+  }
+}
+
+.call-btn {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 40rpx;
+  border: 3rpx solid #4B8AFF;
+  border-radius: 60rpx;
+  background-color: #FFFFFF;
+
+  .call-text {
+    font-size: 28rpx;
+    font-weight: 500;
+    color: #F5222D;
   }
 }

@@ -17,6 +17,9 @@ class BindingResponse(BaseModel):
     elderly_id: int
     family_id: int
     elderly_nickname: Optional[str] = None
+    elderly_phone: Optional[str] = None
+    family_nickname: Optional[str] = None
+    family_phone: Optional[str] = None
     status: BindingStatus
     created_at: datetime
     approved_at: Optional[datetime] = None

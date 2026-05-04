@@ -2,25 +2,9 @@
 import { bindingApi } from '../../../api/binding';
 import { saveCurrentElder, getCurrentElder } from '../../storage';
 
-const AVATAR_COLORS = ['#4B8AFF', '#FF8C42', '#52C41A', '#FF4D4F', '#722ED1', '#1890FF'];
-
-function getLuminance(hex: string): number {
-  const rgb = parseInt(hex.slice(1), 16);
-  const r = (rgb >> 16) & 0xFF;
-  const g = (rgb >> 8) & 0xFF;
-  const b = rgb & 0xFF;
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-}
-
-function getAvatarConfig(index: number) {
-  const bgColor = AVATAR_COLORS[index % AVATAR_COLORS.length];
-  const textColor = getLuminance(bgColor) < 0.6 ? '#FFFFFF' : '#000000';
-  return { bgColor, textColor };
-}
-
 Page({
   data: {
-    elders: [] as Array<{ id: string; name: string; isCurrent: boolean; avatarConfig: { bgColor: string; textColor: string } }>,
+    elders: [] as Array<{ id: string; name: string; phone: string | null; isCurrent: boolean }>,
     showAddModal: false,
     inputPhone: ''
   },
@@ -44,8 +28,8 @@ Page({
         return {
           id: elderId,
           name: binding.elderly_nickname,
-          isCurrent,
-          avatarConfig: getAvatarConfig(index)
+          phone: binding.elderly_phone,
+          isCurrent
         };
       });
       this.setData({ elders });

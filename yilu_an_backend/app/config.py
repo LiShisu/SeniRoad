@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     VOICE_MODEL: str = "paraformer-realtime-v2"
     TEXT_MODEL: str = "deepseek-ai/DeepSeek-V3.2"
     
+    # DashScope 配置（用于 TTS）
+    DASHSCOPE_API_KEY: str = ""
+    
     # 微信小程序配置
     WECHAT_APPID: str = ""
     WECHAT_APPSECRET: str = ""

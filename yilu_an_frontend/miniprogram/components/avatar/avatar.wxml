@@ -2,7 +2,7 @@
   <image class="avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
 </block>
 <block wx:else>
-  <view class="avatar-placeholder" style="background-color: {{backgroundColor}}">
-    <text class="avatar-placeholder-text" style="color: {{textColor}}">{{nickname ? nickname[0] : '无'}}</text>
+  <view class="avatar-placeholder" style="background-color: {{computedBgColor}}">
+    <text class="avatar-placeholder-text" style="color: {{computedTextColor}}">{{nickname ? nickname[0] : '无'}}</text>
   </view>
 </block>

@@ -3,6 +3,7 @@ import type { FavoritePlace } from '../../../api/favorite-places';
 import { navigationApi, AddressNavigationResponse, NavigationStep } from '../../../api/navigation';
 import { speechApi } from '../../../api/speech';
 import { locationApi } from '../../../api/location';
+import { getPlace, savePlace, getRoute, saveRoute } from '../../storage';
 
 interface CachedRouteData {
   route: AddressNavigationResponse['route'];
@@ -87,8 +88,21 @@ Page({
 
   async loadPlaceAndRoute() {
     try {
-      const place = await favoritePlacesApi.getFavoritePlaceById(this.data.placeId);
-      this.setData({ placeName: place.place_name });
+      let place: FavoritePlace | null = null;
+
+      // 尝试从本地缓存获取 place
+      const cachedPlace = getPlace(this.data.placeId);
+      if (cachedPlace) {
+        place = cachedPlace as FavoritePlace;
+        this.setData({ placeName: place.place_name });
+      }
+
+      // 没有缓存，调用后端获取
+      if (!place) {
+        place = await favoritePlacesApi.getFavoritePlaceById(this.data.placeId);
+        savePlace(place);
+        this.setData({ placeName: place.place_name });
+      }
 
       await this.planRoute(place);
     } catch (err: any) {
@@ -109,15 +123,30 @@ Page({
       console.log('当前定位:', res.latitude, res.longitude);
       console.log('目标地点:', place.place_id, place.place_name, place.latitude, place.longitude);
 
-      const routeRes = await navigationApi.navigateByAddress({
-        favorite_place_id: place.place_id,
-        origin_lng: res.longitude.toString(),
-        origin_lat: res.latitude.toString()
-      });
+      let route: AddressNavigationResponse['route'] | null = null;
 
-      console.log('路线规划结果:', routeRes);
+      // 尝试从本地缓存获取 route
+      const cachedRoute = getRoute(place.place_id);
+      if (cachedRoute) {
+        console.log('使用本地缓存路线:', cachedRoute);
+        route = cachedRoute as AddressNavigationResponse['route'];
+      }
 
-      const { route } = routeRes;
+      // 没有缓存，调用后端获取
+      if (!route) {
+        const routeRes = await navigationApi.navigateByAddress({
+          favorite_place_id: place.place_id,
+          origin_lng: res.longitude.toString(),
+          origin_lat: res.latitude.toString()
+        });
+
+        console.log('路线规划结果:', routeRes);
+        route = routeRes.route;
+
+        // 保存到本地缓存
+        saveRoute(place.place_id, route);
+      }
+
       const allPoints = this.parsePolylineArray(route.polyline);
 
       this.cachedRoute = {
@@ -179,7 +208,7 @@ Page({
         id: 0,
         latitude: originLat,
         longitude: originLng,
-        iconPath: '/images/location-marker-start.png',
+        iconPath: '/assets/images/location-marker-start.png',
         width: 40,
         height: 40,
         label: { content: '起点', fontSize: 20, color: '#333' }
@@ -188,7 +217,7 @@ Page({
         id: 1,
         latitude: destLat,
         longitude: destLng,
-        iconPath: '/images/location-marker-end.png',
+        iconPath: '/assets/images/location-marker-end.png',
         width: 40,
         height: 40,
         label: { content: this.data.placeName, fontSize: 20, color: '#333' }
@@ -245,24 +274,25 @@ Page({
       const res = await wx.getLocation({ type: 'gcj02' });
       const { route, allPoints, traveledPoints, currentStepIndex } = this.cachedRoute;
 
-      locationApi.createLocation({
-        latitude: res.latitude,
-        longitude: res.longitude,
-        accuracy: res.accuracy,
-        record_id: this.cachedRoute.recordId
-      }).catch((err) => {
-        console.error('记录位置失败:', err);
-      });
-
       if (this.lastLocation) {
         const distance = this.calculateDistance(
           this.lastLocation.latitude, this.lastLocation.longitude,
           res.latitude, res.longitude
         );
+
         if (distance > 2) {
           traveledPoints.push({ latitude: res.latitude, longitude: res.longitude });
           this.cachedRoute.traveledPoints = traveledPoints;
           this.updateTraveledPolyline(traveledPoints);
+
+          locationApi.createLocation({
+            latitude: res.latitude,
+            longitude: res.longitude,
+            accuracy: res.accuracy,
+            record_id: this.cachedRoute.recordId
+          }).catch((err) => {
+            console.error('记录位置失败:', err);
+          });
         }
       }
       this.lastLocation = { latitude: res.latitude, longitude: res.longitude };
@@ -399,6 +429,9 @@ Page({
 
       const { route } = routeRes;
       const allPoints = this.parsePolylineArray(route.polyline);
+
+      // 更新本地缓存
+      saveRoute(this.data.placeId, route);
 
       this.cachedRoute = {
         ...this.cachedRoute,

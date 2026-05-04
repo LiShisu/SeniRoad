@@ -1,73 +1,43 @@
 // elderly/pages/contact/contact.ts
+import { bindingApi } from '../../../api/binding';
+
+interface FamilyItem {
+  family_id: number;
+  family_nickname: string;
+  family_phone: string | null;
+}
+
 Page({
-
-  /**
-   * 页面的初始数据
-   */
   data: {
-
+    families: [] as FamilyItem[]
   },
 
-  /**
-   * 生命周期函数--监听页面加载
-   */
   onLoad() {
-
+    this.fetchFamilies();
   },
 
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
+  fetchFamilies() {
+    bindingApi.getBindings().then((bindings: any) => {
+      const families = bindings.map((binding: any) => ({
+        family_id: binding.family_id,
+        family_nickname: binding.family_nickname,
+        family_phone: binding.family_phone
+      }));
+      this.setData({ families });
+    }).catch((error: any) => {
+      console.error('获取家属列表失败:', error);
+      wx.showToast({ title: error.message || '获取家属列表失败', icon: 'none' });
+    });
   },
 
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-
-  },
-
-  /**
-   * 返回上一页
-   */
   goBack() {
     wx.navigateBack();
+  },
+
+  callFamily(e: any) {
+    const { phone } = e.currentTarget.dataset;
+    if (phone) {
+      wx.makePhoneCall({ phoneNumber: phone });
+    }
   }
 })

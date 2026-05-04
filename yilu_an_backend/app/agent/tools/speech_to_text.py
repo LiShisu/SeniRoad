@@ -9,6 +9,9 @@ import os
 def speech_to_text(audio_file: UploadFile) -> str:
     """将前端上传的音频文件转换为文本"""
     try:
+        # 确保 temp 目录存在
+        os.makedirs(settings.TEMP_DIR, exist_ok=True)
+        
         # 保存上传的音频文件为临时文件
         with tempfile.NamedTemporaryFile(dir=settings.TEMP_DIR, delete=False, suffix=".wav") as temp_file:
             content = audio_file.file.read()
