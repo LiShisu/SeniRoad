@@ -1,0 +1,27 @@
+<view class="container">
+  <view class="header">
+    <view class="back-btn" bindtap="goBack">
+      <td-icon name="chevron-left" size="48rpx" color="#333333" />
+    </view>
+    <view class="title">轨迹详情</view>
+    <view class="placeholder"></view>
+  </view>
+
+  <map
+    id="routeMap"
+    class="map"
+    latitude="{{latitude}}"
+    longitude="{{longitude}}"
+    markers="{{markers}}"
+    polyline="{{polyline}}"
+    scale="14"
+    show-location="{{true}}"
+    enable-zoom
+    enable-scroll
+  ></map>
+
+  <view class="dest-info">
+    <text class="dest-label">目的地</text>
+    <text class="dest-value">{{destName}}</text>
+  </view>
+</view>

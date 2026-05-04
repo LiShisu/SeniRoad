@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, BigInteger, Numeric, Index
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, BigInteger, Numeric, Index, Text
 from sqlalchemy.orm import relationship
 from app.database import Base
 from datetime import datetime, timezone
@@ -16,6 +16,7 @@ class NavigationRecord(Base):
     dest_lat = Column(Numeric(10, 8), nullable=False)
     dest_lng = Column(Numeric(11, 8), nullable=False)
     dest_name = Column(String(100), nullable=True)
+    polyline = Column(Text, nullable=True)
     status = Column(Integer, nullable=False, default=1)
     created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

@@ -1,7 +1,8 @@
 {
   "usingComponents": {
     "td-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon",
-    "td-button": "/miniprogram_npm/tdesign-miniprogram/button/button"
+    "td-button": "/miniprogram_npm/tdesign-miniprogram/button/button",
+    "guard-bottom-nav": "/components/guard-bottom-nav/guard-bottom-nav"
   },
   "navigationStyle": "custom"
 }

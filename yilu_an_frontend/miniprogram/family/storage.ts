@@ -3,6 +3,7 @@ const CURRENT_ELDER_KEY = 'current_elder_info';
 export interface CurrentElderInfo {
   id: string;
   name: string;
+  phone: string;
 }
 
 export function saveCurrentElder(elder: CurrentElderInfo): void {

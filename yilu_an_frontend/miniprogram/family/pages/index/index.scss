@@ -11,7 +11,7 @@ page {
 .container {
   padding: 0;
   padding-bottom: 120rpx;
-  padding-top: 10rpx;
+  // padding-top: 10rpx;
   width: 100%;
   box-sizing: border-box;
 }
@@ -20,7 +20,7 @@ page {
 .header-section {
   display: flex;
   align-items: flex-start;
-  padding: 100rpx 32rpx 90rpx;
+  padding: 200rpx 32rpx 90rpx;
   background: linear-gradient(135deg, #4B8AFF 0%, #6BA3FF 100%);
   width: 100%;
   box-sizing: border-box;

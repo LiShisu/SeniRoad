@@ -91,17 +91,18 @@ class NavigationService:
             origin_lng=Decimal(origin_lng),
             dest_lat=favorite_place.latitude,
             dest_lng=favorite_place.longitude,
-            dest_name=favorite_place.place_name,
+            dest_name=favorite_place.address,
+            polyline=polyline,
             status=1
         )
         record = self.navigation_record_service.create_record(record_data)
 
         return {
             "status": "success",
-            "record_id": record.record_id,
             "destination": favorite_place.address,
             "place_name": favorite_place.place_name,
             "route": {
+                "record_id": record.record_id,
                 "origin": route.get("origin", origin),
                 "destination": route.get("destination", destination),
                 "distance": path.get("distance", ""),
@@ -151,17 +152,19 @@ class NavigationService:
                 origin_lng=Decimal(origin_lng),
                 dest_lat=Decimal(latitude),
                 dest_lng=Decimal(longitude),
-                dest_name=favorite_place.place_name,
+                dest_name=favorite_place.address,
+                polyline=route_data.get("polyline", ""),
                 status=1
             )
             record = self.navigation_record_service.create_record(record_data)
 
             return {
                 "status": "success",
-                "record_id": record.record_id,
                 "destination": destination,
+                "place_name": favorite_place.place_name,
                 "navigation_advice": advice_data,
                 "route": {
+                    "record_id": record.record_id,
                     "text": route_data.get("text", ""),
                     "origin": route_data.get("origin", origin),
                     "destination": route_data.get("destination", destination),
@@ -240,6 +243,7 @@ class NavigationService:
                     dest_lat=Decimal(latitude),
                     dest_lng=Decimal(longitude),
                     dest_name=destination,
+                    polyline=route_data.get("polyline", ""),
                     status=1
                 )
                 record = self.navigation_record_service.create_record(record_data)
@@ -249,12 +253,12 @@ class NavigationService:
 
             return {
                 "status": "success",
-                "record_id": record_id,
                 "voice_text": voice_text,
                 "destination": destination,
                 "matched_type": matched_type,
                 "navigation_advice": advice_data,
                 "route": {
+                    "record_id": record_id,
                     "text": route_data.get("text", ""),
                     "origin": route_data.get("origin", origin),
                     "destination": route_data.get("destination", destination),

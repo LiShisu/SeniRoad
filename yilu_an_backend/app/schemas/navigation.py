@@ -14,6 +14,7 @@ class NavigationStep(BaseModel):
     polyline: str
 
 class NavigationRoute(BaseModel):
+    record_id: int
     origin: str
     destination: str
     distance: str

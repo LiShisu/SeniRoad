@@ -30,14 +30,18 @@ class Settings(BaseSettings):
     PORT: int = 8000
     TEMP_DIR: str = "temp"
     
-    # LLM 配置
-    LLM_API_KEY: str = ""
-    LLM_BASE_URL: str = "https://api-inference.modelscope.cn/v1"
-    VOICE_MODEL: str = "paraformer-realtime-v2"
-    TEXT_MODEL: str = "deepseek-ai/DeepSeek-V3.2"
+    # modelscope 配置
+    MODELSCOPE_API_KEY: str = ""
+    MODELSCOPE_BASE_URL: str = "https://api-inference.modelscope.cn/v1"
+    MODELSCOPE_TEXT_MODEL: str = "deepseek-ai/DeepSeek-V3.2"
     
-    # DashScope 配置（用于 TTS）
+    # DashScope 配置（用于 TTS/ASR）
     DASHSCOPE_API_KEY: str = ""
+    DASHSCOPE_BASE_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    DASHSCOPE_TEXT_MODEL: str = "qwen3-plus"
+    DASHSCOPE_TTS_MODEL: str = "qwen3-tts-vd-2026-01-26"
+    DASHSCOPE_TTS_VOICE: str = "longxiaochun"
+    DASHSCOPE_ASR_MODEL: str = "Qwen3-ASR-Flash"
     
     # 微信小程序配置
     WECHAT_APPID: str = ""

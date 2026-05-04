@@ -30,9 +30,13 @@
       <text class="info-label">⏱️ 最后更新：</text>
       <text class="info-value">{{lastUpdate}}</text>
     </view>
-    <view class="info-row last">
+    <view class="info-row">
       <text class="info-label">🚶 出行状态：</text>
       <text class="info-value">{{navigationStatus}}</text>
+    </view>
+    <view class="info-row last" wx:if="{{navigationStatus === '出行中' && destName}}">
+      <text class="info-label">🎯 目的地：</text>
+      <text class="info-value">{{destName}}</text>
     </view>
   </view>
 

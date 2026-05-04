@@ -34,7 +34,7 @@ Page({
       });
       this.setData({ elders });
       if (elders.length > 0 && !currentElder) {
-        saveCurrentElder({ id: elders[0].id, name: elders[0].name });
+        saveCurrentElder({ id: elders[0].id, name: elders[0].name, phone: elders[0].phone || '' });
       }
     }).catch((error: any) => {
       console.error('获取绑定列表失败:', error);
@@ -61,7 +61,7 @@ Page({
     this.setData({ elders })
     const currentElder = elders.find(elder => elder.isCurrent);
     if (currentElder) {
-      saveCurrentElder({ id: currentElder.id, name: currentElder.name });
+      saveCurrentElder({ id: currentElder.id, name: currentElder.name, phone: currentElder.phone || '' });
     }
     wx.showToast({
       title: '已切换监护对象',

@@ -1,0 +1,61 @@
+<!--elderly/pages/plan/plan.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="back-button" bindtap="goBack">
+      <text>←</text>
+    </view>
+  </view>
+
+  <view class="content">
+    <view class="success-icon">
+      <!-- <image src="/assets/svg/check-icon.svg" mode="aspectFit" /> -->
+       ✅
+    </view>
+    
+    <text class="title">路线规划好啦</text>
+
+    <view class="route-card">
+      <view class="route-item">
+        <image class="item-icon" src="/assets/svg/location-icon.svg" mode="aspectFit" />
+        <text class="item-label">目的地:</text>
+        <text class="item-value">{{routeInfo.destination}}</text>
+      </view>
+      <view class="route-item">
+        <image class="item-icon" src="/assets/svg/distance-icon.svg" mode="aspectFit" />
+        <text class="item-label">全程:</text>
+        <text class="item-value">{{routeInfo.distance}}米</text>
+      </view>
+      <view class="route-item">
+        <image class="item-icon" src="/assets/svg/route-icon.svg" mode="aspectFit" />
+        <text class="item-label">交通:</text>
+        <text class="item-value">{{routeInfo.transport}}</text>
+      </view>
+      <view class="route-item">
+        <image class="item-icon" src="/assets/svg/time-icon.svg" mode="aspectFit" />
+        <text class="item-label">预计:</text>
+        <text class="item-value">{{routeInfo.estimate}}分钟</text>
+      </view>
+      <view class="route-item" wx:if="{{routeInfo.weather}}">
+        <image class="item-icon" src="/assets/svg/tip-icon.svg" mode="aspectFit" />
+        <text class="item-label">天气:</text>
+        <text class="item-value">{{routeInfo.weather}}</text>
+      </view>
+      <view class="route-item" wx:if="{{routeInfo.navigationAdvice}}">
+        <image class="item-icon" src="/assets/svg/tip-icon.svg" mode="aspectFit" />
+        <text class="item-label">导航建议:</text>
+        <text class="item-value">{{routeInfo.navigationAdvice}}</text>
+      </view>
+    </view>
+
+    <view class="action-buttons">
+      <view class="action-btn primary" bindtap="startNavigate">
+        <image class="btn-icon" src="/assets/svg/play-icon.svg" mode="aspectFit" />
+        <text class="btn-text">开始导航</text>
+      </view>
+      <view class="action-btn secondary" bindtap="replan">
+        <image class="btn-icon" src="/assets/svg/refresh-icon.svg" mode="aspectFit" />
+        <text class="btn-text">重新规划</text>
+      </view>
+    </view>
+  </view>
+</view>

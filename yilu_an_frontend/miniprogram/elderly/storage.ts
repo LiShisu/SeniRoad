@@ -76,3 +76,22 @@ export function saveRoute(placeId: number, route: RouteData): boolean {
   }
   return setStorageSync(`${ROUTE_STORAGE_PREFIX}${placeId}`, route);
 }
+
+const NAV_EXTRA_STORAGE_PREFIX = 'nav_extra_';
+
+export interface NavigationExtraData {
+  navigation_advice: string;
+  weather: string;
+}
+
+export function getNavigationExtra(placeId: number): NavigationExtraData | null {
+  return getStorageSync<NavigationExtraData>(`${NAV_EXTRA_STORAGE_PREFIX}${placeId}`);
+}
+
+export function saveNavigationExtra(placeId: number, extra: NavigationExtraData): boolean {
+  if (!placeId || !extra) {
+    console.error('保存导航额外数据无效:', { placeId, extra });
+    return false;
+  }
+  return setStorageSync(`${NAV_EXTRA_STORAGE_PREFIX}${placeId}`, extra);
+}

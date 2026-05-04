@@ -24,6 +24,7 @@ router.include_router(favorite_place_router, prefix="/favorite-places", tags=["�
 router.include_router(tag_router, prefix="/tags", tags=["标签"])
 
 router.include_router(navigation_router, prefix="/navigation", tags=["导航"])
+router.include_router(navigation_record_router, prefix="/navigation-records", tags=["导航记录"])
 router.include_router(voice_log_router, prefix="/voice-logs", tags=["语音日志"])
 # router.include_router(navigation_agent_router, prefix="/navigation-agent", tags=["导航Agent"])
 router.include_router(llm_navigation_agent_router, prefix="/llm-navigation-agent", tags=["LLM导航Agent"])

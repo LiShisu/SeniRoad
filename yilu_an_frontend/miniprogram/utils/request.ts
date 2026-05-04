@@ -23,7 +23,7 @@ export interface ApiResponse<T = any> {
 // 请求配置类型
 export interface RequestConfig {
   url: string;
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS' | 'HEAD' | 'TRACE' | 'CONNECT';
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | 'HEAD' | 'TRACE' | 'CONNECT';
   data?: any;
   params?: any;
   header?: any;
@@ -99,7 +99,7 @@ export const api = {
   delete: <T = any>(url: string, config?: Omit<RequestConfig, 'url' | 'method'>) => {
     return request<T>({ ...config, url, method: 'DELETE' });
   },
-  // patch: <T = any>(url: string, data?: any, params?: any, config?: Omit<RequestConfig, 'url' | 'method' | 'data' | 'params'>) => {
-  //   return request<T>({ ...config, url, method: 'PATCH', data, params });
-  // },
+  patch: <T = any>(url: string, data?: any, params?: any, config?: Omit<RequestConfig, 'url' | 'method' | 'data' | 'params'>) => {
+    return request<T>({ ...config, url, method: 'PATCH', data, params });
+  },
 };

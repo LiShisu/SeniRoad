@@ -4,6 +4,7 @@
     "family/pages/places/places",
     "family/pages/add-place/add-place",
     "family/pages/records/records",
+    "family/pages/record-detail/record-detail",
     "family/pages/map/map",
     "family/pages/elders/elders",
     "family/pages/profile/profile",
@@ -14,6 +15,8 @@
     "elderly/pages/navigate/navigate",
     "elderly/pages/contact/contact",
     "elderly/pages/places/places",
+    "elderly/pages/choose/choose",
+    "elderly/pages/plan/plan",
     "common/login/login",
     "common/register/register"
   ],

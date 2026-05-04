@@ -8,7 +8,7 @@
   <!-- 核心功能区域 -->
   <view class="function-area">
     <!-- 导航出门按钮 -->
-    <navigator url="/elderly/pages/places/places" class="function-button orange">
+    <navigator url="/elderly/pages/choose/choose" class="function-button orange">
       <view class="button-content">
         <image class="button-icon" src="/assets/svg/navigation-icon.svg" mode="aspectFit" />
         <view class="button-text">导航出门</view>

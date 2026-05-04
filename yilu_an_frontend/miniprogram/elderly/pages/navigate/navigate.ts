@@ -89,63 +89,34 @@ Page({
   async loadPlaceAndRoute() {
     try {
       let place: FavoritePlace | null = null;
+      let route: AddressNavigationResponse['route'] | null = null;
 
-      // 尝试从本地缓存获取 place
       const cachedPlace = getPlace(this.data.placeId);
       if (cachedPlace) {
         place = cachedPlace as FavoritePlace;
         this.setData({ placeName: place.place_name });
       }
 
-      // 没有缓存，调用后端获取
-      if (!place) {
-        place = await favoritePlacesApi.getFavoritePlaceById(this.data.placeId);
-        savePlace(place);
-        this.setData({ placeName: place.place_name });
-      }
-
-      await this.planRoute(place);
-    } catch (err: any) {
-      console.error('加载地点或路线失败:', err);
-      wx.showToast({
-        title: '加载失败',
-        icon: 'none'
-      });
-    }
-  },
-
-  async planRoute(place: FavoritePlace) {
-    try {
-      const res = await wx.getLocation({
-        type: 'gcj02'
-      });
-
-      console.log('当前定位:', res.latitude, res.longitude);
-      console.log('目标地点:', place.place_id, place.place_name, place.latitude, place.longitude);
-
-      let route: AddressNavigationResponse['route'] | null = null;
-
-      // 尝试从本地缓存获取 route
-      const cachedRoute = getRoute(place.place_id);
+      const cachedRoute = getRoute(this.data.placeId);
       if (cachedRoute) {
-        console.log('使用本地缓存路线:', cachedRoute);
         route = cachedRoute as AddressNavigationResponse['route'];
       }
 
-      // 没有缓存，调用后端获取
-      if (!route) {
-        const routeRes = await navigationApi.navigateByAddress({
-          favorite_place_id: place.place_id,
-          origin_lng: res.longitude.toString(),
-          origin_lat: res.latitude.toString()
+      if (!place || !route) {
+        wx.showToast({
+          title: '路线信息丢失，请重新规划',
+          icon: 'none',
+          duration: 2000
         });
-
-        console.log('路线规划结果:', routeRes);
-        route = routeRes.route;
-
-        // 保存到本地缓存
-        saveRoute(place.place_id, route);
+        setTimeout(() => {
+          wx.navigateBack();
+        }, 2000);
+        return;
       }
+
+      const res = await wx.getLocation({
+        type: 'gcj02'
+      });
 
       const allPoints = this.parsePolylineArray(route.polyline);
 
@@ -166,7 +137,11 @@ Page({
       this.startLocationWatch();
       this.speakInstruction(route.steps?.[0]?.instruction || '导航开始');
     } catch (err: any) {
-      console.error('规划路线失败:', err);
+      console.error('加载地点或路线失败:', err);
+      wx.showToast({
+        title: '加载失败',
+        icon: 'none'
+      });
     }
   },
 
@@ -282,14 +257,14 @@ Page({
 
         if (distance > 2) {
           traveledPoints.push({ latitude: res.latitude, longitude: res.longitude });
-          this.cachedRoute.traveledPoints = traveledPoints;
+          this.cachedRoute!.traveledPoints = traveledPoints;
           this.updateTraveledPolyline(traveledPoints);
 
           locationApi.createLocation({
             latitude: res.latitude,
             longitude: res.longitude,
             accuracy: res.accuracy,
-            record_id: this.cachedRoute.recordId
+            record_id: this.cachedRoute!.recordId
           }).catch((err) => {
             console.error('记录位置失败:', err);
           });
@@ -298,13 +273,13 @@ Page({
       this.lastLocation = { latitude: res.latitude, longitude: res.longitude };
 
       const newStepIndex = this.findCurrentStepIndex(res.latitude, res.longitude, route.steps || []);
-      this.cachedRoute.currentStepIndex = newStepIndex;
+      this.cachedRoute!.currentStepIndex = newStepIndex;
 
       if (newStepIndex !== currentStepIndex) {
         const instruction = route.steps?.[newStepIndex]?.instruction || '';
-        if (instruction && newStepIndex > this.cachedRoute.lastInstructionStep) {
+        if (instruction && newStepIndex > this.cachedRoute!.lastInstructionStep) {
           this.speakInstruction(instruction);
-          this.cachedRoute.lastInstructionStep = newStepIndex;
+          this.cachedRoute!.lastInstructionStep = newStepIndex;
         }
       }
 
@@ -421,6 +396,12 @@ Page({
     try {
       const res = await wx.getLocation({ type: 'gcj02' });
 
+      let place: FavoritePlace | null = getPlace(this.data.placeId) as FavoritePlace;
+      if (!place) {
+        place = await favoritePlacesApi.getFavoritePlaceById(this.data.placeId);
+        savePlace(place);
+      }
+
       const routeRes = await navigationApi.navigateByAddress({
         favorite_place_id: this.data.placeId,
         origin_lng: res.longitude.toString(),
@@ -430,13 +411,12 @@ Page({
       const { route } = routeRes;
       const allPoints = this.parsePolylineArray(route.polyline);
 
-      // 更新本地缓存
       saveRoute(this.data.placeId, route);
 
       this.cachedRoute = {
         ...this.cachedRoute,
         route,
-        recordId: route.record_id || this.cachedRoute.recordId,
+        recordId: route.record_id || this.cachedRoute!.recordId,
         originLat: res.latitude,
         originLng: res.longitude,
         currentStepIndex: 0,

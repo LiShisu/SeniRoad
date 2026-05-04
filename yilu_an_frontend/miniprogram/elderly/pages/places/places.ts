@@ -43,7 +43,7 @@ Page({
 
   navigateToPlace(e: any) {
     const place = e.currentTarget.dataset.place;
-    const url = `/elderly/pages/navigate/navigate?place_id=${place.place_id}`;
+    const url = `/elderly/pages/plan/plan?place_id=${place.place_id}`;
     wx.navigateTo({ url });
   }
 });

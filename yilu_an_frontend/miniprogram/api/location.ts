@@ -32,10 +32,10 @@ export interface DeleteOldParams {
 export interface Location {
   location_id: number;
   user_id: number;
-  record_id: number;
-  latitude: number;
-  longitude: number;
-  address: string;
+  record_id: number | null;
+  latitude: string | number;
+  longitude: string | number;
+  address: string | null;
   accuracy: number;
   created_at: string;
 }

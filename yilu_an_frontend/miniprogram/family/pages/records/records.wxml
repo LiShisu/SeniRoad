@@ -22,38 +22,26 @@
       <text class="stat-value">{{stats.trips}}</text>
       <text class="stat-label">出行次数</text>
     </view>
-    <view class="stat-divider"></view>
-    <view class="stat-item">
-      <text class="stat-value">{{stats.distance}}</text>
-      <text class="stat-label">总里程</text>
-    </view>
-    <view class="stat-divider"></view>
-    <view class="stat-item">
-      <text class="stat-value">{{stats.duration}}</text>
-      <text class="stat-label">户外时长</text>
-    </view>
   </view>
 
   <!-- 历史记录列表 -->
-  <td-cell-group class="records-list">
-    <td-cell wx:for="{{records}}" wx:key="id" hover>
-      <view slot="note" class="record-note">
+  <view class="records-list">
+    <view class="record-item" wx:for="{{records}}" wx:key="id">
+      <view class="record-note">
         <view class="record-header">
           <text class="record-time">{{item.time}}</text>
-          <td-tag wx:if="{{item.deviation}}" theme="danger" variant="light" size="small">偏离路线</td-tag>
+          <td-tag wx:if="{{item.status === 1}}" theme="success" variant="light" size="small">进行中</td-tag>
+          <td-tag wx:elif="{{item.status === 2}}" theme="primary" variant="light" size="small">已完成</td-tag>
+          <td-tag wx:elif="{{item.status === 3}}" theme="danger" variant="light" size="small">已取消</td-tag>
         </view>
-        <view class="record-path">{{item.path}}</view>
-        <view class="record-meta">
-          <text class="meta-item">{{item.distance}}</text>
-          <text class="meta-item">{{item.duration}}</text>
-        </view>
+        <text class="record-path">{{item.path}}</text>
         <view class="record-link" bindtap="viewDetail" data-id="{{item.id}}">
-          查看轨迹详情
+          <text>查看轨迹详情</text>
           <td-icon name="chevron-right" size="28rpx" color="#4B8AFF" />
         </view>
       </view>
-    </td-cell>
-  </td-cell-group>
+    </view>
+  </view>
 
   <!-- 底部留白 -->
   <view class="bottom-space"></view>

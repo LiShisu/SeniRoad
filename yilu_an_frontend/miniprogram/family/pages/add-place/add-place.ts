@@ -1,7 +1,7 @@
 // add-place.ts
 import { favoritePlacesApi } from '../../../api/favorite-places';
 import { getCurrentElder } from '../../storage';
-import { TENCENT_MAP_KEY } from '../../../utils/config';
+import { gaodeReverseGeocode, gaodePlaceSearch } from '../../../utils/geo';
 
 // TODO: 待完善，添加地图选择功能和地址详情功能
 interface SearchResult {
@@ -133,21 +133,16 @@ Page({
   },
 
   reverseGeocode(latitude: number, longitude: number) {
-    wx.request({
-      url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${latitude},${longitude}&key=${TENCENT_MAP_KEY}`,
-      success: (res: any) => {
-        if (res.data.status === 0) {
-          const city = res.data.result.address_component?.city || '济南';
-          this.setData({
-            selectedAddress: res.data.result.address || '未知地址',
-            currentCity: city
-          });
-        }
-      },
-      fail: (err) => {
+    gaodeReverseGeocode(latitude, longitude)
+      .then((res) => {
+        this.setData({
+          selectedAddress: res.address,
+          currentCity: res.city || '济南'
+        });
+      })
+      .catch((err) => {
         console.error('逆地理编码失败:', err);
-      }
-    });
+      });
   },
 
   goBack() {
@@ -210,40 +205,23 @@ Page({
 
   searchLocation(keyword: string) {
     this.setData({ isSearching: true, searchResults: [] });
-    wx.request({
-      url: `https://apis.map.qq.com/ws/place/v1/suggestion?keyword=${encodeURIComponent(keyword)}&region=${encodeURIComponent(this.data.currentCity)}&key=${TENCENT_MAP_KEY}`,
-      success: (res: any) => {
-        console.log('搜索结果:', res.data);
-        if (res.data.status === 0 && res.data.data && res.data.data.length > 0) {
-          const results: SearchResult[] = res.data.data.map((item: any, index: number) => ({
-            id: item.id || String(index),
-            title: item.title,
-            address: item.address || '',
-            latitude: item.location.lat,
-            longitude: item.location.lng
-          }));
-          this.setData({
-            searchResults: results,
-            showSearchResults: true,
-            isSearching: false
-          });
-        } else {
-          this.setData({
-            searchResults: [],
-            showSearchResults: true,
-            isSearching: false
-          });
-        }
-      },
-      fail: (err) => {
+    
+    gaodePlaceSearch(keyword, this.data.currentCity)
+      .then((results) => {
+        this.setData({
+          searchResults: results,
+          showSearchResults: true,
+          isSearching: false
+        });
+      })
+      .catch((err) => {
         console.error('搜索失败:', err);
         this.setData({
           searchResults: [],
           showSearchResults: true,
           isSearching: false
         });
-      }
-    });
+      });
   },
 
   selectSearchResult(e: any) {

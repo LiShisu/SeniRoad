@@ -1,0 +1,151 @@
+/* elderly/pages/choose/choose.scss */
+
+.container {
+  background-color: #FFFFFF;
+  // min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  padding: 32rpx 40rpx;
+
+  .back-button {
+    width: 80rpx;
+    height: 80rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48rpx;
+    color: #333333;
+    border-radius: 50%;
+    background-color: #F5F5F5;
+  }
+}
+
+.content {
+  padding: 40rpx 32rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.title-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 60rpx;
+
+  .main-title {
+    font-size: 44rpx;
+    font-weight: 600;
+    color: #333333;
+    margin-bottom: 24rpx;
+  }
+
+  .hint-text {
+    font-size: 28rpx;
+    color: #999999;
+    margin-bottom: 8rpx;
+  }
+}
+
+.voice-section {
+  width: 100%;
+  background-color: #FFF9E6;
+  border-radius: 32rpx;
+  padding: 60rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40rpx;
+
+  .microphone-icon {
+    width: 160rpx;
+    height: 160rpx;
+    margin-bottom: 24rpx;
+
+    image {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  .voice-hint {
+    font-size: 28rpx;
+    color: #999999;
+    margin-bottom: 40rpx;
+  }
+
+  .speak-btn {
+    width: 100%;
+    height: 100rpx;
+    background-color: #FFFFFF;
+    border: 4rpx solid #FF8C42;
+    border-radius: 50rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16rpx;
+
+    .btn-icon {
+      width: 40rpx;
+      height: 40rpx;
+    }
+
+    .btn-text {
+      font-size: 32rpx;
+      font-weight: 600;
+      color: #FF8C42;
+    }
+  }
+}
+
+.action-buttons {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.action-btn {
+  width: 100%;
+  height: 100rpx;
+  border-radius: 50rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+
+  &.orange {
+    background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
+
+    .btn-icon {
+      width: 40rpx;
+      height: 40rpx;
+      filter: brightness(0) invert(1);
+    }
+
+    .btn-text {
+      font-size: 32rpx;
+      font-weight: 600;
+      color: #FFFFFF;
+    }
+  }
+
+  &.blue {
+    background: linear-gradient(135deg, #4B8AFF 0%, #3366FF 100%);
+
+    .btn-icon {
+      width: 40rpx;
+      height: 40rpx;
+      filter: brightness(0) invert(1);
+    }
+
+    .btn-text {
+      font-size: 32rpx;
+      font-weight: 600;
+      color: #FFFFFF;
+    }
+  }
+}

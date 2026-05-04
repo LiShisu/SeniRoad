@@ -56,7 +56,8 @@ class NavigationRecordService:
             dest_lat=record_data.dest_lat,
             dest_lng=record_data.dest_lng,
             dest_name=record_data.dest_name,
-            status=record_data.status
+            status=record_data.status,
+            polyline=record_data.polyline,
         )
         
         # 保存记录
@@ -74,6 +75,8 @@ class NavigationRecordService:
             record.end_time = record_data.end_time
         if record_data.origin_lat is not None:
             record.origin_lat = record_data.origin_lat
+        if record_data.polyline is not None:
+            record.polyline = record_data.polyline
         if record_data.origin_lng is not None:
             record.origin_lng = record_data.origin_lng
         if record_data.dest_name is not None:

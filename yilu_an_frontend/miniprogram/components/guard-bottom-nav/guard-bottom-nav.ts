@@ -18,8 +18,8 @@ Component({
     homeIcon: '/assets/svg/home-icon.svg',
     homeActiveIcon: '/assets/svg/home-icon-active.svg',
     // 位置相关配置
-    locationIcon: '/assets/svg/navigation-icon.svg',
-    locationActiveIcon: '/assets/svg/navigation-icon.svg',
+    locationIcon: '/assets/svg/loc-icon.svg',
+    locationActiveIcon: '/assets/svg/loc-icon-active.svg',
     // 个人中心相关配置
     profileIcon: '/assets/svg/profile-icon.svg',
     profileActiveIcon: '/assets/svg/profile-icon-active.svg'

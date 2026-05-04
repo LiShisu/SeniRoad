@@ -40,6 +40,8 @@ page {
 /* 统计卡片 */
 .stats-section {
   display: flex;
+  width: 90%;
+  height: 70rpx;
   justify-content: space-around;
   align-items: center;
   background-color: #FFFFFF;
@@ -75,7 +77,19 @@ page {
 
 /* 记录列表 */
 .records-list {
-  margin: 0 32rpx;
+  width: 100%;
+  padding: 0 32rpx;
+  box-sizing: border-box;
+}
+
+.record-item {
+  width: 100%;
+  background-color: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
 }
 
 .record-note {
@@ -88,7 +102,7 @@ page {
 .record-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .record-time {

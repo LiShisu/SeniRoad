@@ -1,0 +1,38 @@
+<!--elderly/pages/choose/choose.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="back-button" bindtap="goBack">
+      <text>←</text>
+    </view>
+  </view>
+
+  <view class="content">
+    <view class="title-section">
+      <text class="main-title">请说出您要去的地方</text>
+      <text class="hint-text">比如"去公园"</text>
+      <text class="hint-text">"家旁边的菜市场"</text>
+    </view>
+
+    <view class="voice-section">
+      <view class="microphone-icon">
+        <image src="/assets/svg/microphone-icon.svg" mode="aspectFit" />
+      </view>
+      <text class="voice-hint">点击按钮开始说话...</text>
+      <view class="speak-btn" bindtap="startVoice">
+        <image class="btn-icon" src="/assets/svg/microphone-icon.svg" mode="aspectFit" />
+        <text class="btn-text">按住说话</text>
+      </view>
+    </view>
+
+    <view class="action-buttons">
+      <view class="action-btn orange" bindtap="goToPlaces">
+        <image class="btn-icon" src="/assets/svg/location-icon.svg" mode="aspectFit" />
+        <text class="btn-text">常用地点一键选</text>
+      </view>
+      <view class="action-btn blue" bindtap="goToContact">
+        <image class="btn-icon" src="/assets/svg/phone-icon.svg" mode="aspectFit" />
+        <text class="btn-text">联系家属确认</text>
+      </view>
+    </view>
+  </view>
+</view>

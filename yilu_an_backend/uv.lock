@@ -590,6 +590,18 @@ wheels = [
 ]
 
 [[package]]
+name = "langchain-dashscope"
+version = "0.1.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "dashscope" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e2/7e/eb60d1ae63a413fb75b11c604c9be08af1e0133d8f89b3bb351b6631e665/langchain_dashscope-0.1.6.tar.gz", hash = "sha256:9236210d03da74a0ca36000fb25fa7c74c9f173b342260147deed5cafa670fac", size = 7560, upload-time = "2024-03-21T09:15:11.573Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/25/c1/37910a320aafd7306f0b5af8841b8d483890696076921b9f7e42355d6085/langchain_dashscope-0.1.6-py3-none-any.whl", hash = "sha256:7d34d218a74f6726b11e56267ef999d0c378ed5149cd7416410e6563a20bd366", size = 9040, upload-time = "2024-03-21T09:15:10.24Z" },
+]
+
+[[package]]
 name = "langchain-mcp-adapters"
 version = "0.2.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1567,6 +1579,7 @@ dependencies = [
     { name = "jsonpointer" },
     { name = "langchain" },
     { name = "langchain-core" },
+    { name = "langchain-dashscope" },
     { name = "langchain-mcp-adapters" },
     { name = "langchain-openai" },
     { name = "langgraph" },
@@ -1637,6 +1650,7 @@ requires-dist = [
     { name = "jsonpointer", specifier = ">=3.1.1" },
     { name = "langchain", specifier = ">=1.2.15" },
     { name = "langchain-core", specifier = ">=1.2.28" },
+    { name = "langchain-dashscope", specifier = ">=0.1.0" },
     { name = "langchain-mcp-adapters", specifier = ">=0.2.2" },
     { name = "langchain-openai", specifier = ">=1.1.12" },
     { name = "langgraph", specifier = ">=1.1.6" },

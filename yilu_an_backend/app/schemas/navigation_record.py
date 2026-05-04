@@ -12,6 +12,7 @@ class NavigationRecordBase(BaseModel):
     dest_lat: Decimal = Field(..., ge=-90, le=90, description="终点纬度")
     dest_lng: Decimal = Field(..., ge=-180, le=180, description="终点经度")
     dest_name: Optional[str] = Field(None, max_length=100, description="目的地名称")
+    polyline: Optional[str] = Field(None, description="导航路线polyline坐标")
     status: int = Field(1, ge=1, le=3, description="状态: 1-进行中, 2-完成, 3-取消")
 
 class NavigationRecordCreate(NavigationRecordBase):

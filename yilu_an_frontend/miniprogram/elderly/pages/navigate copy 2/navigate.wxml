@@ -1,0 +1,61 @@
+<view class="container">
+  <view class="header">
+    <view class="back-btn" bindtap="goBack">
+      <td-icon name="chevron-left" size="48rpx" color="#333333" />
+    </view>
+    <view class="title">{{placeName}}</view>
+    <view class="placeholder"></view>
+  </view>
+
+  <map
+    id="navMap"
+    class="map"
+    latitude="{{mapCenter.latitude}}"
+    longitude="{{mapCenter.longitude}}"
+    scale="16"
+    markers="{{markers}}"
+    polyline="{{polyline}}"
+    show-location
+    enable-zoom
+    enable-scroll
+  ></map>
+
+  <view class="traveled-polyline-legend" wx:if="{{stepsCount > 0}}">
+    <view class="legend-item">
+      <view class="legend-color planned"></view>
+      <text>规划路线</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-color traveled"></view>
+      <text>已行驶</text>
+    </view>
+  </view>
+
+  <view class="deviation-banner" wx:if="{{isDeviating}}">
+    <text wx:if="{{isRerouting}}">正在重新规划路线...</text>
+    <text wx:else>检测到偏离路线，重新规划中...</text>
+  </view>
+
+  <view class="nav-info-panel">
+    <view class="route-summary">
+      <text class="summary-text">总距离: {{totalDistance}}米 | 预计: {{totalDuration}}分钟</text>
+    </view>
+
+    <view class="current-instruction">
+      <text class="instruction-text">{{currentInstruction}}</text>
+    </view>
+
+    <view class="next-info" wx:if="{{currentStepDistance && currentStepRoad}}">
+      <text class="next-text">约 {{currentStepDistance}} 后 {{currentStepRoad}} 路口</text>
+    </view>
+
+    <view class="step-progress">
+      <text class="progress-text">第 {{currentStepIndex + 1}} / {{stepsCount}} 步</text>
+    </view>
+  </view>
+
+  <view class="bottom-tip">
+    <text wx:if="{{currentStepIndex < stepsCount - 1}}">跟随蓝色路线导航，红色为已行驶路线</text>
+    <text wx:else>已到达目的地附近</text>
+  </view>
+</view>

@@ -46,12 +46,13 @@ export interface AddressNavigationResponse {
 
 // 导航路线数据（智能导航）
 export interface NavigationRouteData {
+  record_id: number;
   text: string;
   origin: string;
   destination: string;
   distance: string;
   duration: string;
-  steps: any[];
+  steps: NavigationStep[];
   polyline: string;
 }
 
@@ -59,6 +60,7 @@ export interface NavigationRouteData {
 export interface NavigationRouteResponse {
   status: string;
   destination: string;
+  place_name: string;
   navigation_advice: string;
   route: NavigationRouteData;
   weather: string;
@@ -70,6 +72,7 @@ export interface NavigationRouteResponse {
 export interface VoiceNavigationResponse {
   status: string;
   voice_text: string;
+  record_id: number;
   destination: string;
   matched_type: string;
   navigation_advice: string;
