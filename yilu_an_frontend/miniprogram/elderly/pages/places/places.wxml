@@ -1,0 +1,29 @@
+<view class="container">
+  <view class="header">
+    <view class="back-btn" bindtap="goBack">
+      <td-icon name="chevron-left" size="48rpx" color="#333333" />
+    </view>
+    <view class="title">我的常用地点</view>
+    <view class="placeholder"></view>
+  </view>
+
+  <view class="place-list">
+    <view 
+      class="place-card" 
+      wx:for="{{places}}" 
+      wx:key="place_id"
+    >
+      <view class="place-info">
+        <text class="place-name">{{item.place_name}}</text>
+        <view class="place-tag {{item.source_type === 1 ? 'family-tag' : 'auto-tag'}}">
+          {{item.source_type === 1 ? '家属添加' : '常去地点'}}
+        </view>
+      </view>
+      <view class="nav-btn" bindtap="navigateToPlace" data-place="{{item}}">导航</view>
+    </view>
+  </view>
+
+  <view class="empty-tip" wx:if="{{places.length === 0}}">
+    <text class="empty-text">暂无常用地点</text>
+  </view>
+</view>

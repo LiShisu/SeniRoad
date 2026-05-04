@@ -8,8 +8,8 @@ from datetime import datetime
 
 router = APIRouter()
 
-@router.post("/update", response_model=LocationResponse, status_code=status.HTTP_201_CREATED)
-async def update_location(
+@router.post("/", response_model=LocationResponse, status_code=status.HTTP_201_CREATED)
+async def create_location(
     location_data: LocationCreate,
     current_user: User = Depends(get_current_active_user),
     location_service: LocationService = Depends(get_location_service)
@@ -25,6 +25,7 @@ async def update_location(
 
 @router.get("/history", response_model=List[LocationResponse])
 async def get_location_history(
+    user_id: int = None,
     start_time: Optional[datetime] = Query(None),
     end_time: Optional[datetime] = Query(None),
     limit: int = Query(100, ge=1, le=1000),
@@ -32,7 +33,7 @@ async def get_location_history(
     location_service: LocationService = Depends(get_location_service)
 ):
     return location_service.get_by_user_id(
-        user_id=current_user.user_id,
+        user_id=user_id or current_user.user_id,
         start_time=start_time,
         end_time=end_time,
         limit=limit
@@ -40,10 +41,11 @@ async def get_location_history(
 
 @router.get("/latest", response_model=LocationResponse)
 async def get_latest_location(
+    user_id: int = None,
     current_user: User = Depends(get_current_active_user),
     location_service: LocationService = Depends(get_location_service)
 ):
-    location = location_service.get_latest_by_user_id(current_user.user_id)
+    location = location_service.get_latest_by_user_id(user_id or current_user.user_id)
     if not location:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -80,7 +82,6 @@ async def delete_old_locations(
     current_user: User = Depends(get_current_active_user),
     location_service: LocationService = Depends(get_location_service)
 ):
-    if user_id is None:
-        user_id = current_user.user_id
+    user_id = user_id or current_user.user_id
     deleted_count = location_service.delete_old_locations(user_id, days)
     return {"deleted_count": deleted_count}

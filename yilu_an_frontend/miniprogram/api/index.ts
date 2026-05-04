@@ -9,3 +9,4 @@ export * from './navigation';
 export * from './navigation-record';
 export * from './voice-log';
 export * from './favorite-places';
+export * from './speech';

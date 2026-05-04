@@ -1,192 +1,181 @@
-/* elderly/pages/navigate/navigate.scss */
+page {
+  background-color: #F5F5F5;
+  padding: 0;
+  margin: 0;
+}
 
 .container {
   position: relative;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+  background-color: #FFFFFF;
 }
 
-/* 摄像头实景显示 */
-.camera-view {
-  position: absolute;
-  top: 0;
+.header {
+  position: fixed;
+  top: 100rpx;
   left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 32rpx;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+.back-btn {
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-icon {
+  font-size: 48rpx;
+  color: #333333;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.placeholder {
+  width: 80rpx;
+}
+
+.map {
   width: 100%;
   height: 100%;
-  z-index: 1;
 }
 
-.live-pusher {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-/* 导航状态显示 */
-.nav-status {
-  position: absolute;
-  top: 40rpx;
-  left: 40rpx;
-  z-index: 10;
-  background-color: rgba(0, 0, 0, 0.6);
-  color: white;
-  padding: 20rpx 30rpx;
-  border-radius: 25rpx;
-  font-size: 32rpx;
-  font-weight: 600;
-  animation: pulse 2s infinite;
-}
-
-.nav-status.paused {
-  background-color: rgba(100, 100, 100, 0.6);
-  animation: none;
-}
-
-/* 导航指示 */
-.nav-direction {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.direction-arrow {
-  margin-bottom: 30rpx;
-  animation: bounce 1s infinite;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.arrow-icon {
-  font-size: 120rpx;
-  color: white;
-  text-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.5);
-  transform: rotate(0deg);
-  transition: transform 0.3s ease;
-}
-
-.direction-text {
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 25rpx 40rpx;
-  border-radius: 30rpx;
-  font-size: 36rpx;
-  font-weight: 600;
-  text-align: center;
-  white-space: nowrap;
-}
-
-/* 结束导航按钮 */
-.end-nav-button {
-  position: absolute;
-  bottom: 80rpx;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-  background-color: #FF3B30;
-  color: white;
-  padding: 30rpx 80rpx;
-  border-radius: 50rpx;
-  font-size: 36rpx;
-  font-weight: 600;
-  box-shadow: 0 4rpx 20rpx rgba(255, 59, 48, 0.4);
-  min-width: 300rpx;
-  text-align: center;
-}
-
-/* 紧急拨号按钮 */
-.emergency-button {
-  position: absolute;
-  bottom: 200rpx;
-  right: 40rpx;
-  z-index: 10;
-  background-color: #FF3B30;
-  color: white;
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24rpx;
-  font-weight: 600;
-  box-shadow: 0 4rpx 20rpx rgba(255, 59, 48, 0.4);
-}
-
-/* AI助手唤醒提示 */
-.ai-hint {
-  position: absolute;
+.bottom-tip {
+  position: fixed;
   bottom: 40rpx;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10;
-  background-color: rgba(0, 0, 0, 0.6);
-  color: white;
-  padding: 15rpx 30rpx;
-  border-radius: 20rpx;
+  z-index: 100;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: #FFFFFF;
+  padding: 20rpx 40rpx;
+  border-radius: 32rpx;
   font-size: 28rpx;
 }
 
-/* 动画效果 */
-@keyframes pulse {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-  100% {
-    opacity: 1;
+.nav-info-panel {
+  position: fixed;
+  bottom: 120rpx;
+  left: 32rpx;
+  right: 32rpx;
+  z-index: 100;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 24rpx;
+  padding: 32rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+.route-summary {
+  text-align: center;
+  margin-bottom: 20rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid #EEEEEE;
+}
+
+.summary-text {
+  font-size: 28rpx;
+  color: #666666;
+}
+
+.current-instruction {
+  text-align: center;
+  margin-bottom: 16rpx;
+}
+
+.instruction-text {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.next-info {
+  text-align: center;
+  margin-bottom: 16rpx;
+}
+
+.next-text {
+  font-size: 28rpx;
+  color: #666666;
+}
+
+.step-progress {
+  text-align: center;
+}
+
+.progress-text {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.deviation-banner {
+  position: fixed;
+  top: 200rpx;
+  left: 32rpx;
+  right: 32rpx;
+  z-index: 200;
+  background-color: #FF9500;
+  color: #FFFFFF;
+  padding: 24rpx 32rpx;
+  border-radius: 16rpx;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: bold;
+  box-shadow: 0 4rpx 20rpx rgba(255, 149, 0, 0.4);
+}
+
+.traveled-polyline-legend {
+  position: fixed;
+  top: 200rpx;
+  right: 32rpx;
+  z-index: 100;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+
+  &:last-child {
+    margin-bottom: 0;
   }
 }
 
-@keyframes bounce {
-  0% {
-    transform: translateY(0);
+.legend-color {
+  width: 32rpx;
+  height: 8rpx;
+  border-radius: 4rpx;
+  margin-right: 12rpx;
+
+  &.planned {
+    background-color: #4B8AFF;
   }
-  50% {
-    transform: translateY(-10rpx);
-  }
-  100% {
-    transform: translateY(0);
+
+  &.traveled {
+    background-color: #FF6B6B;
   }
 }
 
-/* 响应式调整 */
-@media screen and (min-width: 750rpx) {
-  .direction-text {
-    font-size: 40rpx;
-  }
-  
-  .end-nav-button {
-    font-size: 40rpx;
-    padding: 35rpx 90rpx;
-  }
-}
-
-@media screen and (max-width: 375rpx) {
-  .direction-text {
-    font-size: 32rpx;
-    padding: 20rpx 30rpx;
-  }
-  
-  .end-nav-button {
-    font-size: 32rpx;
-    padding: 25rpx 70rpx;
-  }
-  
-  .emergency-button {
-    width: 100rpx;
-    height: 100rpx;
-    font-size: 20rpx;
-  }
+.legend-item text {
+  font-size: 24rpx;
+  color: #666666;
 }

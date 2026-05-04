@@ -1,0 +1,113 @@
+page {
+  background-color: #F5F5F5;
+  padding: 0;
+  margin: 0;
+}
+
+.container {
+  background-color: #F5F5F5;
+  min-height: 100vh;
+  padding-top: 340rpx;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 170rpx 32rpx 32rpx;
+  background-color: #FFFFFF;
+  position: fixed;
+  top: 0rpx;
+  left: 0;
+  right: 0;
+}
+
+.back-btn {
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.placeholder {
+  width: 80rpx;
+}
+
+.place-list {
+  padding: 24rpx;
+  width: 80%;
+  margin: 0 auto;
+}
+
+.place-card {
+  background-color: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  border-left: 8rpx solid #FF9500;
+}
+
+.place-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  flex: 1;
+}
+
+.place-name {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.place-tag {
+  font-size: 24rpx;
+  border-radius: 20rpx;
+  padding: 6rpx 16rpx;
+  display: inline-block;
+  height: 40rpx;
+  width: fit-content;
+  margin-top: 12rpx;
+}
+
+.family-tag {
+  background-color: #E6F0FF;
+  color: #4B8AFF;
+}
+
+.auto-tag {
+  background-color: #E8F5E9;
+  color: #4CAF50;
+}
+
+.nav-btn {
+  background-color: #FFF2E8;
+  color: #FF9500;
+  font-size: 28rpx;
+  font-weight: 500;
+  border-radius: 32rpx;
+  padding: 16rpx 40rpx;
+}
+
+.empty-tip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999999;
+}

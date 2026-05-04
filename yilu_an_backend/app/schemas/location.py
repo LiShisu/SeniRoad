@@ -19,6 +19,11 @@ class LocationUpdate(LocationBase):
 class LocationResponse(LocationBase):
     location_id: int
     user_id: int
+    record_id: Optional[int] = Field(None, description="关联的导航记录ID")
+    latitude: Decimal
+    longitude: Decimal
+    address: Optional[str] = Field(None, max_length=255, description="地址")
+    accuracy: Optional[float] = Field(None, ge=0, description="精度（米）")
     created_at: datetime
 
     class Config:

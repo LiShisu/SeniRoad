@@ -75,8 +75,8 @@ export const favoritePlacesApi = {
   },
 
   // 更新常用地点
-  updateFavoritePlace: (placeId: number, params: UpdateFavoritePlaceParams) => {
-    return api.put<FavoritePlace>(`/favorite-places/${placeId}`, params);
+  updateFavoritePlace: (placeId: number, data: UpdateFavoritePlaceParams) => {
+    return api.put<FavoritePlace>(`/favorite-places/${placeId}`, data);
   },
 
   // 删除常用地点

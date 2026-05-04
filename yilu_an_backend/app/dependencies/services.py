@@ -66,7 +66,7 @@ _navigation_service_instance = None
 _multi_agent_navigation_instance = None
 
 
-def get_navigation_service(
+def get_navigation_service_agent(
     destination_parse_agent: DestinationParseAgent = Depends(get_destination_parse_agent),
     favorite_place_service: FavoritePlaceService = Depends(get_favorite_place_service),
     navigation_record_service: NavigationRecordService = Depends(get_navigation_record_service),
@@ -87,6 +87,17 @@ def get_navigation_service(
             voice_log_service=voice_log_service,
         )
     return _navigation_service_instance
+
+def get_navigation_service(
+    favorite_place_service: FavoritePlaceService = Depends(get_favorite_place_service),
+    navigation_record_service: NavigationRecordService = Depends(get_navigation_record_service),
+    voice_log_service: VoiceLogService = Depends(get_voice_log_service)
+):
+    return NavigationService(
+            favorite_place_service=favorite_place_service,
+            navigation_record_service=navigation_record_service,
+            voice_log_service=voice_log_service,
+        )
 
 def get_navigation_agent(
     navigation_service: NavigationService = Depends(get_navigation_service),

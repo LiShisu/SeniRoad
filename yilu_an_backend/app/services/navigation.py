@@ -11,15 +11,18 @@ from fastapi import UploadFile
 from typing import Dict, List, Optional
 from datetime import datetime
 from decimal import Decimal
+import logging
+
+logger = logging.getLogger(__name__)
 
 class NavigationService:
     def __init__(
         self,
-        destination_parse_agent: Optional[DestinationParseAgent],
-        multi_agent_navigation: Optional[MultiAgentNavigation],
         navigation_record_service: NavigationRecordService,
         voice_log_service: VoiceLogService,
         favorite_place_service: FavoritePlaceService,
+        destination_parse_agent: Optional[DestinationParseAgent] = None,
+        multi_agent_navigation: Optional[MultiAgentNavigation] = None,
     ):
         self.client = AsyncClient()
         self.amap_key = settings.AMAP_API_KEY
@@ -29,6 +32,86 @@ class NavigationService:
         self.navigation_record_service = navigation_record_service
         self.voice_log_service = voice_log_service
         self.favorite_place_service = favorite_place_service
+
+    async def plan(
+        self,
+        origin_lng: str,
+        origin_lat: str,
+        favorite_place_id: int,
+        user_id: int,
+    ) -> Dict:
+        favorite_place = self.favorite_place_service.get_place_by_id(favorite_place_id)
+        if not favorite_place:
+            raise ValueError("收藏地点不存在")
+
+        dest_lat = str(favorite_place.latitude)
+        dest_lng = str(favorite_place.longitude)
+        origin = f"{origin_lng},{origin_lat}"
+        destination = f"{dest_lng},{dest_lat}"
+
+        params = {
+            "origin": origin,
+            "destination": destination,
+            "key": self.amap_key,
+            "extensions": "all"
+        }
+
+        response = await self.client.get(f"{self.base_url}/direction/walking", params=params)
+        result = response.json()
+
+        if result.get("status") != "1":
+            raise ValueError(f"导航规划失败: {result.get('info', '未知错误')}")
+
+        route = result.get("route", {})
+        paths = route.get("paths", [])
+
+        if not paths:
+            raise ValueError("未找到可行的导航路线")
+
+        path = paths[0]
+        steps = []
+        for step in path.get("steps", []):
+            road = step.get("road", "")
+            if isinstance(road, list):
+                road = ""
+            steps.append({
+                "instruction": step.get("instruction", ""),
+                "distance": step.get("distance", ""),
+                "duration": step.get("duration", ""),
+                "road": road,
+                "polyline": step.get("polyline", "")
+            })
+
+        polyline = ";".join([step.get("polyline", "") for step in steps])
+
+        record_data = NavigationRecordCreate(
+            user_id=user_id,
+            start_time=datetime.now(),
+            origin_lat=Decimal(origin_lat),
+            origin_lng=Decimal(origin_lng),
+            dest_lat=favorite_place.latitude,
+            dest_lng=favorite_place.longitude,
+            dest_name=favorite_place.place_name,
+            status=1
+        )
+        record = self.navigation_record_service.create_record(record_data)
+
+        return {
+            "status": "success",
+            "record_id": record.record_id,
+            "destination": favorite_place.address,
+            "place_name": favorite_place.place_name,
+            "route": {
+                "origin": route.get("origin", origin),
+                "destination": route.get("destination", destination),
+                "distance": path.get("distance", ""),
+                "duration": path.get("duration", ""),
+                "steps": steps,
+                "polyline": polyline
+            },
+            "latitude": dest_lat,
+            "longitude": dest_lng
+        }
 
     async def process_text_navigation(
         self,
@@ -52,6 +135,8 @@ class NavigationService:
 
             origin = f"经度{origin_lng},纬度{origin_lat}"
 
+            logger.info(f"开始导航，起点：{origin}，终点：{destination}")
+
             navigation_result = await self.multi_agent_navigation.plan_travel(origin, destination)
 
             route_data = navigation_result.get("route", {})
@@ -69,10 +154,11 @@ class NavigationService:
                 dest_name=favorite_place.place_name,
                 status=1
             )
-            self.navigation_record_service.create_record(record_data)
+            record = self.navigation_record_service.create_record(record_data)
 
             return {
                 "status": "success",
+                "record_id": record.record_id,
                 "destination": destination,
                 "navigation_advice": advice_data,
                 "route": {
@@ -144,6 +230,7 @@ class NavigationService:
             await self.voice_log_service.create_log(voice_log)
 
             # 创建导航记录
+            record_id = None
             if latitude and longitude:
                 record_data = NavigationRecordCreate(
                     user_id=user_id,
@@ -155,12 +242,14 @@ class NavigationService:
                     dest_name=destination,
                     status=1
                 )
-                self.navigation_record_service.create_record(record_data)
+                record = self.navigation_record_service.create_record(record_data)
+                record_id = record.record_id
 
 
 
             return {
                 "status": "success",
+                "record_id": record_id,
                 "voice_text": voice_text,
                 "destination": destination,
                 "matched_type": matched_type,

@@ -1,45 +1,61 @@
-<!--elderly/pages/navigate/navigate.wxml-->
 <view class="container">
-  <!-- 摄像头实景显示 -->
-  <view class="camera-view">
-    <!-- 摄像头预览区域 -->
-    <live-pusher 
-      class="live-pusher" 
-      mode="SD" 
-      autopush="true" 
-      device-position="back" 
-      style="width: 100%; height: 100%;"
-    ></live-pusher>
-  </view>
-  
-  <!-- 导航状态显示 -->
-  <view class="nav-status" wx:if="{{navStatus === 'navigating'}}">
-    导航中
-  </view>
-  <view class="nav-status paused" wx:else>
-    暂停导航
-  </view>
-  
-  <!-- 导航指示 -->
-  <view class="nav-direction">
-    <view class="direction-arrow">
-      <view class="arrow-icon">↑</view>
+  <view class="header">
+    <view class="back-btn" bindtap="goBack">
+      <td-icon name="chevron-left" size="48rpx" color="#333333" />
     </view>
-    <view class="direction-text">{{navInstruction}}</view>
+    <view class="title">{{placeName}}</view>
+    <view class="placeholder"></view>
   </view>
-  
-  <!-- 结束导航按钮 -->
-  <view class="end-nav-button" bindtap="endNavigation">
-    结束导航
+
+  <map
+    id="navMap"
+    class="map"
+    latitude="{{mapCenter.latitude}}"
+    longitude="{{mapCenter.longitude}}"
+    scale="16"
+    markers="{{markers}}"
+    polyline="{{polyline}}"
+    show-location
+    enable-zoom
+    enable-scroll
+  ></map>
+
+  <view class="traveled-polyline-legend" wx:if="{{stepsCount > 0}}">
+    <view class="legend-item">
+      <view class="legend-color planned"></view>
+      <text>规划路线</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-color traveled"></view>
+      <text>已行驶</text>
+    </view>
   </view>
-  
-  <!-- 紧急拨号按钮 -->
-  <view class="emergency-button" bindtap="emergencyCall">
-    <text>紧急呼叫</text>
+
+  <view class="deviation-banner" wx:if="{{isDeviating}}">
+    <text wx:if="{{isRerouting}}">正在重新规划路线...</text>
+    <text wx:else>检测到偏离路线，重新规划中...</text>
   </view>
-  
-  <!-- AI助手唤醒提示 -->
-  <view class="ai-hint">
-    说"小颐小颐"唤醒AI助手
+
+  <view class="nav-info-panel">
+    <view class="route-summary">
+      <text class="summary-text">总距离: {{totalDistance}}米 | 预计: {{totalDuration}}分钟</text>
+    </view>
+
+    <view class="current-instruction">
+      <text class="instruction-text">{{currentInstruction}}</text>
+    </view>
+
+    <view class="next-info" wx:if="{{currentStepDistance && currentStepRoad}}">
+      <text class="next-text">约 {{currentStepDistance}} 后 {{currentStepRoad}} 路口</text>
+    </view>
+
+    <view class="step-progress">
+      <text class="progress-text">第 {{currentStepIndex + 1}} / {{stepsCount}} 步</text>
+    </view>
+  </view>
+
+  <view class="bottom-tip">
+    <text wx:if="{{currentStepIndex < stepsCount - 1}}">跟随蓝色路线导航，红色为已行驶路线</text>
+    <text wx:else>已到达目的地附近</text>
   </view>
 </view>

@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 from datetime import datetime, timezone
 
+# TODO 待加入：polyline 字段，用于存储导航路线的多点坐标，格式为逗号隔开的经度纬度对，例如：123.456,789.012;456.789,012.345;...等
 class NavigationRecord(Base):
     __tablename__ = "navigation_records"
 

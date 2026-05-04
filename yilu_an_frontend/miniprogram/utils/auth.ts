@@ -1,11 +1,5 @@
-// 权限检查工具
-let isStorageReady = false;
-
 // 安全的存储 API 包装函数
 function safeGetStorageSync(key: string): any {
-  if (!isStorageReady) {
-    return '';
-  }
   try {
     return wx.getStorageSync(key);
   } catch (error) {
@@ -28,13 +22,6 @@ function safeRemoveStorageSync(key: string): void {
   } catch (error) {
     console.warn(`安全删除存储失败: ${key}`, error);
   }
-}
-
-// 初始化存储系统准备状态
-export function initStorage() {
-  setTimeout(() => {
-    isStorageReady = true;
-  }, 200);
 }
 
 /**
@@ -114,6 +101,9 @@ export const wechatLogin = async (role?: 'elderly' | 'family'): Promise<'elderly
       });
     });
 
+    console.log('微信登录结果:', wxLoginResult);
+    console.log('选择的身份:', role);
+    
     const authApi = require('../api/auth').authApi;
     const response = await authApi.wechatLogin(wxLoginResult.code, role);
 

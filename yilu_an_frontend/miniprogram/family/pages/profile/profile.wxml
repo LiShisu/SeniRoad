@@ -1,0 +1,31 @@
+<view class="container">
+  <view class="profile-section">
+    <view class="avatar-container">
+      <view class="avatar-wrapper" bindtap="chooseAvatar">
+        <avatar avatar-url="{{userInfo.avatar_url}}" nickname="{{userInfo.nickname}}" />
+      </view>
+      <view class="user-info">
+        <text class="user-name">{{userInfo.nickname}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="buttons-container">
+    <view class="menu-section">
+      <view class="menu-item" bindtap="handleMenuClick" data-id="1">
+        <view class="menu-left">
+          <text class="menu-text">编辑信息</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="logout-section">
+      <view class="logout-btn" bindtap="logout">
+        <text class="logout-text">退出登录</text>
+      </view>
+    </view>
+  </view>
+
+  <guard-bottom-nav activeItem="profile" />
+
+</view>

@@ -55,7 +55,7 @@ Page({
     this.setData({ wechatLoading: true });
 
     try {
-      const role = await wechatLogin(this.data.selectedRole);
+      const role = await wechatLogin(this.data.selectedRole as 'elderly' | 'family');
 
       wx.showToast({ title: `登录成功`, icon: 'success' });
       setTimeout(() => {

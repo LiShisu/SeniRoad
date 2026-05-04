@@ -41,17 +41,17 @@
     <view class="entry-card" bindtap="goToPlaces">
       <image src="/assets/svg/compass-icon.svg" class="entry-icon"></image>
       <text>预设常用地点</text>
-      <text class="arrow">›</text>
+      <view class="arrow">›</view>
     </view>
     <view class="entry-card" bindtap="goToRecords">
       <image src="/assets/svg/navigation-icon.svg" class="entry-icon"></image>
       <text>出行记录查询</text>
-      <text class="arrow">›</text>
+      <view class="arrow">›</view>
     </view>
     <view class="entry-card" bindtap="goToElders">
       <image src="/assets/svg/user-icon.svg" class="entry-icon"></image>
       <text>老人管理</text>
-      <text class="arrow">›</text>
+      <view class="arrow">›</view>
     </view>
   </view>
 

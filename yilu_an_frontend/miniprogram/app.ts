@@ -1,5 +1,5 @@
 // app.ts
-import { wechatLogin, initStorage } from './utils/auth';
+import { wechatLogin } from './utils/auth';
 
 // 全局应用类型定义
 interface IAppOption {
@@ -25,8 +25,6 @@ App<IAppOption>({
     // logs.unshift(Date.now())
     // wx.setStorageSync('logs', logs)
 
-    // 初始化存储系统
-    initStorage();
 
     // 延迟执行存储操作，避免 "too early" 错误
     setTimeout(() => {
@@ -63,6 +61,7 @@ App<IAppOption>({
         }
       } else {
         // 无登录状态，跳转到登录页
+        console.log('无登录状态，跳转到登录页');
         wx.showToast({
           title: '请先登录',
           icon: 'none',
