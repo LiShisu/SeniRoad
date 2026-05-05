@@ -1,6 +1,6 @@
 // 导航相关接口
 import { api } from '../utils/request';
-import { Destination } from './destination';
+import { createSSEStream, SSEEventType } from '../utils/sse';
 
 // 规划导航路线请求参数
 export interface PlanRouteParams {
@@ -68,6 +68,19 @@ export interface NavigationRouteResponse {
   longitude: number;
 }
 
+
+
+// SSE 完整响应
+export interface SSEPlanResponse {
+  destination?: string;
+  place_name?: string;
+  route?: NavigationRouteData;
+  weather?: string;
+  navigation_advice?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
 // 语音导航响应
 export interface VoiceNavigationResponse {
   status: string;
@@ -100,8 +113,24 @@ export const navigationApi = {
     return api.post<VoiceNavigationResponse>('/navigation/process', { audio_file }, { origin_lng, origin_lat });
   },
 
-  // 获取常用地点列表
-  getCommonDestinations: () => {
-    return api.get<Destination[]>('/navigation/common-destinations');
-  },
+  // 流式规划导航路线（SSE）
+  planRouteStream: (
+    data: PlanRouteParams,
+    onEvent: (event: SSEEventType, data: any) => void,
+    onComplete: (result: SSEPlanResponse) => void,
+    onError: (error: any) => void
+  ) => {
+    return createSSEStream<SSEPlanResponse>(
+      {
+        url: '/navigation/plan-stream',
+        method: 'POST',
+        data: data
+      },
+      {
+        onEvent,
+        onComplete,
+        onError
+      }
+    );
+  }
 };

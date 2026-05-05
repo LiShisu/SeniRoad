@@ -21,7 +21,7 @@ async def create_navigation_record(
 @router.get("/", response_model=List[NavigationRecordResponse])
 async def get_navigation_records(
     user_id: int = None,
-    status: Optional[str] = Query(None),
+    status: int = None,
     navigation_record_service: NavigationRecordService = Depends(get_navigation_record_service),
     current_user: User = Depends(get_current_active_user)
 ):
@@ -32,17 +32,8 @@ async def get_navigation_records(
     """
     if user_id is None:
         user_id = current_user.user_id
-    
-    # 处理 status 参数，过滤掉 undefined、null、空字符串等无效值
-    valid_status = None
-    if status and status not in ["undefined", "null", ""]:
-        try:
-            valid_status = int(status)
-        except ValueError:
-            valid_status = None
-    
-    if valid_status is not None:
-        return navigation_record_service.get_records_by_status(user_id, valid_status)
+    if status:
+        return navigation_record_service.get_records_by_status(user_id, status)
     return navigation_record_service.get_records_by_user_id(user_id)
 
 @router.get("/user/{user_id}/active", response_model=List[NavigationRecordResponse])
@@ -117,7 +108,7 @@ async def delete_navigation_record(
             detail="导航记录不存在"
         )
 
-@router.patch("/{record_id}/complete", response_model=NavigationRecordResponse)
+@router.put("/{record_id}/complete", response_model=NavigationRecordResponse)
 async def complete_navigation_record(
     record_id: int,
     navigation_record_service: NavigationRecordService = Depends(get_navigation_record_service),
@@ -132,7 +123,7 @@ async def complete_navigation_record(
         )
     return completed_record
 
-@router.patch("/{record_id}/cancel", response_model=NavigationRecordResponse)
+@router.put("/{record_id}/cancel", response_model=NavigationRecordResponse)
 async def cancel_navigation_record(
     record_id: int,
     navigation_record_service: NavigationRecordService = Depends(get_navigation_record_service),

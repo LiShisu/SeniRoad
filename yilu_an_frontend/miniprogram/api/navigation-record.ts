@@ -77,11 +77,11 @@ export const navigationRecordApi = {
   
   // 完成导航记录
   completeRecord: (recordId: number) => {
-    return api.patch<NavigationRecord>(`/navigation-records/${recordId}/complete`);
+    return api.put<NavigationRecord>(`/navigation-records/${recordId}/complete`);
   },
 
   // 取消导航记录
   cancelRecord: (recordId: number) => {
-    return api.patch<NavigationRecord>(`/navigation-records/${recordId}/cancel`);
+    return api.put<NavigationRecord>(`/navigation-records/${recordId}/cancel`);
   },
 };

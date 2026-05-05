@@ -1,6 +1,6 @@
 import { favoritePlacesApi } from '../../../api/favorite-places';
 import type { FavoritePlace } from '../../../api/favorite-places';
-import { navigationApi, AddressNavigationResponse, NavigationRouteResponse } from '../../../api/navigation';
+import { navigationApi, AddressNavigationResponse, SSEPlanResponse } from '../../../api/navigation';
 import { getPlace, savePlace, getRoute, saveRoute, getNavigationExtra, saveNavigationExtra } from '../../storage';
 
 function removeStorageSync(key: string) {
@@ -9,6 +9,16 @@ function removeStorageSync(key: string) {
   } catch (error) {
     console.error(`删除存储失败: ${key}`, error);
   }
+}
+
+function formatDuration(seconds: number): string {
+  const totalMinutes = Math.round(seconds / 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours > 0) {
+    return `${hours}小时${minutes}分钟`;
+  }
+  return `${minutes}分钟`;
 }
 
 Page({
@@ -86,24 +96,46 @@ Page({
 
       if (cachedRoute && cachedExtra) {
         console.log('使用本地缓存路线和导航信息');
+        console.log('缓存路线:', cachedRoute);
+        console.log('缓存导航信息:', cachedExtra);
+        
         route = cachedRoute as AddressNavigationResponse['route'];
         navigationAdvice = cachedExtra.navigation_advice;
         weather = cachedExtra.weather;
+        console.log('缓存出行建议:', cachedExtra.navigation_advice);
+        console.log('缓存天气信息:', cachedExtra.weather);
       } else {
         let planSuccess = false;
         try {
-          const planRes: NavigationRouteResponse = await navigationApi.planRoute({
-            favorite_place_id: place.place_id,
-            origin_lng: res.longitude.toString(),
-            origin_lat: res.latitude.toString()
+          const planResult = await new Promise<SSEPlanResponse>((resolve, reject) => {
+            navigationApi.planRouteStream(
+              {
+                favorite_place_id: place.place_id,
+                origin_lng: res.longitude.toString(),
+                origin_lat: res.latitude.toString()
+              },
+              (event, data) => {
+                console.log('SSE 事件:', event, typeof data, data);
+              },
+              (result) => {
+                console.log('SSE 流式规划完成:', result);
+                resolve(result);
+              },
+              (error) => {
+                console.error('SSE 流式规划失败:', error);
+                reject(error);
+              }
+            );
           });
 
-          console.log('智能规划路线结果:', planRes);
-          navigationAdvice = planRes.navigation_advice || '';
-          weather = planRes.weather || '';
-          route = planRes.route;
-          planSuccess = true;
-          saveRoute(place.place_id, route);
+          console.log('智能规划路线结果:', planResult);
+          navigationAdvice = planResult.navigation_advice || '';
+          weather = planResult.weather || '';
+          route = planResult.route || null;
+          planSuccess = !!route;
+          if (route) {
+            saveRoute(place.place_id, route);
+          }
           if (planSuccess) {
             saveNavigationExtra(place.place_id, {
               navigation_advice: navigationAdvice,
@@ -139,12 +171,13 @@ Page({
         return;
       }
 
+      const durationNum = parseInt(route.duration);
       this.setData({
         routeInfo: {
           destination: place.place_name,
           distance: route.distance,
           transport: '步行',
-          estimate: route.duration,
+          estimate: formatDuration(durationNum),
           navigationAdvice: navigationAdvice,
           weather: weather
         }

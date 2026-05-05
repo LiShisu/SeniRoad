@@ -1,5 +1,5 @@
 // 基础网络请求工具
-import { getToken, wechatLogin } from './auth';
+import { getToken, removeToken } from './auth';
 import { API_BASE_URL } from './config';
 
 const BASE_URL = API_BASE_URL;
@@ -23,7 +23,7 @@ export interface ApiResponse<T = any> {
 // 请求配置类型
 export interface RequestConfig {
   url: string;
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | 'HEAD' | 'TRACE' | 'CONNECT';
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS' | 'HEAD' | 'TRACE' | 'CONNECT';
   data?: any;
   params?: any;
   header?: any;
@@ -64,11 +64,15 @@ export const request = async <T = any>(config: RequestConfig): Promise<T> => {
       success: (res) => {
         const { statusCode, data: responseData } = res;
         
-        if (statusCode >= 200 && statusCode < 300) {
+        if (statusCode === 401) {
+          removeToken();
+          wx.reLaunch({
+            url: '/common/login/login',
+          });
+          reject(new Error('登录已过期，请重新登录'));
+        } else if (statusCode >= 200 && statusCode < 300) {
           resolve(responseData as T);
         } else {
-          // 处理其他错误
-          // 优先提取detail字段（FastAPI HTTPException格式），其次提取message字段
           const errorMessage = typeof responseData === 'object' && responseData !== null
             ? (responseData as any).detail || (responseData as any).message || `请求失败：${statusCode}`
             : `请求失败：${statusCode}`;
@@ -98,8 +102,5 @@ export const api = {
   },
   delete: <T = any>(url: string, config?: Omit<RequestConfig, 'url' | 'method'>) => {
     return request<T>({ ...config, url, method: 'DELETE' });
-  },
-  patch: <T = any>(url: string, data?: any, params?: any, config?: Omit<RequestConfig, 'url' | 'method' | 'data' | 'params'>) => {
-    return request<T>({ ...config, url, method: 'PATCH', data, params });
-  },
+  }
 };

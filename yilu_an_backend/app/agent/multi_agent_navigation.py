@@ -125,17 +125,38 @@ def create_agents():
     route_system_prompt = """你是一个专业的路线规划Agent，擅长规划出行路线。
 
 你的职责：
-- 根据用户提供的出发地和目的地，若提供经纬度则使用经纬度，否则根据地址规划最优路线
-- 支持多种出行方式：驾车、步行、骑行、公交
-- 提供详细的路线步骤、距离、预计时间等信息
-- 用中文友好地描述路线信息
+- 根据用户提供的出发地和目的地，规划最优路线
+- 调用高德地图API获取路线详细信息
+- 返回JSON格式的结构化数据
 
-当调用路线规划工具时：
-1. 首先使用地理编码工具将地址转换为坐标（如果需要）
-2. 然后使用路径规划工具获取路线信息
-3. 将结果整理成结构化的中文描述
+【重要】你必须按照以下JSON格式返回结果：
 
-记住：你只能使用路线相关的工具，不要尝试调用天气或其他工具。"""
+{
+    "origin": "出发地描述",
+    "destination": "目的地描述", 
+    "distance": "总距离（米）",
+    "duration": "总时间（秒）",
+    "steps": [
+        {
+            "instruction": "转向xx路",
+            "distance": "该步距离（米）",
+            "duration": "该步时间（秒）",
+            "road": "道路名称"
+        }
+    ],
+    "polyline": "路线坐标点，用;分隔的经纬度对，格式：经度,纬度;经度,纬度"
+}
+
+注意事项：
+1. distance 必须是一个整数，表示米数（如：10200）
+2. duration 必须是一个整数，表示秒数（如：1200）
+3. polyline 必须是完整的坐标点序列，不要省略任何点
+4. steps 数组中每个步骤的 distance 和 duration 也必须是整数
+5. 使用你可用的路线规划工具（direction_walking, direction_driving等）获取完整数据
+6. 从工具返回的路径规划结果中提取所有steps和polyline信息
+7. 如果工具返回的polyline被截断，尽量获取完整的路线坐标
+
+开始规划路线！"""
 
     weather_system_prompt = """你是一个专业的天气查询Agent，擅长查询目的地天气信息。
 
@@ -209,7 +230,7 @@ async def route_node(state: TravelState) -> dict:
 
     route_messages = [
         HumanMessage(content=f"请帮我规划从 {origin} 到 {destination} 的路线，"
-                              f"考虑老人出行需求，提供多种出行方式的选择。")
+                              f"必须返回JSON格式的结构化数据，包含完整的polyline坐标。")
     ]
 
     try:
@@ -217,29 +238,184 @@ async def route_node(state: TravelState) -> dict:
         route_text = result["messages"][-1].content
 
         route_data = _parse_route_result(route_text, origin, destination)
+        
+        if not route_data.get("distance") or not route_data.get("polyline"):
+            route_data = await _fetch_route_directly(origin, destination)
 
     except Exception as e:
-        route_data = {
-            "text": f"路线规划失败: {str(e)}",
-            "origin": origin,
-            "destination": destination,
-            "distance": "",
-            "duration": "",
-            "steps": [],
-            "polyline": ""
-        }
+        route_data = await _fetch_route_directly(origin, destination)
 
     return {"route_result": route_data}
 
 
+async def _fetch_route_directly(origin: str, destination: str) -> Dict[str, Any]:
+    """直接调用高德API获取路线数据作为备选方案
+    
+    Args:
+        origin: 出发地
+        destination: 目的地
+        
+    Returns:
+        Dict: 路线数据结构
+    """
+    from app.config import settings
+    import httpx
+    import re
+    
+    try:
+        origin_match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', origin)
+        dest_match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', destination)
+        
+        if origin_match and dest_match:
+            origin_lng = origin_match.group(1)
+            origin_lat = origin_match.group(2)
+            dest_lng = dest_match.group(1)
+            dest_lat = dest_match.group(2)
+            
+            params = {
+                "origin": f"{origin_lng},{origin_lat}",
+                "destination": f"{dest_lng},{dest_lat}",
+                "key": settings.AMAP_API_KEY,
+                "extensions": "all"
+            }
+            
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    "https://restapi.amap.com/v3/direction/walking",
+                    params=params,
+                    timeout=10.0
+                )
+                result = response.json()
+                
+                if result.get("status") == "1" and result.get("route"):
+                    route = result["route"]
+                    paths = route.get("paths", [])
+                    
+                    if paths:
+                        path = paths[0]
+                        steps = []
+                        for step in path.get("steps", []):
+                            road = step.get("road", "")
+                            if isinstance(road, list):
+                                road = ""
+                            steps.append({
+                                "instruction": step.get("instruction", ""),
+                                "distance": str(step.get("distance", "")),
+                                "duration": str(step.get("duration", "")),
+                                "road": road,
+                                "polyline": step.get("polyline", "")
+                            })
+                        
+                        polyline = ";".join([step.get("polyline", "") for step in steps])
+                        
+                        # 返回纯净的经纬度格式，不包含"经度""纬度"字样
+                        pure_origin = f"{origin_lng},{origin_lat}"
+                        pure_destination = f"{dest_lng},{dest_lat}"
+                        
+                        return {
+                            "text": f"从 {pure_origin} 到 {pure_destination} 的路线规划已完成",
+                            "origin": pure_origin,
+                            "destination": pure_destination,
+                            "distance": path.get("distance", "0"),
+                            "duration": path.get("duration", "0"),
+                            "steps": steps,
+                            "polyline": polyline
+                        }
+    except Exception as e:
+        print(f"直接调用高德API失败: {e}")
+    
+    # 即使失败也尝试返回纯净的经纬度格式
+    pure_origin = origin
+    pure_destination = destination
+    
+    origin_match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', origin)
+    if origin_match:
+        pure_origin = f"{origin_match.group(1)},{origin_match.group(2)}"
+    
+    dest_match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', destination)
+    if dest_match:
+        pure_destination = f"{dest_match.group(1)},{dest_match.group(2)}"
+    
+    return {
+        "text": f"从 {pure_origin} 到 {pure_destination} 的路线规划",
+        "origin": pure_origin,
+        "destination": pure_destination,
+        "distance": "0",
+        "duration": "0",
+        "steps": [],
+        "polyline": ""
+    }
+
+
 def _parse_route_result(route_text: str, origin: str, destination: str) -> Dict[str, Any]:
     import re
+    import json
+    
+    # 清理 origin 和 destination，去除"经度""纬度"字样
+    pure_origin = origin
+    pure_destination = destination
+    
+    origin_match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', origin)
+    if origin_match:
+        pure_origin = f"{origin_match.group(1)},{origin_match.group(2)}"
+    
+    dest_match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', destination)
+    if dest_match:
+        pure_destination = f"{dest_match.group(1)},{dest_match.group(2)}"
+    
+    route_text = route_text.strip()
+    
+    json_match = re.search(r'\{[\s\S]*\}', route_text)
+    if json_match:
+        try:
+            json_str = json_match.group(0)
+            data = json.loads(json_str)
+            
+            distance = str(data.get("distance", ""))
+            duration = str(data.get("duration", ""))
+            polyline = data.get("polyline", "")
+            
+            steps = []
+            for step_data in data.get("steps", []):
+                steps.append({
+                    "step_number": len(steps) + 1,
+                    "instruction": step_data.get("instruction", ""),
+                    "distance": str(step_data.get("distance", "")),
+                    "duration": str(step_data.get("duration", "")),
+                    "road": step_data.get("road", ""),
+                    "polyline": step_data.get("polyline", "")
+                })
+            
+            if distance and duration and polyline and steps:
+                return {
+                    "text": route_text,
+                    "origin": pure_origin,
+                    "destination": pure_destination,
+                    "distance": distance,
+                    "duration": duration,
+                    "steps": steps,
+                    "polyline": polyline
+                }
+        except (json.JSONDecodeError, KeyError, ValueError):
+            pass
+    
+    distance_match = re.search(r"距离[：:]\s*(\d+[\u4e00-\u9fa5a-zA-Z]*)", route_text)
+    duration_match = re.search(r"预计[时长]?[：:]\s*(\d+[\u4e00-\u9fa5a-zA-Z]*)", route_text)
 
-    distance_match = re.search(r"距离[：:]\s*(\d+[\u4e00-\u9fa5a-zA-Z]+)", route_text)
-    duration_match = re.search(r"预计[时长]?[：:]\s*(\d+[\u4e00-\u9fa5a-zA-Z]+)", route_text)
-
-    distance = distance_match.group(1) if distance_match else ""
-    duration = duration_match.group(1) if duration_match else ""
+    distance = ""
+    duration = ""
+    
+    if distance_match:
+        distance_text = distance_match.group(1)
+        distance_num = re.search(r'\d+', distance_text)
+        if distance_num:
+            distance = distance_num.group(0)
+            
+    if duration_match:
+        duration_text = duration_match.group(1)
+        duration_num = re.search(r'\d+', duration_text)
+        if duration_num:
+            duration = duration_num.group(0)
 
     steps = []
     step_matches = re.findall(r"第(\d+)步[：:]?\s*([^。]+)", route_text)
@@ -249,6 +425,7 @@ def _parse_route_result(route_text: str, origin: str, destination: str) -> Dict[
             "instruction": instruction.strip(),
             "distance": "",
             "duration": "",
+            "road": "",
             "polyline": ""
         })
 
@@ -257,8 +434,8 @@ def _parse_route_result(route_text: str, origin: str, destination: str) -> Dict[
 
     return {
         "text": route_text,
-        "origin": origin,
-        "destination": destination,
+        "origin": pure_origin,
+        "destination": pure_destination,
         "distance": distance,
         "duration": duration,
         "steps": steps,

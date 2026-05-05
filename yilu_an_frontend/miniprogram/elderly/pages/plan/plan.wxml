@@ -11,7 +11,7 @@
       <!-- <image src="/assets/svg/check-icon.svg" mode="aspectFit" /> -->
        ✅
     </view>
-    
+
     <text class="title">路线规划好啦</text>
 
     <view class="route-card">
@@ -33,18 +33,18 @@
       <view class="route-item">
         <image class="item-icon" src="/assets/svg/time-icon.svg" mode="aspectFit" />
         <text class="item-label">预计:</text>
-        <text class="item-value">{{routeInfo.estimate}}分钟</text>
+        <text class="item-value">{{routeInfo.estimate}}</text>
       </view>
-      <view class="route-item" wx:if="{{routeInfo.weather}}">
-        <image class="item-icon" src="/assets/svg/tip-icon.svg" mode="aspectFit" />
-        <text class="item-label">天气:</text>
-        <text class="item-value">{{routeInfo.weather}}</text>
-      </view>
-      <view class="route-item" wx:if="{{routeInfo.navigationAdvice}}">
-        <image class="item-icon" src="/assets/svg/tip-icon.svg" mode="aspectFit" />
-        <text class="item-label">导航建议:</text>
-        <text class="item-value">{{routeInfo.navigationAdvice}}</text>
-      </view>
+    </view>
+
+    <view class="weather-card" wx:if="{{routeInfo.weather}}">
+      <text class="weather-title">🌤️ 天气信息</text>
+      <chat-markdown content="{{routeInfo.weather}}" />
+    </view>
+
+    <view class="advice-card" wx:if="{{routeInfo.navigationAdvice}}">
+      <text class="advice-main-title">📋 出行建议</text>
+      <chat-markdown content="{{routeInfo.navigationAdvice}}" />
     </view>
 
     <view class="action-buttons">

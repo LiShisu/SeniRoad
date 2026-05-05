@@ -104,7 +104,7 @@ async def delete_favorite_place(
             detail="常用地点不存在"
         )
 
-@router.patch("/{place_id}/deactivate", response_model=FavoritePlaceResponse)
+@router.put("/{place_id}/deactivate", response_model=FavoritePlaceResponse)
 async def deactivate_favorite_place(
     place_id: int,
     favorite_place_service: FavoritePlaceService = Depends(get_favorite_place_service),

@@ -86,6 +86,6 @@ export const favoritePlacesApi = {
 
   // 停用常用地点
   deactivateFavoritePlace: (placeId: number) => {
-    return api.patch<FavoritePlace>(`/favorite-places/${placeId}/deactivate`);
+    return api.put<FavoritePlace>(`/favorite-places/${placeId}/deactivate`);
   },
 };

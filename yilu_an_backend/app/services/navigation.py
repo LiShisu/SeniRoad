@@ -8,10 +8,12 @@ from app.schemas.voice_log import VoiceLogCreate
 from app.schemas.navigation_record import NavigationRecordCreate
 from app.services.favorite_place import FavoritePlaceService
 from fastapi import UploadFile
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, AsyncGenerator
 from datetime import datetime
 from decimal import Decimal
 import logging
+import asyncio
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -166,8 +168,8 @@ class NavigationService:
                 "route": {
                     "record_id": record.record_id,
                     "text": route_data.get("text", ""),
-                    "origin": route_data.get("origin", origin),
-                    "destination": route_data.get("destination", destination),
+                    "origin": f"{origin_lng},{origin_lat}",
+                    "destination": f"{longitude},{latitude}",
                     "distance": route_data.get("distance", ""),
                     "duration": route_data.get("duration", ""),
                     "steps": route_data.get("steps", []),
@@ -178,6 +180,77 @@ class NavigationService:
                 "longitude": longitude
             }
 
+    async def process_text_navigation_stream(
+        self,
+        origin_lng: str,
+        origin_lat: str,
+        favorite_place_id: int,
+        user_id: int,
+    ) -> AsyncGenerator[str, None]:
+        try:
+            yield f"event: start\ndata: {json.dumps({'status': '开始处理导航请求...'}, ensure_ascii=False)}\n\n"
+
+            favorite_place = self.favorite_place_service.get_place_by_id(favorite_place_id)
+            if not favorite_place:
+                yield f"event: error\ndata: {json.dumps({'error': '收藏地点不存在'}, ensure_ascii=False)}\n\n"
+                return
+
+            destination = favorite_place.address
+            latitude = favorite_place.latitude
+            longitude = favorite_place.longitude
+            if latitude and longitude:
+                destination = destination + f"，经度{longitude}，纬度{latitude}"
+
+            origin = f"经度{origin_lng},纬度{origin_lat}"
+
+            yield f"event: destination\ndata: {json.dumps({'destination': destination, 'place_name': favorite_place.place_name}, ensure_ascii=False)}\n\n"
+
+            await asyncio.sleep(0.1)
+
+            navigation_result = await self.multi_agent_navigation.plan_travel(origin, destination)
+
+            route_data = navigation_result.get("route", {})
+            weather_data = navigation_result.get("weather", "")
+            advice_data = navigation_result.get("advice", "")
+
+            yield f"event: route\ndata: {json.dumps(route_data, ensure_ascii=False)}\n\n"
+            await asyncio.sleep(0.1)
+
+            yield f"event: weather\ndata: {json.dumps({'weather': weather_data}, ensure_ascii=False)}\n\n"
+            await asyncio.sleep(0.1)
+
+            yield f"event: advice\ndata: {json.dumps({'advice': advice_data}, ensure_ascii=False)}\n\n"
+            await asyncio.sleep(0.1)
+
+            record_data = NavigationRecordCreate(
+                user_id=user_id,
+                start_time=datetime.now(),
+                origin_lat=Decimal(origin_lat),
+                origin_lng=Decimal(origin_lng),
+                dest_lat=Decimal(latitude) if latitude else None,
+                dest_lng=Decimal(longitude) if longitude else None,
+                dest_name=favorite_place.address,
+                polyline=route_data.get("polyline", ""),
+                status=1
+            )
+            record = self.navigation_record_service.create_record(record_data)
+
+            final_result = {
+                'status': 'success',
+                'destination': destination,
+                'place_name': favorite_place.place_name,
+                'navigation_advice': advice_data,
+                'route': route_data,
+                'weather': weather_data,
+                'latitude': str(latitude) if latitude else None,
+                'longitude': str(longitude) if longitude else None,
+                'record_id': record.record_id
+            }
+
+            yield f"event: complete\ndata: {json.dumps(final_result, ensure_ascii=False)}\n\n"
+
+        except Exception as e:
+            yield f"event: error\ndata: {json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
 
     async def process_voice_navigation(
         self,
@@ -248,8 +321,20 @@ class NavigationService:
                 )
                 record = self.navigation_record_service.create_record(record_data)
                 record_id = record.record_id
-
-
+            
+            # 清理 route.origin 和 route.destination，去除"经度""纬度"字样
+            route_origin = route_data.get("origin", "")
+            route_destination = route_data.get("destination", "")
+            
+            # 使用正则表达式提取经纬度数值
+            import re
+            origin_match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', route_origin)
+            if origin_match:
+                route_origin = f"{origin_match.group(1)},{origin_match.group(2)}"
+            
+            dest_match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', route_destination)
+            if dest_match:
+                route_destination = f"{dest_match.group(1)},{dest_match.group(2)}"
 
             return {
                 "status": "success",
@@ -260,8 +345,8 @@ class NavigationService:
                 "route": {
                     "record_id": record_id,
                     "text": route_data.get("text", ""),
-                    "origin": route_data.get("origin", origin),
-                    "destination": route_data.get("destination", destination),
+                    "origin": route_origin,
+                    "destination": route_destination,
                     "distance": route_data.get("distance", ""),
                     "duration": route_data.get("duration", ""),
                     "steps": route_data.get("steps", []),
