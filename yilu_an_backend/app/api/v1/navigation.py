@@ -24,6 +24,39 @@ async def process_audio(
         origin_lat=origin_lat
     )
 
+@router.post("/process-stream", tags=["语音导航-SSE"])
+async def process_audio_stream(
+    audio_file: UploadFile = File(...),
+    origin_lng: str = None,
+    origin_lat: str = None,
+    navigation_service: NavigationService = Depends(get_navigation_service_agent),
+    current_user: User = Depends(get_current_active_user)
+):
+    """SSE 流式语音导航接口 - 分阶段返回数据，避免前端超时
+    
+    返回事件类型:
+    - start: 开始处理
+    - destination: 目的地信息（包含语音识别结果）
+    - route: 路线规划完成
+    - weather: 天气信息
+    - advice: 出行建议
+    - error: 发生错误
+    """
+    return StreamingResponse(
+        navigation_service.process_voice_navigation_stream(
+            audio_file=audio_file,
+            user_id=current_user.user_id,
+            origin_lng=origin_lng,
+            origin_lat=origin_lat
+        ),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
 @router.post("/plan", tags=["id导航"])
 async def plan_route(
     request: NavigationPlanRequest,

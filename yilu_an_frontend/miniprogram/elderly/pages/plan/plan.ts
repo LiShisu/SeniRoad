@@ -1,7 +1,7 @@
 import { favoritePlacesApi } from '../../../api/favorite-places';
 import type { FavoritePlace } from '../../../api/favorite-places';
 import { navigationApi, AddressNavigationResponse, SSEPlanResponse } from '../../../api/navigation';
-import { getPlace, savePlace, getRoute, saveRoute, getNavigationExtra, saveNavigationExtra } from '../../storage';
+import { getPlace, savePlace, getRoute, saveRoute, getNavigationExtra, saveNavigationExtra, type NavigationAdvice, type WeatherInfo } from '../../storage';
 
 function removeStorageSync(key: string) {
   try {
@@ -29,10 +29,10 @@ Page({
       destination: '',
       distance: '',
       transport: '',
-      estimate: '',
-      navigationAdvice: '',
-      weather: ''
+      estimate: ''
     },
+    navigationAdvice: {} as NavigationAdvice,
+    weather: {} as WeatherInfo,
     isLoading: true
   },
 
@@ -88,8 +88,20 @@ Page({
       console.log('目标地点:', place.place_id, place.place_name, place.latitude, place.longitude);
 
       let route: AddressNavigationResponse['route'] | null = null;
-      let navigationAdvice = '';
-      let weather = '';
+      let navigationAdvice: NavigationAdvice = {
+        clothing_advice: '',
+        items_to_bring: [],
+        safety_reminders: [],
+        best_time: '',
+        tips: []
+      };
+      let weather: WeatherInfo = {
+        weather_text: '',
+        temperature: '',
+        wind: '',
+        humidity: '',
+        air_quality: ''
+      };
 
       const cachedRoute = getRoute(place.place_id);
       const cachedExtra = getNavigationExtra(place.place_id);
@@ -100,10 +112,30 @@ Page({
         console.log('缓存导航信息:', cachedExtra);
         
         route = cachedRoute as AddressNavigationResponse['route'];
-        navigationAdvice = cachedExtra.navigation_advice;
-        weather = cachedExtra.weather;
-        console.log('缓存出行建议:', cachedExtra.navigation_advice);
-        console.log('缓存天气信息:', cachedExtra.weather);
+        
+        if (typeof cachedExtra.navigation_advice === 'object') {
+          navigationAdvice = cachedExtra.navigation_advice as NavigationAdvice;
+        } else {
+          navigationAdvice = {
+            clothing_advice: cachedExtra.navigation_advice || '',
+            items_to_bring: [],
+            safety_reminders: [],
+            best_time: '',
+            tips: []
+          };
+        }
+        
+        if (typeof cachedExtra.weather === 'object') {
+          weather = cachedExtra.weather as WeatherInfo;
+        } else {
+          weather = {
+            weather_text: '',
+            temperature: '',
+            wind: '',
+            humidity: '',
+            air_quality: ''
+          };
+        }
       } else {
         let planSuccess = false;
         try {
@@ -129,8 +161,35 @@ Page({
           });
 
           console.log('智能规划路线结果:', planResult);
-          navigationAdvice = planResult.navigation_advice || '';
-          weather = planResult.weather || '';
+          
+          if (planResult.navigation_advice) {
+            if (typeof planResult.navigation_advice === 'object') {
+              navigationAdvice = planResult.navigation_advice as NavigationAdvice;
+            } else {
+              navigationAdvice = {
+                clothing_advice: planResult.navigation_advice || '',
+                items_to_bring: [],
+                safety_reminders: [],
+                best_time: '',
+                tips: []
+              };
+            }
+          }
+          
+          if (planResult.weather) {
+            if (typeof planResult.weather === 'object') {
+              weather = planResult.weather as WeatherInfo;
+            } else {
+              weather = {
+                weather_text: '',
+                temperature: '',
+                wind: '',
+                humidity: '',
+                air_quality: ''
+              };
+            }
+          }
+          
           route = planResult.route || null;
           planSuccess = !!route;
           if (route) {
@@ -177,10 +236,10 @@ Page({
           destination: place.place_name,
           distance: route.distance,
           transport: '步行',
-          estimate: formatDuration(durationNum),
-          navigationAdvice: navigationAdvice,
-          weather: weather
-        }
+          estimate: formatDuration(durationNum)
+        },
+        navigationAdvice: navigationAdvice,
+        weather: weather
       });
     } catch (err: any) {
       console.error('规划路线失败:', err);

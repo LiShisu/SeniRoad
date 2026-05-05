@@ -37,14 +37,74 @@
       </view>
     </view>
 
-    <view class="weather-card" wx:if="{{routeInfo.weather}}">
+    <view class="weather-card" wx:if="{{weather.weather_text || weather.temperature || weather.travel_suggestion}}">
       <text class="weather-title">🌤️ 天气信息</text>
-      <chat-markdown content="{{routeInfo.weather}}" />
+      <view class="weather-content">
+        <view class="weather-row" wx:if="{{weather.weather_text}}">
+          <text class="weather-label">天气：</text>
+          <text class="weather-value">{{weather.weather_text}}</text>
+        </view>
+        <view class="weather-row" wx:if="{{weather.temperature}}">
+          <text class="weather-label">温度：</text>
+          <text class="weather-value">{{weather.temperature}}</text>
+        </view>
+        <view class="weather-row" wx:if="{{weather.wind}}">
+          <text class="weather-label">风力：</text>
+          <text class="weather-value">{{weather.wind}}</text>
+        </view>
+        <view class="weather-row" wx:if="{{weather.humidity}}">
+          <text class="weather-label">湿度：</text>
+          <text class="weather-value">{{weather.humidity}}</text>
+        </view>
+        <view class="weather-row" wx:if="{{weather.air_quality}}">
+          <text class="weather-label">空气质量：</text>
+          <text class="weather-value">{{weather.air_quality}}</text>
+        </view>
+      </view>
     </view>
 
-    <view class="advice-card" wx:if="{{routeInfo.navigationAdvice}}">
+    <view class="advice-card" wx:if="{{navigationAdvice.clothing_advice || navigationAdvice.items_to_bring.length || navigationAdvice.safety_reminders.length || navigationAdvice.best_time || navigationAdvice.tips.length}}">
       <text class="advice-main-title">📋 出行建议</text>
-      <chat-markdown content="{{routeInfo.navigationAdvice}}" />
+      
+      <view class="advice-section" wx:if="{{navigationAdvice.clothing_advice}}">
+        <text class="advice-section-title">🧥 穿衣建议</text>
+        <text class="advice-section-content">{{navigationAdvice.clothing_advice}}</text>
+      </view>
+
+      <view class="advice-section" wx:if="{{navigationAdvice.items_to_bring.length}}">
+        <text class="advice-section-title">🎒 随身物品</text>
+        <view class="advice-list">
+          <view class="advice-list-item" wx:for="{{navigationAdvice.items_to_bring}}" wx:key="index">
+            <text class="list-bullet">•</text>
+            <text class="list-content">{{item}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="advice-section" wx:if="{{navigationAdvice.safety_reminders.length}}">
+        <text class="advice-section-title">🛡️ 安全提醒</text>
+        <view class="advice-list">
+          <view class="advice-list-item" wx:for="{{navigationAdvice.safety_reminders}}" wx:key="index">
+            <text class="list-bullet">•</text>
+            <text class="list-content">{{item}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="advice-section" wx:if="{{navigationAdvice.best_time}}">
+        <text class="advice-section-title">⏰ 最佳出行时段</text>
+        <text class="advice-section-content">{{navigationAdvice.best_time}}</text>
+      </view>
+
+      <view class="advice-section" wx:if="{{navigationAdvice.tips.length}}">
+        <text class="advice-section-title">💡 贴心小贴士</text>
+        <view class="advice-list">
+          <view class="advice-list-item" wx:for="{{navigationAdvice.tips}}" wx:key="index">
+            <text class="list-bullet">•</text>
+            <text class="list-content">{{item}}</text>
+          </view>
+        </view>
+      </view>
     </view>
 
     <view class="action-buttons">

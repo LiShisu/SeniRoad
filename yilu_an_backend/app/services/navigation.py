@@ -8,7 +8,7 @@ from app.schemas.voice_log import VoiceLogCreate
 from app.schemas.navigation_record import NavigationRecordCreate
 from app.services.favorite_place import FavoritePlaceService
 from fastapi import UploadFile
-from typing import Dict, List, Optional, AsyncGenerator
+from typing import Dict, List, Optional, AsyncGenerator, Any
 from datetime import datetime
 from decimal import Decimal
 import logging
@@ -34,6 +34,17 @@ class NavigationService:
         self.navigation_record_service = navigation_record_service
         self.voice_log_service = voice_log_service
         self.favorite_place_service = favorite_place_service
+
+    async def _stream_navigation_events(
+        self,
+        origin: str,
+        destination: str,
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        async for event in self.multi_agent_navigation.plan_travel_stream(origin, destination):
+            yield event
+
+    def _format_sse_event(self, event_type: str, data: Any) -> str:
+        return f"event: {event_type}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
     async def plan(
         self,
@@ -188,11 +199,11 @@ class NavigationService:
         user_id: int,
     ) -> AsyncGenerator[str, None]:
         try:
-            yield f"event: start\ndata: {json.dumps({'status': '开始处理导航请求...'}, ensure_ascii=False)}\n\n"
+            yield self._format_sse_event("start", {"status": "开始处理导航请求..."})
 
             favorite_place = self.favorite_place_service.get_place_by_id(favorite_place_id)
             if not favorite_place:
-                yield f"event: error\ndata: {json.dumps({'error': '收藏地点不存在'}, ensure_ascii=False)}\n\n"
+                yield self._format_sse_event("error", {"error": "收藏地点不存在"})
                 return
 
             destination = favorite_place.address
@@ -203,24 +214,17 @@ class NavigationService:
 
             origin = f"经度{origin_lng},纬度{origin_lat}"
 
-            yield f"event: destination\ndata: {json.dumps({'destination': destination, 'place_name': favorite_place.place_name}, ensure_ascii=False)}\n\n"
+            yield self._format_sse_event("destination", {"destination": destination, "place_name": favorite_place.place_name})
 
-            await asyncio.sleep(0.1)
-
-            navigation_result = await self.multi_agent_navigation.plan_travel(origin, destination)
-
-            route_data = navigation_result.get("route", {})
-            weather_data = navigation_result.get("weather", "")
-            advice_data = navigation_result.get("advice", "")
-
-            yield f"event: route\ndata: {json.dumps(route_data, ensure_ascii=False)}\n\n"
-            await asyncio.sleep(0.1)
-
-            yield f"event: weather\ndata: {json.dumps({'weather': weather_data}, ensure_ascii=False)}\n\n"
-            await asyncio.sleep(0.1)
-
-            yield f"event: advice\ndata: {json.dumps({'advice': advice_data}, ensure_ascii=False)}\n\n"
-            await asyncio.sleep(0.1)
+            route_data = {}
+            async for event in self._stream_navigation_events(origin, destination):
+                if event["event"] == "route":
+                    route_data = event["data"]
+                    yield self._format_sse_event("route", route_data)
+                elif event["event"] == "weather":
+                    yield self._format_sse_event("weather", {"weather": event["data"]})
+                elif event["event"] == "advice":
+                    yield self._format_sse_event("advice", {"advice": event["data"]})
 
             record_data = NavigationRecordCreate(
                 user_id=user_id,
@@ -233,24 +237,10 @@ class NavigationService:
                 polyline=route_data.get("polyline", ""),
                 status=1
             )
-            record = self.navigation_record_service.create_record(record_data)
-
-            final_result = {
-                'status': 'success',
-                'destination': destination,
-                'place_name': favorite_place.place_name,
-                'navigation_advice': advice_data,
-                'route': route_data,
-                'weather': weather_data,
-                'latitude': str(latitude) if latitude else None,
-                'longitude': str(longitude) if longitude else None,
-                'record_id': record.record_id
-            }
-
-            yield f"event: complete\ndata: {json.dumps(final_result, ensure_ascii=False)}\n\n"
+            self.navigation_record_service.create_record(record_data)
 
         except Exception as e:
-            yield f"event: error\ndata: {json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
+            yield self._format_sse_event("error", {"error": str(e)})
 
     async def process_voice_navigation(
         self,
@@ -356,6 +346,92 @@ class NavigationService:
                 "latitude": latitude,
                 "longitude": longitude
             }
+
+    async def process_voice_navigation_stream(
+        self,
+        audio_file: UploadFile,
+        user_id: int,
+        origin_lng: str,
+        origin_lat: str
+    ) -> AsyncGenerator[str, None]:
+        try:
+            yield self._format_sse_event("start", {"status": "开始处理语音导航请求..."})
+
+            if not self.destination_parse_agent or not self.multi_agent_navigation:
+                yield self._format_sse_event("error", {"error": "服务未正确初始化，缺少必要的Agent组件"})
+                return
+
+            parse_result = self.destination_parse_agent.process_voice_input(
+                audio_file,
+                user_id=user_id
+            )
+
+            if "error" in parse_result:
+                yield self._format_sse_event("error", {"error": parse_result["error"]})
+                return
+
+            voice_text = parse_result.get("voice_text", "")
+            destination = parse_result.get("destination", "")
+            matched_type = parse_result.get("matched_type", "llm")
+            latitude = parse_result.get("latitude")
+            longitude = parse_result.get("longitude")
+
+            if not destination:
+                yield self._format_sse_event("error", {"error": "无法从语音中解析出目的地"})
+                return
+
+            origin = f"经度{origin_lng},纬度{origin_lat}"
+            
+            if latitude and longitude:
+                destination = destination + f"，经度{longitude}，纬度{latitude}"
+
+            yield self._format_sse_event("destination", {
+                "destination": destination,
+                "voice_text": voice_text,
+                "matched_type": matched_type
+            })
+
+            route_data = {}
+            async for event in self._stream_navigation_events(origin, destination):
+                if event["event"] == "route":
+                    route_data = event["data"]
+                    yield self._format_sse_event("route", route_data)
+                elif event["event"] == "weather":
+                    yield self._format_sse_event("weather", {"weather": event["data"]})
+                elif event["event"] == "advice":
+                    advice_data = event["data"]
+                    yield self._format_sse_event("advice", {"advice": advice_data})
+
+                    voice_log = VoiceLogCreate(
+                        user_id=user_id,
+                        audio_url=audio_file.filename,
+                        asr_text=voice_text,
+                        intent_json={
+                            "destination": destination,
+                            "matched_type": matched_type,
+                            "origin": origin
+                        },
+                        response_text=advice_data,
+                        log_time=datetime.now()
+                    )
+                    await self.voice_log_service.create_log(voice_log)
+
+            if latitude and longitude:
+                record_data = NavigationRecordCreate(
+                    user_id=user_id,
+                    start_time=datetime.now(),
+                    origin_lat=Decimal(origin_lat),
+                    origin_lng=Decimal(origin_lng),
+                    dest_lat=Decimal(latitude),
+                    dest_lng=Decimal(longitude),
+                    dest_name=destination,
+                    polyline=route_data.get("polyline", ""),
+                    status=1
+                )
+                self.navigation_record_service.create_record(record_data)
+
+        except Exception as e:
+            yield self._format_sse_event("error", {"error": str(e)})
 
     # async def plan_route(self, origin: str, destination: str, priority: str = "elderly_friendly"):
     #     params = {

@@ -79,9 +79,25 @@ export function saveRoute(placeId: number, route: RouteData): boolean {
 
 const NAV_EXTRA_STORAGE_PREFIX = 'nav_extra_';
 
+export interface NavigationAdvice {
+  clothing_advice: string;
+  items_to_bring: string[];
+  safety_reminders: string[];
+  best_time: string;
+  tips: string[];
+}
+
+export interface WeatherInfo {
+  weather_text: string;
+  temperature: string;
+  wind: string;
+  humidity: string;
+  air_quality: string;
+}
+
 export interface NavigationExtraData {
-  navigation_advice: string;
-  weather: string;
+  navigation_advice: string | NavigationAdvice;
+  weather: string | WeatherInfo;
 }
 
 export function getNavigationExtra(placeId: number): NavigationExtraData | null {

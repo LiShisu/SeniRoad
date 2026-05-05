@@ -163,11 +163,23 @@ def create_agents():
 你的职责：
 - 查询用户指定城市的当前天气情况
 - 提供天气现象，温度、风力、湿度、空气质量等信息
-- 根据天气情况给出简单的出行建议（如：适合外出、记得带伞等）
+- 根据天气情况给出简单的出行建议
 
-当调用天气查询工具时：
-1. 使用天气查询工具获取实时天气数据
-2. 将结果整理成结构化的中文描述
+【重要】你必须按照以下JSON格式返回结果：
+
+{
+    "weather_text": "天气现象的描述（如：晴、多云、小雨）",
+    "temperature": "当前温度（如：25℃）",
+    "wind": "风力情况（如：3-4级北风）",
+    "humidity": "湿度（如：60%）",
+    "air_quality": "空气质量（如：良）"
+}
+
+注意事项：
+1. 所有字段都必须返回，不能省略任何字段
+2. weather_text 应该是简短的中文描述
+3. travel_suggestion 应该根据天气情况给出实用的建议
+4. 使用你可用的天气查询工具获取实时数据
 
 记住：你只能使用天气相关的工具，不要尝试调用路线规划或其他工具。"""
 
@@ -178,6 +190,16 @@ def create_agents():
 - 接收WeatherAgent提供的天气信息
 - 综合两者信息，生成全面的外出注意事项清单
 
+【重要】你必须按照以下JSON格式返回结果：
+
+{
+    "clothing_advice": "穿衣建议（如：建议穿薄外套，早晚温差大）",
+    "items_to_bring": ["物品1", "物品2", ...],
+    "safety_reminders": ["安全提醒1", "安全提醒2", ...],
+    "best_time": "最佳出行时段建议（如：建议上午9-11点出行）",
+    "tips": ["其他贴心小贴士1", "其他贴心小贴士2", ...]
+}
+
 生成的建议应包含：
 1. 穿衣建议（根据天气温度）
 2. 随身物品清单（根据天气：雨伞、防晒霜等）
@@ -185,10 +207,13 @@ def create_agents():
 4. 最佳出行时段建议
 5. 其他贴心小贴士
 
-你的输出应该：
-- 语言亲切友好，像一个贴心的助手
-- 结构清晰，使用emoji增加可读性
-- 重点突出老人出行需要特别注意的事项
+注意事项：
+1. 所有字段都必须返回，不能省略任何字段
+2. items_to_bring 是一个数组，包含需要携带的物品
+3. safety_reminders 是一个数组，包含安全提醒事项
+4. tips 是一个数组，包含其他贴心建议
+5. 重点突出老人出行需要特别注意的事项
+6. 语言亲切友好，像一个贴心的助手
 
 注意：你不需要调用任何工具，完全基于提供的路线和天气信息进行推理和建议。"""
 
@@ -512,8 +537,7 @@ async def advisor_node(state: TravelState) -> dict:
         final_advice = f"生成出行建议失败: {str(e)}"
 
     return {
-        "final_advice": final_advice,
-        "messages": state["messages"] + [AIMessage(content=final_advice)]
+        "final_advice": final_advice
     }
 
 
@@ -645,6 +669,102 @@ async def plan_travel_parallel(origin: str, destination: str) -> Dict[str, Any]:
     }
 
 
+async def plan_travel_stream(origin: str, destination: str) -> AsyncGenerator[Dict[str, Any], None]:
+    """流式出行规划主函数 - 结果实时推送
+
+    使用并行执行优化 + 流式推送：
+    - RouteAgent 和 WeatherAgent 并行执行
+    - 哪个结果先返回就立即推送
+    - AdvisorAgent 最后执行
+
+    Args:
+        origin: 出发地
+        destination: 目的地
+
+    Yields:
+        Dict: 包含不同类型的结果事件
+    """
+
+    route_done = False
+    weather_done = False
+    route_result_data = None
+    weather_result_data = None
+
+    async def run_route():
+        nonlocal route_result_data, route_done # 使用 nonlocal 修改外层变量
+        try:
+            result = await route_node(TravelState(
+                messages=[],
+                origin=origin,
+                destination=destination,
+                route_result={},
+                weather_result="",
+                final_advice=""
+            ))
+            route_result_data = result.get("route_result", {})
+            route_done = True
+        except Exception as e:
+            route_result_data = {"error": str(e)}
+            route_done = True
+
+    async def run_weather():
+        nonlocal weather_result_data, weather_done
+        try:
+            result = await weather_node(TravelState(
+                messages=[],
+                origin=origin,
+                destination=destination,
+                route_result={},
+                weather_result="",
+                final_advice=""
+            ))
+            weather_result_data = result.get("weather_result", "")
+            weather_done = True
+        except Exception as e:
+            weather_result_data = f"天气查询失败: {str(e)}"
+            weather_done = True
+
+    # 使用 asyncio.create_task 同时启动两个任务，实现真正的并行执行。
+    route_task = asyncio.create_task(run_route())
+    weather_task = asyncio.create_task(run_weather())
+
+    while not (route_done and weather_done):
+        await asyncio.sleep(0.5)
+
+        if route_done and route_result_data is not None and "pushed" not in str(route_result_data):
+            yield {
+                "event": "route",
+                "data": route_result_data
+            }
+            route_result_data = {"pushed": True}
+
+        if weather_done and weather_result_data is not None and "pushed" not in str(weather_result_data):
+            yield {
+                "event": "weather",
+                "data": weather_result_data
+            }
+            weather_result_data = {"pushed": True}
+
+    await asyncio.gather(route_task, weather_task)
+
+    combined_state = TravelState(
+        messages=[],
+        origin=origin,
+        destination=destination,
+        route_result=route_result_data if isinstance(route_result_data, dict) and "pushed" not in route_result_data else {},
+        weather_result=weather_result_data if isinstance(weather_result_data, str) and "pushed" not in weather_result_data else "",
+        final_advice=""
+    )
+
+    advisor_result = await advisor_node(combined_state)
+    advice = advisor_result.get("final_advice", "抱歉，无法生成出行建议。")
+
+    yield {
+        "event": "advice",
+        "data": advice
+    }
+
+
 class MultiAgentNavigation:
     _initialized = False
 
@@ -653,6 +773,10 @@ class MultiAgentNavigation:
 
     async def plan_travel(self, origin: str, destination: str) -> Dict[str, Any]:
         return await plan_travel_parallel(origin, destination)
+
+    async def plan_travel_stream(self, origin: str, destination: str) -> AsyncGenerator[Dict[str, Any], None]:
+        async for event in plan_travel_stream(origin, destination):
+            yield event
 # async def main():
 #     """主函数 - 演示完整的多Agent协作流程
 
