@@ -34,8 +34,10 @@
 """
 
 import asyncio
-from typing import TypedDict, Annotated, Sequence, Dict, Any, Optional
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
+import re
+import json
+from typing import TypedDict, Annotated, Sequence, Dict, Any, Optional, Tuple
+from langchain_core.messages import BaseMessage, HumanMessage
 from langgraph.graph import StateGraph, END
 from langchain.agents import create_agent
 from langchain_mcp_adapters.client import MultiServerMCPClient
@@ -63,6 +65,171 @@ class TravelState(TypedDict):
     final_advice: str
 
 
+class AmapTools:
+    """高德地图API工具封装类"""
+
+    @staticmethod
+    def _parse_coordinates(text: str) -> Tuple[Optional[str], Optional[str]]:
+        """从文本中解析经纬度
+
+        Args:
+            text: 包含经纬度信息的文本，支持格式：
+                  - "经度123.456，纬度78.901"
+                  - "经度123.456,纬度78.901"
+
+        Returns:
+            Tuple[经度, 纬度] 或 (None, None)
+        """
+        try:
+            match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', text)
+            if match:
+                return match.group(1), match.group(2)
+        except Exception:
+            pass
+        return None, None
+
+    @staticmethod
+    async def get_route(origin: str, destination: str) -> Dict[str, Any]:
+        """获取路线规划
+
+        Args:
+            origin: 出发地（支持经纬度格式）
+            destination: 目的地（支持经纬度格式）
+
+        Returns:
+            包含路线距离、时间、步骤和坐标点的字典
+        """
+        try:
+            origin_lng, origin_lat = AmapTools._parse_coordinates(origin)
+            dest_lng, dest_lat = AmapTools._parse_coordinates(destination)
+
+            if not (origin_lng and origin_lat and dest_lng and dest_lat):
+                return AmapTools._create_fallback_route(origin, destination)
+
+            params = {
+                "origin": f"{origin_lng},{origin_lat}",
+                "destination": f"{dest_lng},{dest_lat}",
+                "key": settings.AMAP_API_KEY,
+                "extensions": "all"
+            }
+
+            import httpx
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    "https://restapi.amap.com/v3/direction/walking",
+                    params=params,
+                    timeout=10.0
+                )
+                result = response.json()
+
+                if result.get("status") == "1" and result.get("route"):
+                    route = result["route"]
+                    paths = route.get("paths", [])
+                    if not paths:
+                        return AmapTools._create_fallback_route(origin, destination)
+
+                    path = paths[0]
+                    steps = []
+                    for step in path.get("steps", []):
+                        road = step.get("road", "")
+                        if isinstance(road, list):
+                            road = ""
+                        steps.append({
+                            "instruction": step.get("instruction", ""),
+                            "distance": str(step.get("distance", "")),
+                            "duration": str(step.get("duration", "")),
+                            "road": road,
+                            "polyline": step.get("polyline", "")
+                        })
+
+                    polyline = ";".join([step.get("polyline", "") for step in steps])
+
+                    return {
+                        "text": f"从 {origin_lng},{origin_lat} 到 {dest_lng},{dest_lat} 的路线规划已完成",
+                        "origin": f"{origin_lng},{origin_lat}",
+                        "destination": f"{dest_lng},{dest_lat}",
+                        "distance": path.get("distance", "0"),
+                        "duration": path.get("duration", "0"),
+                        "steps": steps,
+                        "polyline": polyline
+                    }
+        except Exception as e:
+            print(f"获取路线失败: {e}")
+
+        return AmapTools._create_fallback_route(origin, destination)
+
+    @staticmethod
+    async def get_weather(location: str) -> str:
+        """获取天气信息
+
+        Args:
+            location: 位置信息（城市名或经纬度）
+
+        Returns:
+            天气信息字符串
+        """
+        try:
+            import httpx
+            params = {
+                "key": settings.AMAP_API_KEY,
+                "city": location,
+                "extensions": "base"
+            }
+
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    "https://restapi.amap.com/v3/weather/weatherInfo",
+                    params=params,
+                    timeout=10.0
+                )
+                result = response.json()
+
+                if result.get("status") == "1" and result.get("lives"):
+                    live = result["lives"][0]
+                    return (
+                        f"天气：{live.get('weather', '未知')}\n"
+                        f"温度：{live.get('temperature', '未知')}℃\n"
+                        f"风力：{live.get('windpower', '未知')}级\n"
+                        f"湿度：{live.get('humidity', '未知')}%"
+                    )
+        except Exception as e:
+            print(f"获取天气失败: {e}")
+
+        return f"无法获取 {location} 的天气信息"
+
+    @staticmethod
+    def _create_fallback_route(origin: str, destination: str) -> Dict[str, Any]:
+        """创建降级路线数据
+
+        Args:
+            origin: 出发地
+            destination: 目的地
+
+        Returns:
+            基础路线数据字典
+        """
+        pure_origin = origin
+        pure_destination = destination
+
+        origin_match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', origin)
+        if origin_match:
+            pure_origin = f"{origin_match.group(1)},{origin_match.group(2)}"
+
+        dest_match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', destination)
+        if dest_match:
+            pure_destination = f"{dest_match.group(1)},{dest_match.group(2)}"
+
+        return {
+            "text": f"从 {pure_origin} 到 {pure_destination} 的路线规划",
+            "origin": pure_origin,
+            "destination": pure_destination,
+            "distance": "0",
+            "duration": "0",
+            "steps": [],
+            "polyline": ""
+        }
+
+
 route_tools = []
 weather_tools = []
 all_tools = []
@@ -80,30 +247,36 @@ async def setup_mcp_tools():
         print("警告: AMAP_API_KEY 未设置，将使用空工具集")
         return
 
-    mcp_client = MultiServerMCPClient(
-        {
-            "amap": {
-                "url": f"https://mcp.amap.com/sse?key={settings.AMAP_API_KEY}",
-                "transport": "sse"
+    try:
+        mcp_client = MultiServerMCPClient(
+            {
+                "amap": {
+                    "url": f"https://mcp.amap.com/sse?key={settings.AMAP_API_KEY}",
+                    "transport": "sse"
+                }
             }
-        }
-    )
+        )
 
-    all_tools = await mcp_client.get_tools()
+        all_tools = await mcp_client.get_tools()
 
-    for tool in all_tools:
-        tool_name = tool.name.lower()
-        if any(keyword in tool_name for keyword in ["weather", "天气"]):
-            weather_tools.append(tool)
-        elif any(keyword in tool_name for keyword in [
+        route_keywords = [
             "direction", "route", "driving", "walking", "bicycling",
             "transit", "geocode", "geo", "navigation", "path", "routeplanning"
-        ]):
-            route_tools.append(tool)
+        ]
+        weather_keywords = ["weather", "天气"]
 
-    print(f"已加载 {len(all_tools)} 个高德MCP工具")
-    print(f"路线相关工具 ({len(route_tools)}): {[t.name for t in route_tools]}")
-    print(f"天气相关工具 ({len(weather_tools)}): {[t.name for t in weather_tools]}")
+        for tool in all_tools:
+            tool_name = tool.name.lower()
+            if any(keyword in tool_name for keyword in weather_keywords):
+                weather_tools.append(tool)
+            elif any(keyword in tool_name for keyword in route_keywords):
+                route_tools.append(tool)
+
+        print(f"已加载 {len(all_tools)} 个高德MCP工具")
+        print(f"路线相关工具 ({len(route_tools)}): {[t.name for t in route_tools]}")
+        print(f"天气相关工具 ({len(weather_tools)}): {[t.name for t in weather_tools]}")
+    except Exception as e:
+        print(f"初始化MCP工具失败: {e}")
 
 
 route_agent = None
@@ -112,10 +285,10 @@ advisor_agent = None
 _agents_initialized = False
 
 
-def create_agents():
-    """创建三个专业Agent
+def setup_navigation_agents():
+    """初始化所有Agent
 
-    每个Agent使用create_agent工厂函数创建，绑定不同的工具集和系统提示词。
+    创建路线Agent、天气Agent和顾问Agent，集中管理Agent的生命周期。
     """
     global route_agent, weather_agent, advisor_agent, _agents_initialized
 
@@ -133,7 +306,7 @@ def create_agents():
 
 {
     "origin": "出发地描述",
-    "destination": "目的地描述", 
+    "destination": "目的地描述",
     "distance": "总距离（米）",
     "duration": "总时间（秒）",
     "steps": [
@@ -263,143 +436,50 @@ async def route_node(state: TravelState) -> dict:
         route_text = result["messages"][-1].content
 
         route_data = _parse_route_result(route_text, origin, destination)
-        
+
         if not route_data.get("distance") or not route_data.get("polyline"):
-            route_data = await _fetch_route_directly(origin, destination)
+            route_data = await AmapTools.get_route(origin, destination)
 
     except Exception as e:
-        route_data = await _fetch_route_directly(origin, destination)
+        route_data = await AmapTools.get_route(origin, destination)
 
     return {"route_result": route_data}
 
 
-async def _fetch_route_directly(origin: str, destination: str) -> Dict[str, Any]:
-    """直接调用高德API获取路线数据作为备选方案
-    
+def _parse_route_result(route_text: str, origin: str, destination: str) -> Dict[str, Any]:
+    """解析RouteAgent返回的路线文本
+
     Args:
+        route_text: RouteAgent返回的文本内容
         origin: 出发地
         destination: 目的地
-        
+
     Returns:
-        Dict: 路线数据结构
+        解析后的路线数据字典
     """
-    from app.config import settings
-    import httpx
-    import re
-    
-    try:
-        origin_match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', origin)
-        dest_match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', destination)
-        
-        if origin_match and dest_match:
-            origin_lng = origin_match.group(1)
-            origin_lat = origin_match.group(2)
-            dest_lng = dest_match.group(1)
-            dest_lat = dest_match.group(2)
-            
-            params = {
-                "origin": f"{origin_lng},{origin_lat}",
-                "destination": f"{dest_lng},{dest_lat}",
-                "key": settings.AMAP_API_KEY,
-                "extensions": "all"
-            }
-            
-            async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    "https://restapi.amap.com/v3/direction/walking",
-                    params=params,
-                    timeout=10.0
-                )
-                result = response.json()
-                
-                if result.get("status") == "1" and result.get("route"):
-                    route = result["route"]
-                    paths = route.get("paths", [])
-                    
-                    if paths:
-                        path = paths[0]
-                        steps = []
-                        for step in path.get("steps", []):
-                            road = step.get("road", "")
-                            if isinstance(road, list):
-                                road = ""
-                            steps.append({
-                                "instruction": step.get("instruction", ""),
-                                "distance": str(step.get("distance", "")),
-                                "duration": str(step.get("duration", "")),
-                                "road": road,
-                                "polyline": step.get("polyline", "")
-                            })
-                        
-                        polyline = ";".join([step.get("polyline", "") for step in steps])
-                        
-                        # 返回纯净的经纬度格式，不包含"经度""纬度"字样
-                        pure_origin = f"{origin_lng},{origin_lat}"
-                        pure_destination = f"{dest_lng},{dest_lat}"
-                        
-                        return {
-                            "text": f"从 {pure_origin} 到 {pure_destination} 的路线规划已完成",
-                            "origin": pure_origin,
-                            "destination": pure_destination,
-                            "distance": path.get("distance", "0"),
-                            "duration": path.get("duration", "0"),
-                            "steps": steps,
-                            "polyline": polyline
-                        }
-    except Exception as e:
-        print(f"直接调用高德API失败: {e}")
-    
-    # 即使失败也尝试返回纯净的经纬度格式
     pure_origin = origin
     pure_destination = destination
-    
+
     origin_match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', origin)
     if origin_match:
         pure_origin = f"{origin_match.group(1)},{origin_match.group(2)}"
-    
+
     dest_match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', destination)
     if dest_match:
         pure_destination = f"{dest_match.group(1)},{dest_match.group(2)}"
-    
-    return {
-        "text": f"从 {pure_origin} 到 {pure_destination} 的路线规划",
-        "origin": pure_origin,
-        "destination": pure_destination,
-        "distance": "0",
-        "duration": "0",
-        "steps": [],
-        "polyline": ""
-    }
 
-
-def _parse_route_result(route_text: str, origin: str, destination: str) -> Dict[str, Any]:
-    import re
-    import json
-    
-    # 清理 origin 和 destination，去除"经度""纬度"字样
-    pure_origin = origin
-    pure_destination = destination
-    
-    origin_match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', origin)
-    if origin_match:
-        pure_origin = f"{origin_match.group(1)},{origin_match.group(2)}"
-    
-    dest_match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', destination)
-    if dest_match:
-        pure_destination = f"{dest_match.group(1)},{dest_match.group(2)}"
-    
     route_text = route_text.strip()
-    
+
     json_match = re.search(r'\{[\s\S]*\}', route_text)
     if json_match:
         try:
             json_str = json_match.group(0)
             data = json.loads(json_str)
-            
+
             distance = str(data.get("distance", ""))
             duration = str(data.get("duration", ""))
             polyline = data.get("polyline", "")
-            
+
             steps = []
             for step_data in data.get("steps", []):
                 steps.append({
@@ -410,7 +490,7 @@ def _parse_route_result(route_text: str, origin: str, destination: str) -> Dict[
                     "road": step_data.get("road", ""),
                     "polyline": step_data.get("polyline", "")
                 })
-            
+
             if distance and duration and polyline and steps:
                 return {
                     "text": route_text,
@@ -423,19 +503,19 @@ def _parse_route_result(route_text: str, origin: str, destination: str) -> Dict[
                 }
         except (json.JSONDecodeError, KeyError, ValueError):
             pass
-    
+
     distance_match = re.search(r"距离[：:]\s*(\d+[\u4e00-\u9fa5a-zA-Z]*)", route_text)
     duration_match = re.search(r"预计[时长]?[：:]\s*(\d+[\u4e00-\u9fa5a-zA-Z]*)", route_text)
 
     distance = ""
     duration = ""
-    
+
     if distance_match:
         distance_text = distance_match.group(1)
         distance_num = re.search(r'\d+', distance_text)
         if distance_num:
             distance = distance_num.group(0)
-            
+
     if duration_match:
         duration_text = duration_match.group(1)
         duration_num = re.search(r'\d+', duration_text)
@@ -500,13 +580,13 @@ async def advisor_node(state: TravelState) -> dict:
     """出行顾问节点
 
     由Orchestrator调度，调用AdvisorAgent综合路线和天气信息生成出行建议。
-    将最终建议存入state.final_advice和state.messages。
+    将最终建议存入state.final_advice。
 
     Args:
         state: 当前出行状态，包含route_result和weather_result
 
     Returns:
-        dict: 更新后的final_advice和messages
+        dict: 更新后的final_advice
     """
     route_result = state["route_result"]
     weather_result = state["weather_result"]
@@ -536,24 +616,25 @@ async def advisor_node(state: TravelState) -> dict:
     except Exception as e:
         final_advice = f"生成出行建议失败: {str(e)}"
 
-    return {
-        "final_advice": final_advice
-    }
+    return {"final_advice": final_advice}
 
 
 def route_should_continue(state: TravelState) -> str:
+    """路线节点条件判断"""
     if state.get("weather_result"):
         return "advisor"
     return "weather"
 
 
 def weather_should_continue(state: TravelState) -> str:
+    """天气节点条件判断"""
     if state.get("route_result"):
         return "advisor"
     return END
 
 
 def create_travel_graph() -> StateGraph:
+    """创建出行规划状态图"""
     workflow = StateGraph(TravelState)
 
     workflow.add_node("route", route_node)
@@ -565,19 +646,13 @@ def create_travel_graph() -> StateGraph:
     workflow.add_conditional_edges(
         "route",
         route_should_continue,
-        {
-            "advisor": "advisor",
-            "weather": "weather"
-        }
+        {"advisor": "advisor", "weather": "weather"}
     )
 
     workflow.add_conditional_edges(
         "weather",
         weather_should_continue,
-        {
-            "advisor": "advisor",
-            "END": END
-        }
+        {"advisor": "advisor", "END": END}
     )
 
     workflow.add_edge("advisor", END)
@@ -586,16 +661,16 @@ def create_travel_graph() -> StateGraph:
 
 
 async def plan_travel(origin: str, destination: str) -> Dict[str, Any]:
-    """出行规划主函数，使用 Orchestrator(LangGraph 动态调度)
+    """出行规划主函数（顺序执行）
 
-    用户入口函数，接收出发地和目的地，返回完整的出行建议。
+    使用LangGraph顺序调度：route -> weather -> advisor
 
     Args:
         origin: 出发地
         destination: 目的地
 
     Returns:
-        str: 包含路线、天气和出行建议的完整回复
+        包含路线、天气和出行建议的字典
     """
     graph = create_travel_graph()
 
@@ -608,90 +683,91 @@ async def plan_travel(origin: str, destination: str) -> Dict[str, Any]:
         final_advice=""
     )
 
-    result = await graph.ainvoke(initial_state)
-
-    return {
-        "route": result["route_result"],
-        "weather": result["weather_result"],
-        "advice": result["final_advice"]
-    }
+    try:
+        result = await graph.ainvoke(initial_state)
+        return {
+            "route": result["route_result"],
+            "weather": result["weather_result"],
+            "advice": result["final_advice"]
+        }
+    except Exception as e:
+        return {
+            "route": {},
+            "weather": "",
+            "advice": f"出行规划失败: {str(e)}"
+        }
 
 
 async def plan_travel_parallel(origin: str, destination: str) -> Dict[str, Any]:
     """出行规划主函数（并行优化版本）
 
-    使用并行执行优化：同时调用RouteAgent和WeatherAgent，
-    然后再调用AdvisorAgent整合结果。
+    并行执行route_node和weather_node，然后调用advisor_node整合结果。
 
     Args:
         origin: 出发地
         destination: 目的地
 
     Returns:
-        str: 包含路线、天气和出行建议的完整回复
+        包含路线、天气和出行建议的字典
     """
-
-    route_task = route_node(TravelState(
+    initial_state = TravelState(
         messages=[],
         origin=origin,
         destination=destination,
         route_result={},
         weather_result="",
-        final_advice=""
-    ))
-
-    weather_task = weather_node(TravelState(
-        messages=[],
-        origin=origin,
-        destination=destination,
-        route_result={},
-        weather_result="",
-        final_advice=""
-    ))
-
-    route_result, weather_result = await asyncio.gather(route_task, weather_task)
-
-    combined_state = TravelState(
-        messages=[],
-        origin=origin,
-        destination=destination,
-        route_result=route_result.get("route_result", {}),
-        weather_result=weather_result.get("weather_result", ""),
         final_advice=""
     )
 
-    advisor_result = await advisor_node(combined_state)
+    try:
+        route_task = route_node(initial_state)
+        weather_task = weather_node(initial_state)
 
-    return {
-        "route": combined_state["route_result"],
-        "weather": combined_state["weather_result"],
-        "advice": advisor_result.get("final_advice", "抱歉，无法生成出行建议。")
-    }
+        route_result, weather_result = await asyncio.gather(route_task, weather_task)
+
+        combined_state = TravelState(
+            messages=[],
+            origin=origin,
+            destination=destination,
+            route_result=route_result.get("route_result", {}),
+            weather_result=weather_result.get("weather_result", ""),
+            final_advice=""
+        )
+
+        advisor_result = await advisor_node(combined_state)
+
+        return {
+            "route": combined_state["route_result"],
+            "weather": combined_state["weather_result"],
+            "advice": advisor_result.get("final_advice", "抱歉，无法生成出行建议。")
+        }
+    except Exception as e:
+        return {
+            "route": {},
+            "weather": "",
+            "advice": f"出行规划失败: {str(e)}"
+        }
 
 
-async def plan_travel_stream(origin: str, destination: str) -> AsyncGenerator[Dict[str, Any], None]:
-    """流式出行规划主函数 - 结果实时推送
+async def plan_travel_stream(origin: str, destination: str):
+    """流式出行规划主函数
 
-    使用并行执行优化 + 流式推送：
-    - RouteAgent 和 WeatherAgent 并行执行
-    - 哪个结果先返回就立即推送
-    - AdvisorAgent 最后执行
+    并行执行route_node和weather_node，结果实时推送，最后调用advisor_node。
 
     Args:
         origin: 出发地
         destination: 目的地
 
     Yields:
-        Dict: 包含不同类型的结果事件
+        包含不同类型结果的字典事件
     """
-
     route_done = False
     weather_done = False
     route_result_data = None
     weather_result_data = None
 
     async def run_route():
-        nonlocal route_result_data, route_done # 使用 nonlocal 修改外层变量
+        nonlocal route_result_data, route_done
         try:
             result = await route_node(TravelState(
                 messages=[],
@@ -724,7 +800,6 @@ async def plan_travel_stream(origin: str, destination: str) -> AsyncGenerator[Di
             weather_result_data = f"天气查询失败: {str(e)}"
             weather_done = True
 
-    # 使用 asyncio.create_task 同时启动两个任务，实现真正的并行执行。
     route_task = asyncio.create_task(run_route())
     weather_task = asyncio.create_task(run_weather())
 
@@ -732,17 +807,11 @@ async def plan_travel_stream(origin: str, destination: str) -> AsyncGenerator[Di
         await asyncio.sleep(0.5)
 
         if route_done and route_result_data is not None and "pushed" not in str(route_result_data):
-            yield {
-                "event": "route",
-                "data": route_result_data
-            }
+            yield {"event": "route", "data": route_result_data}
             route_result_data = {"pushed": True}
 
         if weather_done and weather_result_data is not None and "pushed" not in str(weather_result_data):
-            yield {
-                "event": "weather",
-                "data": weather_result_data
-            }
+            yield {"event": "weather", "data": weather_result_data}
             weather_result_data = {"pushed": True}
 
     await asyncio.gather(route_task, weather_task)
@@ -756,67 +825,36 @@ async def plan_travel_stream(origin: str, destination: str) -> AsyncGenerator[Di
         final_advice=""
     )
 
-    advisor_result = await advisor_node(combined_state)
-    advice = advisor_result.get("final_advice", "抱歉，无法生成出行建议。")
+    try:
+        advisor_result = await advisor_node(combined_state)
+        advice = advisor_result.get("final_advice", "抱歉，无法生成出行建议。")
+    except Exception as e:
+        advice = f"生成出行建议失败: {str(e)}"
 
-    yield {
-        "event": "advice",
-        "data": advice
-    }
+    yield {"event": "advice", "data": advice}
 
 
 class MultiAgentNavigation:
+    """多Agent导航服务类"""
+
     _initialized = False
 
     def __init__(self):
         pass
 
     async def plan_travel(self, origin: str, destination: str) -> Dict[str, Any]:
+        """执行出行规划（使用并行模式）"""
         return await plan_travel_parallel(origin, destination)
 
-    async def plan_travel_stream(self, origin: str, destination: str) -> AsyncGenerator[Dict[str, Any], None]:
+    async def plan_travel_stream(self, origin: str, destination: str):
+        """执行流式出行规划"""
         async for event in plan_travel_stream(origin, destination):
             yield event
-# async def main():
-#     """主函数 - 演示完整的多Agent协作流程
-
-#     示例：从北京市朝阳区到杭州西湖
-#     """
-#     print("=" * 60)
-#     print("🧭 智能导航多Agent服务演示")
-#     print("=" * 60)
-
-#     print("\n📡 正在初始化高德MCP工具...")
-#     await setup_mcp_tools()
-
-#     print("\n🤖 正在创建专业Agent...")
-#     create_agents()
-
-#     origin = "北京市朝阳区"
-#     destination = "杭州西湖"
-
-#     print(f"\n📍 出发地：{origin}")
-#     print(f"📍 目的地：{destination}")
-#     print("\n" + "-" * 60)
-
-#     print("\n🚀 开始执行多Agent协作规划...")
-#     print("   ├── route_node: 正在规划路线...")
-#     print("   ├── weather_node: 正在查询天气...")
-#     print("   └── (两者并行执行)")
-#     print()
-
-#     final_advice = await plan_travel_parallel(origin, destination)
-
-#     print("\n" + "=" * 60)
-#     print("📋 出行建议清单")
-#     print("=" * 60)
-#     print(final_advice)
-#     print("=" * 60)
-
-#     return final_advice
 
 
-# if __name__ == "__main__":
-#     asyncio.run(main())
+class NavigationService:
+    """导航服务类（兼容旧接口）"""
 
-
+    async def plan_travel(self, origin: str, destination: str) -> Dict[str, Any]:
+        """执行出行规划"""
+        return await plan_travel_parallel(origin, destination)

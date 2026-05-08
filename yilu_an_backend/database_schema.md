@@ -39,16 +39,16 @@
 ## 1. 用户表 (users)
 
 用户表是系统的核心表，存储所有用户（老人和家属）的基本信息。  
-**登录凭据**：系统以 `openid` 作为唯一登录凭证，`phone` 为辅助信息（可空）。
+**登录凭据**：系统以 `openid` + `role` 组合作为登录凭证，`phone` 也可作为独立的登录凭证。
 
 ### 字段结构
 
 | 字段名                 | 数据类型     | 约束条件                                 | 默认值 | 说明                              |
 | ---------------------- | ------------ | ---------------------------------------- | ------ | --------------------------------- |
 | user_id                | BIGINT       | PRIMARY KEY GENERATED ALWAYS AS IDENTITY | -      | 用户ID，自增主键                  |
-| phone                  | VARCHAR(20)  | NULL, UNIQUE                             | -      | 手机号（非必须，可空）            |
+| phone                  | VARCHAR(20)  | NOT NULL, UNIQUE                         | -      | 手机号（唯一）                    |
 | nickname               | VARCHAR(50)  | NULL                                     | -      | 昵称                              |
-| openid                 | VARCHAR(255) | NOT NULL, UNIQUE                         | -      | **微信OpenID（唯一登录凭证）**    |
+| openid                 | VARCHAR(255) | NOT NULL                                 | -      | 微信OpenID                        |
 | **session_key 已移除** | -            | -                                        | -      | **敏感信息，存放在Redis等缓存中** |
 | role                   | user_role    | NOT NULL                                 | -      | 角色：elderly / family            |
 | gender                 | SMALLINT     | NULL, CHECK(gender IN (0,1,9))           | 9      | 性别：0-男, 1-女, 9-未知性别      |
@@ -58,15 +58,15 @@
 | created_at             | TIMESTAMPTZ  | NOT NULL                                 | now()  | 创建时间（带时区）                |
 | updated_at             | TIMESTAMPTZ  | NOT NULL                                 | now()  | 更新时间（带时区）                |
 
-> **说明**：`openid` 为唯一登录凭证，必须非空且唯一。`phone` 可空，若用户绑定了手机号则必须唯一。
+> **说明**：`openid` + `role` 组合为唯一登录凭证，必须非空且唯一。同一个 openid 可以作为老人和家属两个不同角色注册。
 
 ### 索引设计
 
 | 索引类型     | 索引名称         | 索引字段 | 补充说明                         |
 | ------------ | ---------------- | -------- | -------------------------------- |
 | PRIMARY KEY  | users_pkey       | user_id  | 默认 btree，唯一                 |
-| UNIQUE INDEX | users_openid_key | openid   | **核心唯一凭证**                 |
-| UNIQUE INDEX | users_phone_key  | phone    | 允许空值，保证已填写的手机号唯一 |
+| UNIQUE INDEX  | users_phone_key      | phone           | 手机号唯一                       |
+| UNIQUE INDEX  | uq_users_openid_role | (openid, role)  | **核心登录凭证：openid+role唯一** |
 
 ### 关联关系
 
@@ -166,6 +166,7 @@ CREATE TYPE binding_status AS ENUM ('pending', 'accepted', 'rejected');
 | ----------- | ------------- | ----------------------------------------------------- | ------ | ---------------------------- |
 | place_id    | BIGINT        | PRIMARY KEY GENERATED ALWAYS AS IDENTITY              | -      | 地点ID                       |
 | user_id     | BIGINT        | NOT NULL, REFERENCES users(user_id) ON DELETE CASCADE | -      | 所属老人ID                   |
+| tag_id      | BIGINT        | NULL, REFERENCES tags(tag_id) ON DELETE SET NULL       | -      | 关联标签ID，可为空             |
 | place_name  | VARCHAR(100)  | NOT NULL                                              | -      | 地点名称（如：儿子家）       |
 | latitude    | DECIMAL(10,8) | NOT NULL                                              | -      | 纬度                         |
 | longitude   | DECIMAL(11,8) | NOT NULL                                              | -      | 经度                         |
@@ -186,10 +187,42 @@ CREATE TYPE binding_status AS ENUM ('pending', 'accepted', 'rejected');
 | 关联表 | 关系类型       | 外键字段 |
 | ------ | -------------- | -------- |
 | users  | 外键（多对一） | user_id  |
+| tags   | 外键（多对一） | tag_id   |
 
 ---
 
-## 5. 导航记录表 (navigation_records)
+## 5. 标签表 (tags)
+
+存储收藏地点的标签信息。一个标签可关联多个收藏地点，一个收藏地点仅对应一个标签。
+
+### 字段结构
+
+| 字段名    | 数据类型     | 约束条件                              | 默认值 | 说明                       |
+| --------- | ------------ | ------------------------------------- | ------ | -------------------------- |
+| tag_id    | BIGINT       | PRIMARY KEY GENERATED ALWAYS AS IDENTITY | -      | 标签ID，自增主键           |
+| tag_name  | VARCHAR(50)  | NOT NULL                              | -      | 标签名称（如：家、医院、银行） |
+| color     | VARCHAR(7)   | NULL                                  | -      | 标签颜色（十六进制，如 #FF5733） |
+| icon      | VARCHAR(50)  | NULL                                  | -      | 标签图标名称               |
+| is_active | BOOLEAN      | NOT NULL                              | TRUE   | 是否启用                   |
+| created_at | TIMESTAMPTZ  | NOT NULL                              | now()  | 创建时间                   |
+
+### 索引设计
+
+| 索引类型      | 索引名称      | 索引字段  | 用途说明                 |
+| ------------- | ------------- | --------- | ------------------------ |
+| PRIMARY KEY   | tags_pkey     | tag_id    |                         |
+| UNIQUE INDEX  | tags_tag_name_key | tag_name | 标签名称唯一            |
+| INDEX (BTREE) | idx_tags_active | is_active | 查询启用的标签列表     |
+
+### 关联关系
+
+| 关联表          | 关系类型       | 外键字段 | 说明                       |
+| --------------- | -------------- | -------- | -------------------------- |
+| favorite_places | 一对多         | -        | 一个标签可关联多个收藏地点 |
+
+---
+
+## 6. 导航记录表 (navigation_records)
 
 存储用户的导航历史。
 
@@ -230,7 +263,7 @@ CREATE TYPE binding_status AS ENUM ('pending', 'accepted', 'rejected');
 
 ---
 
-## 6. 语音日志表 (voice_logs)
+## 7. 语音日志表 (voice_logs)
 
 存储语音交互的完整记录。
 
@@ -272,8 +305,8 @@ CREATE TYPE binding_status AS ENUM ('pending', 'accepted', 'rejected');
 erDiagram
     users {
         bigint user_id PK
-        varchar phone "可空，唯一"
-        varchar openid UK "NOT NULL，唯一登录凭证"
+        varchar phone "NOT NULL，唯一"
+        varchar openid "NOT NULL"
         user_role role "elderly / family"
         smallint gender "0男 1女 9未知"
         date birthday
@@ -306,12 +339,22 @@ erDiagram
     favorite_places {
         bigint place_id PK
         bigint user_id FK
+        bigint tag_id FK "可空，关联标签"
         varchar place_name
         decimal latitude
         decimal longitude
         varchar address
         smallint source_type "1家属预设 2自动识别"
         boolean is_active
+    }
+
+    tags {
+        bigint tag_id PK
+        varchar tag_name UK "NOT NULL"
+        varchar color "十六进制颜色值，可空"
+        varchar icon "图标名称，可空"
+        boolean is_active
+        timestamptz created_at
     }
 
     navigation_records {
@@ -347,6 +390,7 @@ erDiagram
     users ||--o{ favorite_places : "收藏"
     users ||--o{ navigation_records : "发起"
     users ||--o{ voice_logs : "产生"
+    tags ||--o{ favorite_places : "标签关联"
 
     navigation_records ||--o{ locations : "关联轨迹 (record_id)"
     navigation_records ||--o{ voice_logs : "关联对话 (record_id)"
@@ -359,10 +403,11 @@ erDiagram
 | 一对多（1:N） | 一个用户对应多个位置         | users → locations               |
 | 一对多（1:N） | 一个用户对应多个收藏地点     | users → favorite_places         |
 | 一对多（1:N） | 一个用户对应多个导航记录     | users → navigation_records      |
-| 一对多（1:N） | 一个用户对应多条语音日志     | users → voice_logs              |
+| 一对多（1:N） | 一个用户对应多条语音日志     | users → voice_logs             |
 | 自引用        | 同一表内通过绑定表关联       | bindings：老人与家属            |
 | 一对多（1:N） | 一个导航记录对应多个位置     | navigation_records → locations  |
 | 一对多（1:N） | 一个导航记录对应多条语音日志 | navigation_records → voice_logs |
+| 一对多（1:N） | 一个标签对应多个收藏地点     | tags → favorite_places         |
 
 ---
 
@@ -370,10 +415,11 @@ erDiagram
 
 | 表名               | 主键策略        | 外键数量 | 主要索引                                          | 记录类型 |
 | ------------------ | --------------- | -------- | ------------------------------------------------- | -------- |
-| users              | IDENTITY BIGINT | 0        | openid 唯一，phone 唯一（允许空）                 | 用户信息 |
+| users              | IDENTITY BIGINT | 0        | openid+role 唯一，phone 唯一                     | 用户信息 |
 | bindings           | IDENTITY BIGINT | 2        | 老人ID、家属ID、老人-家属唯一组合                 | 绑定关系 |
 | locations          | IDENTITY BIGINT | 2        | (user_id, created_at)、record_id                  | 位置记录 |
-| favorite_places    | IDENTITY BIGINT | 1        | (user_id, source_type)、user_id+place_name 唯一   | 收藏地点 |
+| tags               | IDENTITY BIGINT | 0        | tag_name 唯一、is_active                          | 标签信息 |
+| favorite_places    | IDENTITY BIGINT | 2        | (user_id, source_type)、user_id+place_name 唯一   | 收藏地点 |
 | navigation_records | IDENTITY BIGINT | 1        | (user_id, start_time)、status                     | 导航记录 |
 | voice_logs         | IDENTITY BIGINT | 2        | (user_id, log_time)、record_id、intent_json (GIN) | 语音日志 |
 
@@ -381,7 +427,7 @@ erDiagram
 
 ## 备注
 
-1. **登录凭证**：`openid` 是唯一不可为空的登录凭证，`phone` 为选填信息。
+1. **登录凭证**：`openid` + `role` 组合是唯一不可为空的登录凭证，`phone` 为必填但不用于登录的信息。
 2. **级联操作**：大部分子表设置了 `ON DELETE CASCADE`；`locations` 和 `voice_logs` 的 `record_id` 使用 `ON DELETE SET NULL`，避免删除导航记录时丢失位置/语音数据。
 3. **地理精度**：经纬度使用 `DECIMAL(10,8)` 与 `DECIMAL(11,8)`，建议后续引入 PostGIS 以支持空间计算。
 4. **唯一约束**：在 `bindings` 和 `favorite_places` 上添加了业务唯一约束，防止数据重复。
