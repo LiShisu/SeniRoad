@@ -1,37 +1,3 @@
-# from langchain_core.tools import tool
-# from app.llmclient import create_asr_recognizer
-# from app.config import settings
-# from fastapi import UploadFile
-# import tempfile
-# import os
-
-# @tool
-# def speech_to_text(audio_file: UploadFile) -> str:
-#     """将前端上传的音频文件转换为文本"""
-#     try:
-#         # 确保 temp 目录存在
-#         os.makedirs(settings.TEMP_DIR, exist_ok=True)
-
-#         # 保存上传的音频文件为临时文件
-#         with tempfile.NamedTemporaryFile(dir=settings.TEMP_DIR, delete=False, suffix=".wav") as temp_file:
-#             content = audio_file.file.read()
-#             temp_file.write(content)
-#             temp_file_path = temp_file.name
-
-#         # 调用语音识别API
-#         recognition = create_asr_recognizer([temp_file_path])
-#         result = recognition.call()
-
-#         # 删除临时文件
-#         os.unlink(temp_file_path)
-
-#         return result.output["text"] if result.status_code == 200 else "ASR Error"
-#     except Exception as e:
-#         # 确保临时文件被删除
-#         if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
-#             os.unlink(temp_file_path)
-#         return f"ASR Error: {str(e)}"
-
 from fastapi import UploadFile
 from app.config import settings
 import tempfile
@@ -39,7 +5,6 @@ import asyncio
 import os
 import dashscope
 
-# 去除 @tool，改为普通的 async def 工具函数
 async def process_speech_to_text(audio_file: UploadFile) -> str:
     """将前端上传的音频文件转换为文本"""
     """保留了处理前端上传文件的逻辑，但实际上使用的是自己移动设备录音文件"""

@@ -11,35 +11,6 @@ class DestinationParseAgent:
     def __init__(self, favorite_place_service: Optional[FavoritePlaceService] = None):
         self.favorite_place_service = favorite_place_service
 
-    # def process_voice_input(self, audio_file: UploadFile, user_id: Optional[int] = None) -> Dict:
-    #     try:
-    #         voice_text = process_speech_to_text(audio_file)
-    #         if voice_text == "ASR Error":
-    #             return {"voice_text": "", "destination": "", "error": "语音解析失败"}
-
-    #         destination_info = self._parse_destination(voice_text, user_id)
-
-    #         return {
-    #             "voice_text": voice_text,
-    #             "destination": destination_info.get("address", voice_text),
-    #             "latitude": destination_info.get("latitude"),
-    #             "longitude": destination_info.get("longitude"),
-    #             "matched_type": destination_info.get("matched_type", "llm")
-    #         }
-    #     except Exception as e:
-    #         return {"voice_text": "", "destination": "", "error": str(e)}
-
-    # def _parse_destination(self, text: str, user_id: Optional[int] = None) -> Dict:
-    #     matched_result = self._match_favorite_place(text, user_id)
-    #     if matched_result:
-    #         return matched_result
-
-    #     matched_result = self._match_with_amap(text)
-    #     if matched_result and "error" not in matched_result:
-    #         return matched_result
-
-    #     return self._parse_with_llm(text)
-
     async def process_voice_input(self, audio_file: UploadFile, user_id: Optional[int] = None) -> Dict:
         try:
             voice_text = await process_speech_to_text(audio_file)
@@ -125,29 +96,6 @@ class DestinationParseAgent:
             return None
         except Exception as e:
             return None
-
-    # def _parse_with_llm(self, text: str) -> Dict:
-    #     try:
-    #         prompt = f"请从以下老年人的口语化表达中提取目的地信息，只返回目的地名称或地址，不要包含其他内容：{text}"
-
-    #         response = text_llm.invoke(prompt)
-
-    #         destination = response.content.strip()
-    #         destination = destination.replace("。", "").replace(".", "").strip()
-
-    #         return {
-    #             "address": destination,
-    #             "latitude": None,
-    #             "longitude": None,
-    #             "matched_type": "llm"
-    #         }
-    #     except Exception as e:
-    #         return {
-    #             "address": text,
-    #             "latitude": None,
-    #             "longitude": None,
-    #             "matched_type": "llm"
-    #         }
 
     def _parse_with_llm(self, text: str) -> Dict:
         try:

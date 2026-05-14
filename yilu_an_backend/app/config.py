@@ -4,7 +4,7 @@ from passlib.context import CryptContext
 
 class Settings(BaseSettings):
     # 数据库
-    DATABASE_URL: str = ""
+    DATABASE_URL: str = "postgresql://postgres:password@localhost:5432/yilu_an"
     REDIS_URL: str = "redis://localhost:6379"
     
     # API密钥
