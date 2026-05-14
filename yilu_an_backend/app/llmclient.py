@@ -7,23 +7,30 @@ from app.config import settings
 # 初始化 DashScope 配置
 def _setup_dashscope():
     dashscope.api_key = settings.DASHSCOPE_API_KEY
-    dashscope.base_http_api_url = settings.DASHSCOPE_BASE_URL
-    dashscope.base_websocket_api_url = settings.DASHSCOPE_BASE_URL.replace('https://', 'wss://').replace('http://', 'wss://')
+    # dashscope.base_http_api_url = settings.DASHSCOPE_BASE_URL
+    # dashscope.base_websocket_api_url = settings.DASHSCOPE_BASE_URL.replace('https://', 'wss://').replace('http://', 'wss://')
 
 _setup_dashscope()
 
 # TTS Synthesizer
-tts_synthesizer = SpeechSynthesizer(
-    model=settings.DASHSCOPE_TTS_MODEL,
-    voice=settings.DASHSCOPE_TTS_VOICE
-)
-
-# ASR Recognition
-def create_asr_recognizer(file_urls: list):
-    return Recognition(
-        model=settings.DASHSCOPE_ASR_MODEL,
-        file_urls=file_urls
+# tts_synthesizer = SpeechSynthesizer(
+#     model=settings.DASHSCOPE_TTS_MODEL,
+#     voice=settings.DASHSCOPE_TTS_VOICE,
+# )
+def create_tts_synthesizer():
+    return SpeechSynthesizer(
+        model=settings.DASHSCOPE_TTS_MODEL,
+        voice=settings.DASHSCOPE_TTS_VOICE
     )
+    
+# ASR Recognition
+# def create_asr_recognizer():
+#     return Recognition(
+#         model=settings.DASHSCOPE_ASR_MODEL,
+#         callback=None,
+#         format='wav',
+#         sample_rate=16000,
+#     )
 
 # Text model
 text_llm = ChatOpenAI(

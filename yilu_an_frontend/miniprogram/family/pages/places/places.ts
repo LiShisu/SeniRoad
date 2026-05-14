@@ -25,7 +25,7 @@ Page({
   /**
    * 加载常用地点列表
    */
-  loadFavoritePlaces() {
+  async loadFavoritePlaces() {
     const elder = getCurrentElder();
     if (!elder) {
       wx.showToast({
@@ -35,23 +35,20 @@ Page({
       return;
     }
     
-    favoritePlacesApi.getFavoritePlaces({ 
-      user_id: parseInt(elder.id),
-      active_only: true 
-    })
-      .then((res) => {
-        this.setData({
-          places: res || []
-        });
-        console.log('常用地点列表:', res || []);
-      })
-      .catch((err) => {
-        console.error('获取常用地点失败:', err);
-        wx.showToast({
-          title: '获取地点失败',
-          icon: 'none'
-        });
+    try {
+      // 家属端必须传入 user_id，后端根据此 ID 过滤数据
+      const res = await favoritePlacesApi.getFavoritePlaces({ 
+        user_id: parseInt(elder.id),
+        active_only: true 
       });
+      
+      this.setData({
+        places: res || []
+      });
+    } catch (err) {
+      console.error('获取常用地点失败:', err);
+      // 错误提示由 request.ts 拦截器统一接管，这里静默处理即可
+    }
   },
 
   /**
@@ -109,14 +106,14 @@ Page({
     wx.showModal({
       title: '确认删除',
       content: `确定要删除"${place.place_name}"吗？`,
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          favoritePlacesApi.deleteFavoritePlace(place.place_id)
+          await favoritePlacesApi.deleteFavoritePlace(place.place_id)
             .then(() => {
-              wx.showToast({
-                title: '已删除',
-                icon: 'success'
-              });
+              // wx.showToast({
+              //   title: '已删除',
+              //   icon: 'success'
+              // });
               this.loadFavoritePlaces();
             })
             .catch((err) => {

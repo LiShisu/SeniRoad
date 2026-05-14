@@ -85,7 +85,8 @@ export const favoritePlacesApi = {
   },
 
   // 停用常用地点
-  deactivateFavoritePlace: (placeId: number) => {
-    return api.put<FavoritePlace>(`/favorite-places/${placeId}/deactivate`);
-  },
+  // deactivateFavoritePlace: (placeId: number) => {
+  //   return api.put<FavoritePlace>(`/favorite-places/${placeId}/deactivate`);
+  // },
+  // 停用地点现在直接调用: updateFavoritePlace(placeId, { is_active: false })
 };

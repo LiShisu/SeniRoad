@@ -26,7 +26,8 @@ from app.dependencies.services import (
     get_llm_navigation_agent,
     get_multi_agent_navigation,
     get_tag_repository,
-    get_tag_service
+    get_tag_service,
+    get_speech_service
 )
 
 __all__ = [
@@ -51,5 +52,6 @@ __all__ = [
     "get_llm_navigation_agent",
     "get_multi_agent_navigation",
     "get_tag_repository",
-    "get_tag_service"
+    "get_tag_service",
+    "get_speech_service"
 ]

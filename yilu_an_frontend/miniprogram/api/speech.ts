@@ -6,13 +6,19 @@ export interface TextToSpeechRequest {
 }
 
 export interface TextToSpeechResponse {
-  status: string;
+  // status: string;
   audio_data: string;
   audio_type: string;
 }
 
 export const speechApi = {
   textToSpeech: (data: TextToSpeechRequest) => {
-    return api.post<TextToSpeechResponse>('/speech/text-to-speech', data);
+    return api.post<TextToSpeechResponse>('/audio/tts', data);
   },
+};
+
+export const speechApi2 = {
+  speechToText: (audio_file: any) => {
+    return api.post<any>('/audio/asr', { audio_file });
+  }
 };

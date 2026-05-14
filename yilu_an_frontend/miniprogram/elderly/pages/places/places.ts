@@ -17,11 +17,9 @@ Page({
 
   async loadFavoritePlaces() {
     try {
-      const userInfo = await userApi.getProfile();
-
+      // 优化：不再需要请求个人信息，直接通过后端的 Token 智能识别老人身份
       const res = await favoritePlacesApi.getFavoritePlaces({
-        user_id: userInfo.id,
-        active_only: true
+        active_only: true // 仅查询这个条件即可
       });
 
       this.setData({
@@ -30,10 +28,10 @@ Page({
       console.log('常用地点列表:', res || []);
     } catch (err) {
       console.error('获取常用地点失败:', err);
-      wx.showToast({
-        title: '获取地点失败',
-        icon: 'none'
-      });
+      // wx.showToast({
+      //   title: '获取地点失败',
+      //   icon: 'none'
+      // });
     }
   },
 

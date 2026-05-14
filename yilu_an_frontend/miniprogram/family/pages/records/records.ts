@@ -53,7 +53,7 @@ Page({
     wx.showLoading({ title: '加载中...' });
 
     try {
-      const res = await navigationRecordApi.getRecords(userId) as any;
+      const res = await navigationRecordApi.getRecords({ user_id: userId }) as any;
       console.log('获取到的记录:', res);
 
       const filteredRecords = this.filterByTab(res);

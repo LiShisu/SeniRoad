@@ -18,6 +18,7 @@ class NavigationRecordService:
     def get_records_by_user_id(self, user_id: int) -> List[NavigationRecordResponse]:
         """根据用户ID获取导航记录列表"""
         records = self.navigation_record_repo.get_by_user_id(user_id)
+        print(f"根据以下信息查询：{user_id}")
         return [NavigationRecordResponse.model_validate(record) for record in records]
     
     def get_active_records(self, user_id: int) -> List[NavigationRecordResponse]:
@@ -33,12 +34,13 @@ class NavigationRecordService:
     def get_records_by_status(self, user_id: int, status: int) -> List[NavigationRecordResponse]:
         """根据状态获取导航记录"""
         records = self.navigation_record_repo.get_records_by_status(user_id, status)
+        print(f"根据以下信息查询："+user_id)
         return [NavigationRecordResponse.model_validate(record) for record in records]
     
     def create_record(self, record_data: NavigationRecordCreate) -> NavigationRecordResponse:
         """创建导航记录"""
         # 检查是否有进行中的导航记录
-        active_records = self.navigation_record_repo.get_active_records(record_data.user_id)
+        active_records = self.navigation_recorduser_id_repo.get_active_records(record_data.user_id)
         if active_records:
             # 可以选择结束之前的记录
             for record in active_records:

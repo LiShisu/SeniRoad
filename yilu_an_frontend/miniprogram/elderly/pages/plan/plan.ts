@@ -2,7 +2,7 @@ import { favoritePlacesApi } from '../../../api/favorite-places';
 import type { FavoritePlace } from '../../../api/favorite-places';
 import { navigationApi, AddressNavigationResponse, SSEPlanResponse } from '../../../api/navigation';
 import { getPlace, savePlace, getRoute, saveRoute, getNavigationExtra, saveNavigationExtra, type NavigationAdvice, type WeatherInfo } from '../../storage';
-
+import { API_BASE_URL } from '../../../utils/config';
 function removeStorageSync(key: string) {
   try {
     wx.removeStorageSync(key);
@@ -23,6 +23,7 @@ function formatDuration(seconds: number): string {
 
 Page({
   data: {
+    isVoiceMode: false, // 新增：标识是否为语音导航模式
     placeId: 0,
     placeName: '',
     routeInfo: {
@@ -33,17 +34,75 @@ Page({
     },
     navigationAdvice: {} as NavigationAdvice,
     weather: {} as WeatherInfo,
-    isLoading: true
+    isLoading: true,
+    loadingText: '正在规划路线...'
   },
 
   onLoad(options: any) {
-    const placeId = options?.place_id;
-    if (placeId) {
-      this.setData({ placeId: parseInt(placeId) });
+    // 场景 1：来自常用地点点击
+    if (options?.place_id) {
+      this.setData({ 
+        placeId: parseInt(options.place_id),
+        isVoiceMode: false 
+      });
       this.loadPlaceAndRoute();
+    } 
+    // 场景 2：来自语音输入跳转
+    else if (options?.audioPath) {
+      this.setData({ 
+        isVoiceMode: true,
+      });
+      this.loadPlanByVoice(
+        decodeURIComponent(options.audioPath), 
+        options.lat, 
+        options.lng
+      );
     }
   },
-
+  //语音录音规划逻辑
+  async loadPlanByVoice(audioPath: string, lat: string, lng: string) {
+    wx.showLoading({ title: this.data.loadingText });
+    try {
+      const res = await navigationApi.navigateByVoice({
+        audio_file: audioPath,
+        origin_lat: lat,
+        origin_lng: lng
+      });
+      const { destInfo, routeInfo, weatherInfo, adviceInfo } = res;
+      if (!routeInfo || !destInfo) {
+        throw new Error('路线解析失败，请重试');
+      }
+      const durationNum = parseInt(routeInfo.duration);
+      this.setData({
+        placeName: destInfo.destination,
+        routeInfo: {
+          destination: destInfo.destination,
+          distance: routeInfo.distance || '0',
+          transport: '步行', 
+          estimate: formatDuration(durationNum)
+        },
+        weather: weatherInfo || {},
+        navigationAdvice: adviceInfo || {},
+        isLoading: false
+      });
+      // 将语音路线存入“缓存桥梁”，供 startNavigate 跳转时使用
+      wx.setStorageSync('tempVoiceRoute', {
+        destInfo: destInfo,
+        route: routeInfo
+      });
+      wx.hideLoading();
+    } catch (err: any) {
+      wx.hideLoading();
+      this.setData({ isLoading: false });
+      const errMsg = err.message || '网络请求超时';
+      wx.showToast({ title: errMsg, icon: 'none', duration: 2000 });
+      console.error('语音规划失败:', err);
+      // 报错后停留两秒，自动退回上一页让长辈重新录音
+      setTimeout(() => {
+        wx.navigateBack();
+      }, 2000);
+    }
+  },
   async loadPlaceAndRoute() {
     let loadingShown = false;
     try {
@@ -250,13 +309,25 @@ Page({
   goBack() {
     wx.navigateBack();
   },
-
   startNavigate() {
-    const url = `/elderly/pages/navigate/navigate?place_id=${this.data.placeId}`;
-    wx.navigateTo({ url });
+    // 根据不同模式，给导航页传递不同的参数
+    if (this.data.isVoiceMode) {
+      // 语音模式：通过 voiceMode 标记，navigate.ts 会自动去读取 tempVoiceRoute 缓存
+      wx.navigateTo({ url: '/elderly/pages/navigate/navigate?voiceMode=1' });
+    } else {
+      const url = `/elderly/pages/navigate/navigate?place_id=${this.data.placeId}`;
+      wx.navigateTo({ url });
+    }
   },
-
-  async replan() {
+async replan() {
+  if (this.data.isVoiceMode) {
+    // 语音模式的重新规划：提示老人返回重新录音
+    wx.showToast({ title: '请返回上一页重新说出目的地', icon: 'none', duration: 2000 });
+    setTimeout(() => {
+      wx.navigateBack();
+    }, 2000);
+  } else {
+    // 收藏夹模式的重新规划
     const cachedPlace = getPlace(this.data.placeId);
     if (cachedPlace) {
       removeStorageSync(`route_${this.data.placeId}`);
@@ -265,4 +336,5 @@ Page({
       await this.loadPlaceAndRoute();
     }
   }
-})
+}
+});

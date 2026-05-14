@@ -1,4 +1,4 @@
-from app.agent.tools.speech_to_text import speech_to_text
+from app.agent.tools.speech_to_text import process_speech_to_text
 from app.agent.tools.navigation import get_destination_coordinates
 from app.llmclient import text_llm
 from app.services.favorite_place import FavoritePlaceService
@@ -11,12 +11,42 @@ class DestinationParseAgent:
     def __init__(self, favorite_place_service: Optional[FavoritePlaceService] = None):
         self.favorite_place_service = favorite_place_service
 
-    def process_voice_input(self, audio_file: UploadFile, user_id: Optional[int] = None) -> Dict:
-        try:
-            voice_text = speech_to_text(audio_file)
-            if voice_text == "ASR Error":
-                return {"voice_text": "", "destination": "", "error": "语音解析失败"}
+    # def process_voice_input(self, audio_file: UploadFile, user_id: Optional[int] = None) -> Dict:
+    #     try:
+    #         voice_text = process_speech_to_text(audio_file)
+    #         if voice_text == "ASR Error":
+    #             return {"voice_text": "", "destination": "", "error": "语音解析失败"}
 
+    #         destination_info = self._parse_destination(voice_text, user_id)
+
+    #         return {
+    #             "voice_text": voice_text,
+    #             "destination": destination_info.get("address", voice_text),
+    #             "latitude": destination_info.get("latitude"),
+    #             "longitude": destination_info.get("longitude"),
+    #             "matched_type": destination_info.get("matched_type", "llm")
+    #         }
+    #     except Exception as e:
+    #         return {"voice_text": "", "destination": "", "error": str(e)}
+
+    # def _parse_destination(self, text: str, user_id: Optional[int] = None) -> Dict:
+    #     matched_result = self._match_favorite_place(text, user_id)
+    #     if matched_result:
+    #         return matched_result
+
+    #     matched_result = self._match_with_amap(text)
+    #     if matched_result and "error" not in matched_result:
+    #         return matched_result
+
+    #     return self._parse_with_llm(text)
+
+    async def process_voice_input(self, audio_file: UploadFile, user_id: Optional[int] = None) -> Dict:
+        try:
+            voice_text = await process_speech_to_text(audio_file)
+            if "Error" in voice_text or voice_text == "ASR Error":
+                return {"voice_text": "", "destination": "", "error": f"语音解析失败: {voice_text}"}
+
+            #按照：LLM提取 -> 收藏夹匹配 -> 高德匹配 的顺序
             destination_info = self._parse_destination(voice_text, user_id)
 
             return {
@@ -30,28 +60,33 @@ class DestinationParseAgent:
             return {"voice_text": "", "destination": "", "error": str(e)}
 
     def _parse_destination(self, text: str, user_id: Optional[int] = None) -> Dict:
-        matched_result = self._match_favorite_place(text, user_id)
+        # 第一步：LLM 剔除口语废话，提取核心地名
+        llm_result = self._parse_with_llm(text)
+        core_destination = llm_result.get("address", text)
+
+        # 第二步：使用干净的地名去匹配收藏夹
+        matched_result = self._match_favorite_place(core_destination, user_id)
         if matched_result:
             return matched_result
 
-        matched_result = self._match_with_amap(text)
+        # 第三步：收藏夹没有，去高德搜索经纬度
+        matched_result = self._match_with_amap(core_destination)
         if matched_result and "error" not in matched_result:
             return matched_result
 
-        return self._parse_with_llm(text)
+        # 如果连高德都找不到，返回仅有的文本信息（通常会在后续逻辑报错抛出）
+        return llm_result
 
-    # TODO 待优化成利用llm进行匹配
     def _match_favorite_place(self, text: str, user_id: Optional[int]) -> Optional[Dict]:
         if not user_id or not self.favorite_place_service:
             return None
-
         try:
             favorite_places = self.favorite_place_service.get_active_places(user_id)
             if not favorite_places:
                 return None
 
             best_match = None
-            highest_score = 0.6
+            highest_score = 0.8
 
             text_lower = text.lower()
             for place in favorite_places:
@@ -91,25 +126,59 @@ class DestinationParseAgent:
         except Exception as e:
             return None
 
+    # def _parse_with_llm(self, text: str) -> Dict:
+    #     try:
+    #         prompt = f"请从以下老年人的口语化表达中提取目的地信息，只返回目的地名称或地址，不要包含其他内容：{text}"
+
+    #         response = text_llm.invoke(prompt)
+
+    #         destination = response.content.strip()
+    #         destination = destination.replace("。", "").replace(".", "").strip()
+
+    #         return {
+    #             "address": destination,
+    #             "latitude": None,
+    #             "longitude": None,
+    #             "matched_type": "llm"
+    #         }
+    #     except Exception as e:
+    #         return {
+    #             "address": text,
+    #             "latitude": None,
+    #             "longitude": None,
+    #             "matched_type": "llm"
+    #         }
+
     def _parse_with_llm(self, text: str) -> Dict:
         try:
-            prompt = f"请从以下老年人的口语化表达中提取目的地信息，只返回目的地名称或地址，不要包含其他内容：{text}"
+            prompt = f"""
+请从老年人口语化的导航诉求文本中，精准提取核心目的地名称或地址。
+规则要求：
+1. 只提取纯粹目的地，剔除所有多余语气词、行为描述、原因解释、闲聊无关语句；
+2. 保留老人原始口语化地点表述，不改写、不精简、不补充；
+3. 仅返回目的地文字，**禁止添加任何标点、禁止额外解释、禁止多余废话、禁止换行**；
+4. 若语句无明确目的地，直接返回：无
 
+示例：
+输入：带我去小区门口的超市买东西
+输出：小区门口的超市
+
+输入：往人民公园走，我想去溜达溜达
+输出：人民公园
+
+输入：我想去大儿子家里
+输出：大儿子家
+
+待处理文本：{text}"""
             response = text_llm.invoke(prompt)
-
-            destination = response.content.strip()
-            destination = destination.replace("。", "").replace(".", "").strip()
-
+            
+            destination = response.content.strip().replace("。", "").replace(".", "")
             return {
                 "address": destination,
                 "latitude": None,
                 "longitude": None,
                 "matched_type": "llm"
             }
-        except Exception as e:
-            return {
-                "address": text,
-                "latitude": None,
-                "longitude": None,
-                "matched_type": "llm"
-            }
+        except Exception:
+            return {"address": text, "latitude": None, "longitude": None, "matched_type": "llm"}
+        

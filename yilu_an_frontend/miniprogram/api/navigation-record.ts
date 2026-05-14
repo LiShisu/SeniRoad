@@ -30,7 +30,13 @@ export interface NavigationRecord {
   created_at: string;
   updated_at: string;
 }
-
+// 列表查询参数
+export interface GetRecordsParams {
+  user_id?: number;
+  status?: 1 | 2 | 3;
+  start_date?: string;
+  end_date?: string;
+}
 // 导航记录相关API
 export const navigationRecordApi = {
   // 创建导航记录
@@ -39,27 +45,21 @@ export const navigationRecordApi = {
   },
   
   // 获取导航记录列表
-  getRecords: (userId: number, status?: number) => {
-    const data: Record<string, number> = { user_id: userId };
-    if (status !== undefined) data.status = status;
-    return api.get<NavigationRecord[]>('/navigation-records/', { data });
+  getRecords: (params?: GetRecordsParams) => {
+    return api.get<NavigationRecord[]>('/navigation-records/', { data: params });
   },
   
   // 获取用户的进行中导航记录
-  getActiveRecords: (userId: number) => {
-    return api.get<NavigationRecord[]>(`/navigation-records/user/${userId}/active`);
+  getActiveRecords: () => {
+    return navigationRecordApi.getRecords({ status: 1 });
   },
   
-  // 获取用户的已完成导航记录
-  getCompletedRecords: (userId: number, startDate?: string, endDate?: string) => {
-    const data: Record<string, string> = {};
-    if (startDate) data.start_date = startDate;
-    if (endDate) data.end_date = endDate;
-    return api.get<NavigationRecord[]>(`/navigation-records/user/${userId}/completed`, {
-      data: Object.keys(data).length > 0 ? data : undefined
-    });
+  getCompletedRecords: (startDate?: string, endDate?: string) => {
+    const params: GetRecordsParams = { status: 2 };
+    if (startDate) params.start_date = startDate;
+    if (endDate) params.end_date = endDate;
+    return navigationRecordApi.getRecords(params);
   },
-  
   // 根据ID获取导航记录
   getRecordById: (recordId: number) => {
     return api.get<NavigationRecord>(`/navigation-records/${recordId}`);

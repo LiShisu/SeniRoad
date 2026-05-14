@@ -63,11 +63,12 @@ build/
 .tmp/
 .cache/
 
-# 日志
+# 日志/录音
 logs/
 *.log
 temp/
 tmp/
+*.wav
 
 # 大文件（禁止上传，避免Gitee报错）
 *.pth

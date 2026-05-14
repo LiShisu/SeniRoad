@@ -1,34 +1,43 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,Form
 from fastapi.responses import StreamingResponse
 from app.dependencies.services import get_navigation_service_agent
 from app.services.navigation import NavigationService
 from app.dependencies import get_current_active_user, get_navigation_service
 from app.models import User
-from app.schemas.navigation import NavigationPlanRequest, NavigationPlanResponse
+# from app.schemas.navigation import NavigationPlanRequest, NavigationPlanResponse
 from typing import Dict
-
+from app.schemas.navigation import (
+    NavigationPlanRequest, 
+    NavigationPlanResponse,
+    SmartNavigationResponse,
+    VoiceNavigationResponse,
+    CoordinateNavRequest
+)
+from app.schemas.base import Result
 router = APIRouter()
-
-@router.post("/process",tags=["语音导航"])
-async def process_audio(
+# 3. 语音智能导航
+@router.post("/routes/voice", response_model=Result[VoiceNavigationResponse], status_code=status.HTTP_201_CREATED, tags=["语音导航路线"])
+async def create_voice_route(
     audio_file: UploadFile = File(...),
     origin_lng: str = None,
     origin_lat: str = None,
     navigation_service: NavigationService = Depends(get_navigation_service_agent),
     current_user: User = Depends(get_current_active_user)
-) -> Dict:
-    return await navigation_service.process_voice_navigation(
+) :
+    """创建语音导航路线 (自动解析语音目的地)"""
+    data = navigation_service.process_voice_navigation(
         audio_file=audio_file,
         user_id=current_user.user_id,
         origin_lng=origin_lng,
         origin_lat=origin_lat
     )
+    return Result(code=200, message="语音路线解析成功", data=data)
 
-@router.post("/process-stream", tags=["语音导航-SSE"])
-async def process_audio_stream(
+@router.post("/routes/voice/stream", tags=["语音导航-SSE"])
+async def create_voice_route_stream(
     audio_file: UploadFile = File(...),
-    origin_lng: str = None,
-    origin_lat: str = None,
+    origin_lat: str = Form(..., description="起点纬度"),
+    origin_lng: str = Form(..., description="起点经度"),
     navigation_service: NavigationService = Depends(get_navigation_service_agent),
     current_user: User = Depends(get_current_active_user)
 ):
@@ -56,22 +65,24 @@ async def process_audio_stream(
             "X-Accel-Buffering": "no"
         }
     )
-
-@router.post("/plan", tags=["id导航"])
-async def plan_route(
+# 2. 智能文本导航 (大模型)
+@router.post("/routes/smart", response_model=Result[SmartNavigationResponse], status_code=status.HTTP_201_CREATED, tags=["智能导航路线"])
+async def create_smart_route(
     request: NavigationPlanRequest,
     current_user: User = Depends(get_current_active_user),
     navigation_service: NavigationService = Depends(get_navigation_service_agent),
 ):
-    return await navigation_service.process_text_navigation(
+    """创建智能导航路线 (结合大模型天气与出行建议)"""
+    data = await navigation_service.process_text_navigation(
         origin_lng=request.origin_lng,
         origin_lat=request.origin_lat,
         favorite_place_id=request.favorite_place_id,
         user_id=current_user.user_id
     )
+    return Result(code=200, message="智能路线生成成功", data=data)
 
-@router.post("/plan-stream", tags=["id导航-SSE"])
-async def plan_route_stream(
+@router.post("/routes/smart/stream", tags=["智能导航-SSE"])
+async def create_smart_route_stream(
     request: NavigationPlanRequest,
     current_user: User = Depends(get_current_active_user),
     navigation_service: NavigationService = Depends(get_navigation_service_agent),
@@ -102,15 +113,43 @@ async def plan_route_stream(
         }
     )
 
-@router.post("/", response_model=NavigationPlanResponse, tags=["地址导航"])
-async def plan_route(
+# 1. 标准地址导航 (纯高德路线规划)
+@router.post("/routes/standard", response_model=Result[NavigationPlanResponse], status_code=status.HTTP_201_CREATED, tags=["基础导航路线"])
+async def create_standard_route(
     request: NavigationPlanRequest,
     current_user: User = Depends(get_current_active_user),
     navigation_service: NavigationService = Depends(get_navigation_service),
 ):
-    return await navigation_service.plan(
+    """创建标准导航路线 (基于纯高德API)"""
+    data = await navigation_service.plan(
         favorite_place_id=request.favorite_place_id,
         origin_lng=request.origin_lng,
         origin_lat=request.origin_lat,
         user_id=current_user.user_id
     )
+    return Result(code=200, message="标准路线(基于纯高的API)规划成功", data=data)
+
+@router.post("/routes/coordinates")
+async def navigate_by_coordinates(
+    req: CoordinateNavRequest,
+    current_user = Depends(get_current_active_user) ,
+    navigation_service: NavigationService = Depends(get_navigation_service),
+):
+    try:
+        # 将经纬度拼接成高德 API 需要的格式 "lng,lat"
+        origin = f"{req.origin_lng},{req.origin_lat}"
+        destination = f"{req.dest_lng},{req.dest_lat}"
+        # 调用底层 Service 直连高德 API
+        # 注意：你需要把 navigation_service 换成你实际实例化的服务对象
+        route_data = await navigation_service.get_fast_amap_route(origin, destination)
+        if not route_data:
+            return {"code": 500, "message": "语音重新规划：重新规划规划失败", "data": None}
+
+        # 完美对齐前端期待的数据格式
+        return {
+            "code": 200, 
+            "message": "success", 
+            "data": {"route": route_data}
+        }
+    except Exception as e:
+        return {"code": 500, "message": f"路线重算异常: {str(e)}", "data": None}

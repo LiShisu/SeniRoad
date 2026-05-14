@@ -1,0 +1,130 @@
+yilu_an_backend/
+├── .venv/                # 虚拟环境（uv创建，不用管）
+├── app/                  # 核心代码目录（所有业务逻辑都在这里）
+│   ├── __init__.py       # Python包标识文件
+│   ├── config.py         # 全局配置文件（关键！）
+│   ├── database.py      # 数据库连接文件（关键！）
+│   ├── main.py           # FastAPI入口文件（服务启动点）
+│   ├── llmclient.py      # 大模型的配置，比如dashscope.api_key，dashscope.base_http_api_url
+│   ├── try_llm.ipynb     # 队友调试大模型的临时Notebook（非生产代码）
+│   ├── api/              # 接口路由层（前后端交互入口）
+│       ├── v1/
+│           ├── _init_.py/# 把所有子接口 合并成 一个总路由 v1_router
+│           ├── auth_.py/#注册登录方法路由
+│           ├── bind.py/#亲属端绑定关系、查找绑定、解除绑定，老人端通过绑定、拒绝绑定
+│           ├── favorite_place.py/#常用地点的增删改查（查可以按照地点id、userid、用户+来源、标签未被停用几个属性来查找）           
+│           ├── llm_navigation_agent.py/#处理语音输入/文本输入并利用大模型规划导航路线  
+│           ├── location.py/#老人位置上报、查询历史足迹、查询最新位置、按行程id查询一次完整轨迹、根据位置id查找某条位置详细定位、自动删除老旧位置记录
+│           ├── navigation_agent.py/#处理语音输入/文本输入并利用大模型规划导航路线
+│           ├── navigation_record.py/#创建导航记录、各种条件筛选/查询导航记录
+│           ├── navigation.py/#普通导航记录、语音导航、常用地点导航
+│           ├── speech.py/#文本转语音，语音转文本
+│           ├── tag.py/#创建标签/修改标签/查看标签列表等各种操作
+│           ├── user.py/
+│           ├── voice_log.py/#语音导航的专用日志管理接口，只查、删、清理日志，不允许手动创建，专门用
+│       ├── websocket.py/#老人位置实时上传 + 位置实时推送给家属
+│   ├── dependencies/     # 依赖注入
+│   ├── middleware/       # 中间件（跨域、日志等）
+│       ├── logging.py/       #自动拦截所有接口，记录请求参数、响应结果、接口耗时、客户端 IP，兼容你的流式语音导航接口，是开发调试、排查问题的核心中间件
+│       ├── cors.py/#因为域名 / 端口不一样，浏览器 / 微信客户端会出于安全，自动阻止前端访问后端,跨域限制;跨域通行证
+│   ├── models/           # 数据库模型
+│       ├── user.py/
+│       ├── tag.py/
+│       ├── location.py/
+│       ├── binding.py/
+│       ├── fvorite_place.py/
+│       ├── navigation_record.py/
+│       ├── voice_log.py/
+│   ├── repositories/    # 数据访问层
+│       ├── user_repository.py/
+│       ├── tag_repository.py/
+│       ├── location_repository.py/
+│       ├── binding_repository.py/
+│       ├── fvorite_place_repository.py/
+│       ├── navigation_record_repository.py/
+│       ├── voice_log_repository.py/
+│   ├── schemas/          # 请求/响应数据模型（参数校验）
+│       ├── user.py/
+│       ├── tag.py/
+│       ├── location.py/
+│       ├── binding.py/
+│       ├── fvorite_place.py/
+│       ├── navigation_record.py/
+│       ├── voice_log.py/
+│       ├── speech.py/
+│       ├── navigation.py/
+│       ├── base.py/
+│   ├── services/         # 业务逻辑层（核心功能实现）
+│       ├── user.py/
+│       ├── auth.py/
+│       ├── tag.py/
+│       ├── location.py/
+│       ├── binding.py/
+│       ├── fvorite_place.py/
+│       ├── navigation_record.py/
+│       ├── voice_log.py/
+│       ├── navigation.py/
+│       ├── notification.py/#只有接口定义，暂未实现具体功能），专门负责给用户 / 家属发送各类通知
+│   ├── utils/            # 通用工具函数
+│       ├── security.py/#负责用户登录 / 注册的核心安全操作
+│       ├── security.py/#专门过滤错误的手机号、无效的经纬度
+│   └── agent/            # AI Agent（导航智能代理逻辑）把老人说的语音，转换成导航能用的目的地地址 + 经纬度
+│       ├── destination_parse_agent.py/#把老人说的语音，转换成导航能用的目的地地址 + 经纬度
+│       ├── multi_agent_navigation.py/#实现了 4 个智能体分工协作，Orchestrator（编排器）：总指挥，调度所有 AgentRouteAgent（路线 Agent）：专门查高德地图，规划步行路线WeatherAgent（天气 Agent）：专门查目的地天气AdvisorAgent（顾问 Agent）：专为老人生成适老化出行建议
+└── tests/                # 单元测试目录
+
+yilu_an_miniprogram/ （前端项目根目录）
+├── project.config.json # 微信开发者工具项目配置
+├── tsconfig.json # TypeScript 配置文件
+├── typings/ # 全局类型定义（对标后端 schemas 类型校验）
+├── miniprogram/ # 【核心】小程序主代码目录
+│   └── app.json # 全局配置
+│   └── app.ts # 小程序入口文件
+│   └── app.scss # 全局样式
+│   └── sitemap.json 
+│   └── api/ # 【接口层】对标后端 api/，封装所有后端请求
+│       └──  auth.ts # 
+│       └──  binding.ts # 亲属绑定、解除绑定接口
+│       └──  favorite-place.ts # 常用地点增删改查接口
+│       └──  navigation-records.ts 
+│       └──  navigation.ts 
+│       └──  location.ts # 位置上报、历史足迹、实时定位接口
+│       └──  user.ts # 用户信息、个人中心接口
+│       └──  speech.ts # 语音转文字、文字转语音接口
+│       └──  index.ts # 标签管理接口
+│       └──  voice-log.ts # WebSocket 实时位置推送连接
+│   └── assets/ # 静态资源（图片、图标、音频、语音提示音）
+│   └── utils/ # 对标后端 utils/，通用工具函数
+│       └──  auth.ts # 登录态校验、Token 管理
+│       └──  geo.ts 
+│       └──  sse.ts #SSE（Server-Sent Events）流式通信客户端，专门对接后端 multi_agent_navigation.py 的流式导航接口，实现导航路线、天气、出行建议实时逐段推送给前端，
+│       └──  utils.ts #把计算机的原始时间，转换成老人 / 家属能看懂的标准时间格式
+│       └──  config.ts 
+│       └──  request.ts # 请求封装、拦截器、统一报错
+│   └── components/ # 【公共组件】可复用 UI / 业务组件
+│   └── elderly/
+│       └──  pages
+│           └──  choose
+│           └──  contact
+│           └──  editProfile
+│           └──  home
+│           └──  index
+│           └──  navigate copy
+│           └──  navigate copy 2
+│           └──  places
+│           └──  plan
+│           └──  profile
+│       └──  storage.ts
+│       └──  elderly.json
+│   └── family/
+│       └──  pages
+│           └──  add-place
+│           └──  elders
+│           └──  index
+│           └──  map
+│           └──  places
+│           └──  profile
+│           └──  record-detail
+│           └──  records
+│       └──  storage.ts
+│       └──  familys.json

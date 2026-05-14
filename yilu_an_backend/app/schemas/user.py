@@ -22,8 +22,8 @@ class UserResponse(UserBase):
     birthday: Optional[date] = None
     avatar_url: Optional[str] = None
     phone: Optional[str] = None
-    is_active: bool
-    created_at: datetime
+    # is_active: bool
+    # created_at: datetime
 
     @field_serializer("birthday")
     @classmethod
@@ -50,7 +50,6 @@ class LoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     role: UserRole
-
 class UserUpdate(BaseModel):
     nickname: Optional[str] = None
     gender: Optional[int] = Field(None, ge=0, le=9)

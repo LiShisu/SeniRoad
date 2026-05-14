@@ -24,6 +24,10 @@
     "navigationBarTextStyle": "black",
     "navigationStyle": "custom"
   },
+  "networkTimeout": {
+    "request": 120000,
+    "uploadFile": 120000
+  },
   "permission": {
     "scope.userLocation": {
       "desc": "需要获取您的位置信息，以便您更方便地添加常用地点"

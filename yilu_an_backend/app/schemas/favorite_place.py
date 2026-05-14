@@ -1,9 +1,9 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field,ConfigDict
 from typing import Optional
 from decimal import Decimal
 
 class FavoritePlaceBase(BaseModel):
-    user_id: Optional[int] = Field(None, description="所属老人ID")
+    # user_id: Optional[int] = Field(None, description="所属老人ID")
     place_name: str = Field(..., min_length=1, max_length=100, description="地点名称(如: 儿子家)")
     latitude: Decimal = Field(..., ge=-90, le=90, description="纬度")
     longitude: Decimal = Field(..., ge=-180, le=180, description="经度")
@@ -13,7 +13,7 @@ class FavoritePlaceBase(BaseModel):
     is_active: bool = Field(True, description="是否激活")
 
 class FavoritePlaceCreate(FavoritePlaceBase):
-    pass
+    user_id: int = Field(..., description="所属老人ID")
 
 class FavoritePlaceUpdate(BaseModel):
     place_name: Optional[str] = Field(None, min_length=1, max_length=100, description="地点名称")
@@ -26,6 +26,6 @@ class FavoritePlaceUpdate(BaseModel):
 
 class FavoritePlaceResponse(FavoritePlaceBase):
     place_id: int
-
-    class Config:
-        from_attributes = True
+    user_id: int
+    # 【规范】Pydantic V2 ORM 映射写法
+    model_config = ConfigDict(from_attributes=True)
