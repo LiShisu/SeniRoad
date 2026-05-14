@@ -24,6 +24,8 @@ from app.agent.destination_parse_agent import DestinationParseAgent
 from app.agent.llm_navigation_agent import LLMNavigationAgent
 from app.agent.multi_agent_navigation import MultiAgentNavigation
 
+from app.services.speech import SpeechService
+
 
 def get_navigation_record_repository(db: Session = Depends(get_db)):
     return NavigationRecordRepository(db)
@@ -74,10 +76,10 @@ def get_navigation_service_agent(
 ):
     global _navigation_service_instance, _multi_agent_navigation_instance
     if _navigation_service_instance is None:
-        from app.agent.multi_agent_navigation import setup_mcp_tools, create_agents
+        from app.agent.multi_agent_navigation import setup_mcp_tools, setup_navigation_agents
         import asyncio
         asyncio.run(setup_mcp_tools())
-        create_agents()
+        setup_navigation_agents()
         _multi_agent_navigation_instance = MultiAgentNavigation()
         _navigation_service_instance = NavigationService(
             destination_parse_agent=destination_parse_agent,
@@ -141,3 +143,7 @@ def get_location_service(
     repo: LocationRepository = Depends(get_location_repository)
 ):
     return LocationService(repo)
+
+def get_speech_service() -> SpeechService:
+    """提供 SpeechService 的单例或实例"""
+    return SpeechService()

@@ -28,7 +28,7 @@
       <view class="actions">
         <td-tag wx:if="{{item.isCurrent}}" theme="success" variant="light" size="small">当前监护</td-tag>
         <text wx:else class="switch-btn" bindtap="switchCurrent" data-id="{{item.id}}">切换</text>
-        <text class="delete-btn" bindtap="deleteElder" data-id="{{item.id}}">解绑</text>
+        <text class="delete-btn" bindtap="deleteElder" data-binding-id="{{item.bindingId}}">解绑</text>
       </view>
     </view>
   </view>

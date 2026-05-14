@@ -1,7 +1,9 @@
 // 导航相关接口
 import { api } from '../utils/request';
+import { getToken } from '../utils/auth';
 import { createSSEStream, SSEEventType } from '../utils/sse';
-
+import { API_BASE_URL } from '../utils/config';
+const BASE_URL=API_BASE_URL
 // 规划导航路线请求参数
 export interface PlanRouteParams {
   favorite_place_id: number;
@@ -94,37 +96,115 @@ export interface VoiceNavigationResponse {
   latitude: number;
   longitude: number;
 }
-
+export interface CoordinateNavigationParams {
+  origin_lng: string;
+  origin_lat: string;
+  dest_lng: string;
+  dest_lat: string;
+}
+const extractSseEvent = (eventName: string, rawText: string) => {
+  // 使用 [\s\S]*? 替代 .*? 完美解决 JSON 中带换行符的问题
+  const regex = new RegExp(`event: ${eventName}\\s+data: (\\{[\\s\\S]*?\\})(?:\\n\\n|$)`);
+  const match = rawText.match(regex);
+  if (match && match[1]) {
+    try {
+      return JSON.parse(match[1]);
+    } catch (e) {
+      console.error(`JSON解析失败 (${eventName}):`, e);
+    }
+  }
+  return null;
+};
 // 导航相关API
 export const navigationApi = {
   // 地址导航（直接调用高德地图）
   navigateByAddress: (data: PlanRouteParams) => {
-    return api.post<AddressNavigationResponse>('/navigation/', data);
+    return api.post<AddressNavigationResponse>('/navigation/routes/standard', data);
   },
 
   // 规划导航路线（智能导航）
   planRoute: (data: PlanRouteParams) => {
-    return api.post<NavigationRouteResponse>('/navigation/plan', data);
+    return api.post<NavigationRouteResponse>('/navigation/routes/smart', data);
   },
-
-  // 语音导航
-  navigateByVoice: (data: VoiceNavigationParams) => {
-    const { audio_file, origin_lng, origin_lat } = data;
-    return api.post<VoiceNavigationResponse>('/navigation/process', { audio_file }, { origin_lng, origin_lat });
-  },
-
+    navigateByVoice: (data: { audio_file: string, origin_lng: string, origin_lat: string }): Promise<any> => {
+      return new Promise((resolve, reject) => {
+        const { audio_file, origin_lng, origin_lat } = data;
+        const token = wx.getStorageSync('access_token') || wx.getStorageSync('token'); 
+  
+        wx.uploadFile({
+          url: `${BASE_URL}/navigation/routes/voice/stream`, 
+          filePath: audio_file,
+          name: 'audio_file', 
+          timeout: 120000, // 120秒防中断
+          formData: { origin_lng, origin_lat },
+          header: { 'Authorization': `Bearer ${token}` },
+          success: (res) => {
+            const statusCode = res.statusCode;
+            if (statusCode >= 200 && statusCode < 300) {
+              const rawData = res.data; 
+              // 1. 判断是否包含后端报错事件
+              if (rawData.includes('event: error')) {
+                const errMatch = extractSseEvent('error', rawData);
+                const errMsg = errMatch?.error || '抱歉，没听清您想去哪';
+                reject(new Error(errMsg));
+                return;
+              }
+              // 2. 依次提取四大模块数据
+              const destInfo = extractSseEvent('destination', rawData);
+              const routeInfo = extractSseEvent('route', rawData);
+              const weatherInfo = extractSseEvent('weather', rawData);
+              const adviceInfo = extractSseEvent('advice', rawData);
+              // 3. 将干净的 JSON 对象一次性返回给页面
+              resolve({ destInfo, routeInfo, weatherInfo, adviceInfo });
+            } else {
+              reject(new Error(`服务器请求失败 (${statusCode})`));
+            }
+          },
+          fail: (err) => {
+            reject(new Error('网络请求失败，请检查网络'));
+          }
+        });
+      });
+    },
   // 流式规划导航路线（SSE）
+  // planRouteStream: (
+  //   data: PlanRouteParams,
+  //   onEvent: (event: SSEEventType, data: any) => void,
+  //   onComplete: (result: SSEPlanResponse) => void,
+  //   onError: (error: any) => void
+  // ) => {
+  //   const token = getToken();
+  //   return createSSEStream<SSEPlanResponse>(
+  //     {
+  //       url: `${BASE_URL}/navigation/routes/smart/stream`,
+  //       method: 'POST',
+  //       data: data,
+  //       headers: {
+  //         'Authorization': `Bearer ${token}`
+  //       }
+  //     },
+  //     {
+  //       onEvent,
+  //       onComplete,
+  //       onError
+  //     }
+  //   );
+
   planRouteStream: (
     data: PlanRouteParams,
     onEvent: (event: SSEEventType, data: any) => void,
     onComplete: (result: SSEPlanResponse) => void,
     onError: (error: any) => void
   ) => {
+    const token = wx.getStorageSync('access_token'); 
     return createSSEStream<SSEPlanResponse>(
       {
-        url: '/navigation/plan-stream',
+        url: `${BASE_URL}/navigation/routes/smart/stream`,
         method: 'POST',
-        data: data
+        data: data,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       },
       {
         onEvent,
@@ -132,5 +212,32 @@ export const navigationApi = {
         onError
       }
     );
+  },
+  navigateByCoordinates: (data: CoordinateNavigationParams): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const token = wx.getStorageSync('access_token'); 
+
+      wx.request({
+        url: `${BASE_URL}/navigation/routes/coordinates`, // 后端对应的纯坐标导航接口
+        method: 'POST',
+        data: data,
+        header: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        success: (res: any) => {
+          const statusCode = res.statusCode;
+          if (statusCode >= 200 && statusCode < 300 && res.data?.code === 200) {
+            resolve(res.data.data); 
+          } else {
+            const errorMsg = res.data?.message || `路线重算失败 (${statusCode})`;
+            reject(new Error(errorMsg));
+          }
+        },
+        fail: (err) => {
+          reject(new Error('网络请求失败，请检查网络'));
+        }
+      });
+    });
   }
 };

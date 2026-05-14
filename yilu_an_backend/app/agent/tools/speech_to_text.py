@@ -1,33 +1,70 @@
-from langchain_core.tools import tool
-from app.llmclient import create_asr_recognizer
-from app.config import settings
 from fastapi import UploadFile
+from app.config import settings
+from app.llmclient import call_asr
 import tempfile
+import asyncio
 import os
+import base64
 
-@tool
-def speech_to_text(audio_file: UploadFile) -> str:
+async def process_speech_to_text(audio_file: UploadFile) -> str:
     """将前端上传的音频文件转换为文本"""
+    """使用Base64编码方式将本地音频文件上传到Qwen3-ASR-Flash模型"""
+    temp_file_path = None
     try:
-        # 确保 temp 目录存在
         os.makedirs(settings.TEMP_DIR, exist_ok=True)
 
-        # 保存上传的音频文件为临时文件
-        with tempfile.NamedTemporaryFile(dir=settings.TEMP_DIR, delete=False, suffix=".wav") as temp_file:
-            content = audio_file.file.read()
-            temp_file.write(content)
-            temp_file_path = temp_file.name
+        USE_LOCAL_TEST_FILE = True  # 测试完毕准备上线时，把这里改成 False 即可！
+        if USE_LOCAL_TEST_FILE:
+            temp_file_path = os.path.join(settings.TEMP_DIR, "campus.wav")
+            print(f"正在使用本地测试文件: {temp_file_path}")
+        else:
+            # 异步读取文件内容
+            content = await audio_file.read()
+            
+            with tempfile.NamedTemporaryFile(dir=settings.TEMP_DIR, delete=False, suffix=".wav") as temp_file:
+                temp_file.write(content)
+                temp_file_path = temp_file.name
+        
+        if not os.path.exists(temp_file_path):
+            return f"Error: 音频文件不存在 - {temp_file_path}"
+        
+        # 将音频文件转换为Base64编码
+        with open(temp_file_path, "rb") as f:
+            audio_bytes = f.read()
+        
+        base64_audio = base64.b64encode(audio_bytes).decode("utf-8")
+        data_uri = f"data:audio/wav;base64,{base64_audio}"
+        
+        def _call_asr():
+            return call_asr(data_uri)
+        
+        result = await asyncio.to_thread(_call_asr)
+        
+        if result.status_code == 200:
+            if result.output and 'choices' in result.output:
+                message = result.output['choices'][0]['message']
+                if 'content' in message:
+                    content_list = message['content']
+                    if isinstance(content_list, list) and len(content_list) > 0:
+                        asr_text = content_list[0].get('text', '')
+                        if asr_text:
+                            return asr_text
+                        return "ASR Error: 识别成功，但未提取到有效文本"
+                    elif isinstance(message['content'], str):
+                        return message['content']
+            return "ASR Error: 识别成功，但未提取到有效文本"
+        else:
+            return f"Error: ASR识别失败 - {result.message if result.message else '未知错误'}"
 
-        # 调用语音识别API
-        recognition = create_asr_recognizer([temp_file_path])
-        result = recognition.call()
-
-        # 删除临时文件
-        os.unlink(temp_file_path)
-
-        return result.output["text"] if result.status_code == 200 else "ASR Error"
     except Exception as e:
-        # 确保临时文件被删除
-        if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
-            os.unlink(temp_file_path)
-        return f"ASR Error: {str(e)}"
+        return f"Error: 内部执行异常 - {str(e)}"
+    # TODO: 处理临时文件删除逻辑
+    # finally:
+    #     # ==========================================
+    #     # 5. 打扫战场：无论如何，把前端上传产生的临时垃圾文件删掉
+    #     # ==========================================
+    #     if temp_file_path and os.path.exists(temp_file_path):
+    #         try:
+    #             os.unlink(temp_file_path)
+    #         except Exception as e:
+    #             pass

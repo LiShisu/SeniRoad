@@ -37,7 +37,7 @@
       </view>
     </view>
 
-    <view class="weather-card" wx:if="{{weather.weather_text || weather.temperature || weather.travel_suggestion}}">
+    <view class="weather-card" wx:if="{{weather.weather_text || weather.temperature}}">
       <text class="weather-title">🌤️ 天气信息</text>
       <view class="weather-content">
         <view class="weather-row" wx:if="{{weather.weather_text}}">

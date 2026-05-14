@@ -6,23 +6,17 @@ from app.schemas.user import LoginResponse, WechatUserCreate
 from fastapi import HTTPException, status
 import httpx
 from app.config import settings
-
+from app.schemas.exception import BusinessException, UnauthorizedException, NotFoundException
 class AuthService:
     def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository
 
     async def wechat_register(self, wechat_data: WechatUserCreate):
         if not validate_phone(wechat_data.phone):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid phone number format"
-            )
+            raise BusinessException(code=400, message="手机号格式不正确")
 
         if self.user_repository.exists_by_phone(wechat_data.phone):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Phone number already registered"
-            )
+            raise BusinessException(code=400, message="该手机号已注册")
 
         result = await get_wechat_openid_session_key(wechat_data.code)
 
@@ -37,7 +31,9 @@ class AuthService:
 
         self.user_repository.create(db_user)
 
-        return {"message": "Registration successful"}
+        # 【修改点】：Service 层完成任务即可，不需要返回 {"message": "Registration successful"}
+        # 返回提示信息是 API 层（Result）的职责
+        return None
 
     async def wechat_login(self, code: str, role: UserRole) -> LoginResponse:
         result = await get_wechat_openid_session_key(code)
@@ -45,11 +41,7 @@ class AuthService:
         openid = result.get("openid")
         user = self.user_repository.get_by_openid_and_role(openid, role)
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            raise UnauthorizedException(message="未找到该用户，请先注册")
 
         access_token = create_access_token(
             data={"sub": str(user.user_id)}
@@ -59,25 +51,14 @@ class AuthService:
 
     async def phone_login(self, phone: str) -> LoginResponse:
         if not validate_phone(phone):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid phone number format"
-            )
+            raise BusinessException(code=400, message="手机号格式不正确")
 
         user = self.user_repository.get_by_phone(phone)
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            raise UnauthorizedException(message="未找到该用户，请先注册")
 
         if not user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User is not active",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            raise UnauthorizedException(message="该用户账号已被禁用")
 
         access_token = create_access_token(
             data={"sub": str(user.user_id)}
@@ -100,19 +81,11 @@ async def get_wechat_openid_session_key(code: str) -> dict:
         result = response.json()
 
     if "errcode" in result and result["errcode"] != 0:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Wechat login failed: {result.get('errmsg', 'Unknown error')}",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise UnauthorizedException(message=f"微信登录验证失败: {result.get('errmsg', '未知错误')}")
 
     openid = result.get("openid")
     session_key = result.get("session_key")
 
     if not openid or not session_key:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Failed to get openid or session_key from Wechat",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise UnauthorizedException(message="无法从微信服务器获取身份标识")
     return {"openid": openid, "session_key": session_key}

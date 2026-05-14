@@ -12,15 +12,15 @@ export interface WechatUserCreate {
 
 // 用户信息响应
 export interface UserInfo {
-  id: number;
+  user_id: number;
   phone: string;
   nickname: string;
   role: string;
   gender: number;
   birthday: string | null;
   avatar_url: string | null;
-  is_active: boolean;
-  created_at: string;
+  // is_active: boolean;
+  // created_at: string;
 }
 
 // 登录响应
@@ -34,16 +34,16 @@ export interface LoginResponse {
 export const authApi = {
   // 微信注册
   wechatRegister: (wechatData: WechatUserCreate) => {
-    return api.post<UserInfo>('/auth/wechat/register', wechatData, { token: false });
+    return api.post<UserInfo>('/auth/register/wechat', wechatData, { token: false });
   },
 
   // 微信登录
   wechatLogin: (code: string, role?: 'elderly' | 'family') => {
-    return api.post<LoginResponse>('/auth/wechat/login', { code, role }, { token: false });
+    return api.post<LoginResponse>('/auth/login/wechat', { code, role }, { token: false });
   },
 
   // 手机号登录
   phoneLogin: (phone: string) => {
-    return api.post<LoginResponse>('/auth/phone/login', { phone }, { token: false });
+    return api.post<LoginResponse>('/auth/login/phone', { phone }, { token: false });
   },
 };

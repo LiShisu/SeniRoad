@@ -11,7 +11,7 @@ from .navigation_record import router as navigation_record_router
 from .voice_log import router as voice_log_router
 from .navigation_agent import router as navigation_agent_router
 from .llm_navigation_agent import router as llm_navigation_agent_router
-from .speech import router as speech_router
+from .audio import router as audio_router
 # from .views import router as views_router
 
 router = APIRouter()
@@ -28,5 +28,5 @@ router.include_router(navigation_record_router, prefix="/navigation-records", ta
 router.include_router(voice_log_router, prefix="/voice-logs", tags=["语音日志"])
 # router.include_router(navigation_agent_router, prefix="/navigation-agent", tags=["导航Agent"])
 router.include_router(llm_navigation_agent_router, prefix="/llm-navigation-agent", tags=["LLM导航Agent"])
-router.include_router(speech_router, prefix="/speech", tags=["语音处理"])
+router.include_router(audio_router, prefix="/audio", tags=["语音处理"])
 # router.include_router(views_router, prefix="/views", tags=["视图"])

@@ -4,24 +4,20 @@ from app.schemas.favorite_place import FavoritePlaceCreate, FavoritePlaceUpdate,
 from app.services.favorite_place import FavoritePlaceService
 from app.dependencies import get_favorite_place_service, get_current_active_user
 from app.models import User, UserRole
-
+from app.schemas.base import Result
+from app.schemas.exception import BusinessException
 router = APIRouter()
 
-@router.post("/", response_model=FavoritePlaceResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=Result[FavoritePlaceResponse], status_code=status.HTTP_201_CREATED)
 async def create_favorite_place(
     place: FavoritePlaceCreate,
     favorite_place_service: FavoritePlaceService = Depends(get_favorite_place_service)
 ):
     """家属为老人创建常用地点"""
-    try:
-        return favorite_place_service.create_place(place)
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+    created_place = favorite_place_service.create_place(place)
+    return Result(code=200, message="常用地点创建成功", data=created_place)
 
-@router.get("/", response_model=List[FavoritePlaceResponse])
+@router.get("/", response_model=Result[List[FavoritePlaceResponse]])
 async def get_favorite_places(
     user_id: int = None,
     source_type: int = None,
@@ -38,22 +34,21 @@ async def get_favorite_places(
     """
     if user_id is None:
         if current_user.role == UserRole.ELDERLY:
-            user_id = current_user.user_id
+           user_id = current_user.user_id
         else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="缺少用户ID参数"
-            )
+            raise BusinessException(code=400, message="家属查询时缺少老人的 user_id 参数")
     
     if active_only:
-        return favorite_place_service.get_active_places(user_id)
+        favorite_place_service.get_active_places(user_id)
     if source_type is not None:
-        return favorite_place_service.get_places_by_user_and_source(user_id, source_type)
+        favorite_place_service.get_places_by_user_and_source(user_id, source_type)
     if tag_id is not None:
-        return favorite_place_service.get_places_by_tag(tag_id)
-    return favorite_place_service.get_places_by_user_id(user_id)
+        favorite_place_service.get_places_by_tag(tag_id)
+    else:
+        places = favorite_place_service.get_places_by_user_id(user_id)
+    return Result(code=200, message="常用地点列表获取成功", data=places)
 
-@router.get("/{place_id}", response_model=FavoritePlaceResponse)
+@router.get("/{place_id}", response_model=Result[FavoritePlaceResponse])
 async def get_favorite_place(
     place_id: int,
     favorite_place_service: FavoritePlaceService = Depends(get_favorite_place_service),
@@ -61,14 +56,9 @@ async def get_favorite_place(
 ):
     """根据ID获取常用地点"""
     place = favorite_place_service.get_place_by_id(place_id)
-    if not place:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="常用地点不存在"
-        )
-    return place
+    return Result(code=200, message="常用地点信息获取成功", data=place)
 
-@router.put("/{place_id}", response_model=FavoritePlaceResponse)
+@router.put("/{place_id}", response_model=Result[FavoritePlaceResponse])
 async def update_favorite_place(
     place_id: int,
     place: FavoritePlaceUpdate,
@@ -76,45 +66,30 @@ async def update_favorite_place(
     current_user: User = Depends(get_current_active_user)
 ):
     """更新常用地点"""
-    try:
-        updated_place = favorite_place_service.update_place(place_id, place)
-        if not updated_place:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="常用地点不存在"
-            )
-        return updated_place
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+    updated_place = favorite_place_service.update_place(place_id, place)
+    return Result(code=200, message="常用地点信息更新成功", data=updated_place)
 
-@router.delete("/{place_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{place_id}", response_model=Result[None])
 async def delete_favorite_place(
     place_id: int,
     favorite_place_service: FavoritePlaceService = Depends(get_favorite_place_service),
     current_user: User = Depends(get_current_active_user)
 ):
     """删除常用地点"""
-    success = favorite_place_service.delete_place(place_id)
-    if not success:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="常用地点不存在"
-        )
+    favorite_place_service.delete_place(place_id)
+    return Result(code=200, message="地点已删除")
 
-@router.put("/{place_id}/deactivate", response_model=FavoritePlaceResponse)
-async def deactivate_favorite_place(
-    place_id: int,
-    favorite_place_service: FavoritePlaceService = Depends(get_favorite_place_service),
-    current_user: User = Depends(get_current_active_user)
-):
-    """停用常用地点"""
-    deactivated_place = favorite_place_service.deactivate_place(place_id)
-    if not deactivated_place:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="常用地点不存在"
-        )
-    return deactivated_place
+# @router.put("/{place_id}/deactivate", response_model=FavoritePlaceResponse)
+# async def deactivate_favorite_place(
+#     place_id: int,
+#     favorite_place_service: FavoritePlaceService = Depends(get_favorite_place_service),
+#     current_user: User = Depends(get_current_active_user)
+# ):
+#     """停用常用地点"""
+#     deactivated_place = favorite_place_service.deactivate_place(place_id)
+#     if not deactivated_place:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail="常用地点不存在"
+#         )
+#     return deactivated_place

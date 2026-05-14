@@ -12,16 +12,17 @@ export interface UpdateUserParams {
 }
 
 // 绑定关系
-export interface Binding {
-  id: number;
+export interface BindingUser {
+  user_id: number;
   phone: string;
   nickname: string;
+  avatar_url?: string;
 }
 
 // 绑定关系响应
 export interface BindingsResponse {
-  elderly_bindings: Binding[];
-  family_bindings: Binding[];
+  elderly_bindings: BindingUser[];
+  family_bindings: BindingUser[];
 }
 
 // 用户相关API

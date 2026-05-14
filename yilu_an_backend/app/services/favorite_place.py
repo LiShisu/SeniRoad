@@ -2,7 +2,7 @@ from app.models.favorite_place import FavoritePlace
 from app.schemas.favorite_place import FavoritePlaceCreate, FavoritePlaceUpdate, FavoritePlaceResponse
 from app.repositories.favorite_place_repository import FavoritePlaceRepository
 from typing import List, Optional
-
+from app.schemas.exception import BusinessException, NotFoundException
 
 class FavoritePlaceService:
     def __init__(self, favorite_place_repo: FavoritePlaceRepository):
@@ -10,9 +10,9 @@ class FavoritePlaceService:
 
     def get_place_by_id(self, place_id: int) -> Optional[FavoritePlaceResponse]:
         place = self.favorite_place_repo.get_by_id(place_id)
-        if place:
-            return FavoritePlaceResponse.model_validate(place)
-        return None
+        if not place:
+            raise NotFoundException("常用地点不存在")
+        return FavoritePlaceResponse.model_validate(place)
 
     def get_places_by_user_id(self, user_id: int) -> List[FavoritePlaceResponse]:
         places = self.favorite_place_repo.get_by_user_id(user_id)
@@ -32,7 +32,7 @@ class FavoritePlaceService:
 
     def create_place(self, place_data: FavoritePlaceCreate) -> FavoritePlaceResponse:
         if self.favorite_place_repo.exists_by_name(place_data.user_id, place_data.place_name):
-            raise ValueError("常用地点名称已存在")
+            raise BusinessException(code=400, message="该老人的常用地点中已存在此名称")
 
         place = FavoritePlace(**place_data.model_dump())
         created_place = self.favorite_place_repo.create(place)
@@ -41,13 +41,12 @@ class FavoritePlaceService:
     def update_place(self, place_id: int, place_data: FavoritePlaceUpdate) -> Optional[FavoritePlaceResponse]:
         place = self.favorite_place_repo.get_by_id(place_id)
         if not place:
-            return None
+            raise NotFoundException("常用地点不存在")
 
         if place_data.place_name is not None:
             if place_data.place_name != place.place_name and \
                self.favorite_place_repo.exists_by_name(place.user_id, place_data.place_name):
-                raise ValueError("常用地点名称已存在")
-
+                raise BusinessException(code=400, message="常用地点名称重复")
         for field, value in place_data.model_dump(exclude_unset=True).items():
             setattr(place, field, value)
 
@@ -57,16 +56,14 @@ class FavoritePlaceService:
     def delete_place(self, place_id: int) -> bool:
         place = self.favorite_place_repo.get_by_id(place_id)
         if not place:
-            return False
-
+            raise NotFoundException("常用地点不存在")
         self.favorite_place_repo.delete(place)
-        return True
 
-    def deactivate_place(self, place_id: int) -> Optional[FavoritePlaceResponse]:
-        place = self.favorite_place_repo.get_by_id(place_id)
-        if not place:
-            return None
+    # def deactivate_place(self, place_id: int) -> Optional[FavoritePlaceResponse]:
+    #     place = self.favorite_place_repo.get_by_id(place_id)
+    #     if not place:
+    #         raise NotFoundException("常用地点不存在")
 
-        place.is_active = False
-        updated_place = self.favorite_place_repo.update(place)
-        return FavoritePlaceResponse.model_validate(updated_place)
+    #     place.is_active = False
+    #     updated_place = self.favorite_place_repo.update(place)
+    #     return FavoritePlaceResponse.model_validate(updated_place)

@@ -298,34 +298,39 @@ Page({
       ? `${this.data.selectedAddress} ${this.data.detailAddress}`
       : this.data.selectedAddress;
 
-    const params = {
-      user_id: parseInt(elder.id),
-      place_name: this.data.placeName,
-      latitude: this.data.latitude,
-      longitude: this.data.longitude,
-      address: fullAddress,
-      source_type: 1,
-      is_active: true
-    };
-
     if (this.data.isEdit && this.data.placeId) {
-      favoritePlacesApi.updateFavoritePlace(this.data.placeId, params)
+      // 【修改点1】：更新时，不要传入 user_id，因为它是不可变字段
+      const updateParams = {
+        place_name: this.data.placeName,
+        latitude: this.data.latitude,
+        longitude: this.data.longitude,
+        address: fullAddress,
+        is_active: true // 编辑后默认重新激活
+      };
+
+      favoritePlacesApi.updateFavoritePlace(this.data.placeId, updateParams)
         .then(() => {
-          wx.showToast({ title: '更新成功', icon: 'success' });
+          // Toast 提示不需要自己写了，后端的 Result 里有 "地点更新成功"，交由前端拦截器弹窗最佳
           setTimeout(() => wx.navigateBack(), 1500);
         })
-        .catch(() => {
-          wx.showToast({ title: '更新失败', icon: 'none' });
-        });
+        .catch(() => {});
     } else {
-      favoritePlacesApi.createFavoritePlace(params)
+      // 【修改点2】：创建时，必须带上 user_id 和 source_type
+      const createParams = {
+        user_id: parseInt(elder.id),
+        place_name: this.data.placeName,
+        latitude: this.data.latitude,
+        longitude: this.data.longitude,
+        address: fullAddress,
+        source_type: 1, // 1表示家属预设
+        is_active: true
+      };
+
+      favoritePlacesApi.createFavoritePlace(createParams)
         .then(() => {
-          wx.showToast({ title: '保存成功', icon: 'success' });
           setTimeout(() => wx.navigateBack(), 1500);
         })
-        .catch(() => {
-          wx.showToast({ title: '保存失败', icon: 'none' });
-        });
+        .catch(() => {});
     }
   }
 });

@@ -72,4 +72,6 @@ dependencies = [
     "alembic>=1.18.4",
     "langchain-mcp-adapters>=0.2.2",
     "pywin32>=306",
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.3.0",
 ] 

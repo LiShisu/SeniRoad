@@ -17,10 +17,12 @@
       <view class="microphone-icon">
         <image src="/assets/svg/microphone-icon.svg" mode="aspectFit" />
       </view>
-      <text class="voice-hint">点击按钮开始说话...</text>
+      <text class="voice-hint">按住按钮开始说话...</text>
       <view class="speak-btn" bindtap="startVoice">
         <image class="btn-icon" src="/assets/svg/microphone-icon.svg" mode="aspectFit" />
-        <text class="btn-text">按住说话</text>
+        <!-- <text class="btn-text">按住说话</text> -->
+        <button class="voice-btn" bindtouchstart="handleTouchStart"bindtouchend="handleTouchEnd">
+{{ isRecording ? '松开 导航' : '按住 说话' }}</button>
       </view>
     </view>
 

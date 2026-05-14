@@ -38,10 +38,10 @@ class Settings(BaseSettings):
     # DashScope 配置（用于 TTS/ASR）
     DASHSCOPE_API_KEY: str = ""
     DASHSCOPE_BASE_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    DASHSCOPE_TEXT_MODEL: str = "qwen3-plus"
-    DASHSCOPE_TTS_MODEL: str = "qwen3-tts-vd-2026-01-26"
-    DASHSCOPE_TTS_VOICE: str = "longxiaochun"
-    DASHSCOPE_ASR_MODEL: str = "Qwen3-ASR-Flash"
+    DASHSCOPE_TEXT_MODEL: str = "qwen-plus"
+    DASHSCOPE_TTS_MODEL: str = "cosyvoice-v2"
+    DASHSCOPE_TTS_VOICE: str = "longxiaochun_v2"
+    DASHSCOPE_ASR_MODEL: str = "qwen3-asr-flash"
     
     # 微信小程序配置
     WECHAT_APPID: str = ""

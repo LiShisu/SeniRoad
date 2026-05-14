@@ -36,7 +36,8 @@ Page({
     currentStepIndex: 0,
     stepsCount: 0,
     isDeviating: false,
-    isRerouting: false
+    isRerouting: false,
+    isVoiceMode: false
   },
 
   cachedRoute: null as CachedRouteData | null,
@@ -49,11 +50,14 @@ Page({
   isUnloading: false,
 
   onLoad(options: any) {
+    this.clearAudioCache();
     const placeId = options?.place_id;
-    if (placeId) {
-      this.setData({ placeId: parseInt(placeId) });
-      this.initAudioContext();
-      this.loadPlaceAndRoute();
+    if (options?.voiceMode === '1') {
+      this.setData({ isVoiceMode: true });
+      this.loadVoiceRoute(); // 调用语音导航专属加载器
+    } else if (options?.place_id) {
+      this.setData({ placeId: parseInt(options.place_id) });
+      this.loadPlaceAndRoute(); // 原本的收藏夹加载逻辑
     }
   },
 
@@ -63,6 +67,7 @@ Page({
 
   onUnload() {
     this.endNavigation();
+    this.clearAudioCache();
   },
 
   initAudioContext() {
@@ -144,14 +149,48 @@ Page({
       });
     }
   },
-
+  async loadVoiceRoute() {
+    try {
+      // 1. 从缓存中读取数据
+      const voiceNavData = wx.getStorageSync('tempVoiceRoute');
+      if (!voiceNavData || !voiceNavData.route || !voiceNavData.destInfo) {
+        wx.showToast({ title: '路线数据丢失', icon: 'none' });
+        setTimeout(() => wx.navigateBack(), 2000);
+        return;
+      }
+      const { route, destInfo } = voiceNavData;
+      this.setData({ placeName: destInfo.destination });
+      // 2. 获取当前位置作为起点
+      const res = await wx.getLocation({ type: 'gcj02' });
+      const allPoints = this.parsePolylineArray(route.polyline);
+      // 3. 构建缓存路由数据结构（对齐原本的 this.cachedRoute）
+      this.cachedRoute = {
+        route,
+        recordId: route.record_id || Date.now(), // 如果语音接口没返回 record_id，给个临时标识
+        originLat: res.latitude,
+        originLng: res.longitude,
+        destLat: destInfo.latitude,
+        destLng: destInfo.longitude,
+        currentStepIndex: 0,
+        allPoints,
+        traveledPoints: [{ latitude: res.latitude, longitude: res.longitude }],
+        lastInstructionStep: -1
+      };
+      // 4. 渲染地图并开始导航监听
+      this.parseRoute(route, allPoints, res.latitude, res.longitude, destInfo.latitude, destInfo.longitude);
+      this.startLocationWatch();
+      // 5. 播报起始语音
+      this.speakInstruction(route.steps?.[0]?.instruction || `开始导航前往${destInfo.destination}`);
+    } catch (err: any) {
+      console.error('加载语音路线失败:', err);
+      wx.showToast({ title: '加载失败', icon: 'none' });
+    }
+  },
   parsePolylineArray(polylineData: string | string[]): { latitude: number; longitude: number }[] {
     const allPoints: { latitude: number; longitude: number }[] = [];
-
     if (!polylineData) {
       return allPoints;
     }
-
     let segments: string[] = [];
     if (typeof polylineData === 'string') {
       segments = polylineData.split(';');
@@ -163,7 +202,6 @@ Page({
         }
       }
     }
-
     for (const point of segments) {
       if (!point || !point.includes(',')) continue;
       const [lngStr, latStr] = point.split(',');
@@ -173,10 +211,8 @@ Page({
         allPoints.push({ latitude: lat, longitude: lng });
       }
     }
-
     return allPoints;
   },
-
   parseRoute(route: AddressNavigationResponse['route'], allPoints: { latitude: number; longitude: number }[], originLat: number, originLng: number, destLat: number, destLng: number) {
     const markers = [
       {
@@ -388,31 +424,108 @@ Page({
     }, 5000);
   },
 
+  // async reroute() {
+  //   if (!this.cachedRoute || this.data.isRerouting || this.isUnloading) return;
+
+  //   this.setData({ isRerouting: true });
+  //   try {
+  //     const res = await wx.getLocation({ type: 'gcj02' });
+
+  //     let place: FavoritePlace | null = getPlace(this.data.placeId) as FavoritePlace;
+  //     if (!place) {
+  //       place = await favoritePlacesApi.getFavoritePlaceById(this.data.placeId);
+  //       savePlace(place);
+  //     }
+
+  //     const routeRes = await navigationApi.navigateByAddress({
+  //       favorite_place_id: this.data.placeId,
+  //       origin_lng: res.longitude.toString(),
+  //       origin_lat: res.latitude.toString()
+  //     });
+
+  //     const { route } = routeRes;
+  //     const allPoints = this.parsePolylineArray(route.polyline);
+
+  //     saveRoute(this.data.placeId, route);
+
+  //     this.cachedRoute = {
+  //       ...this.cachedRoute,
+  //       route,
+  //       recordId: route.record_id || this.cachedRoute!.recordId,
+  //       originLat: res.latitude,
+  //       originLng: res.longitude,
+  //       currentStepIndex: 0,
+  //       allPoints,
+  //       lastInstructionStep: -1
+  //     };
+
+  //     this.setData({
+  //       polyline: [{
+  //         points: allPoints,
+  //         color: '#4B8AFF',
+  //         width: 6,
+  //         dottedLine: false
+  //       }],
+  //       totalDistance: route.distance,
+  //       totalDuration: route.duration,
+  //       stepsCount: route.steps?.length || 0,
+  //       currentStepIndex: 0,
+  //       isDeviating: false,
+  //       isRerouting: false
+  //     });
+
+  //     this.speakInstruction('路线已重新规划，继续直行');
+
+  //     setTimeout(() => {
+  //       this.mapCtx?.includePoints({
+  //         points: allPoints,
+  //         padding: [50, 50, 50, 50]
+  //       });
+  //     }, 100);
+
+  //     console.log('路线重新规划成功');
+  //   } catch (err: any) {
+  //     console.error('重新规划路线失败:', err);
+  //     this.setData({ isRerouting: false });
+  //     wx.showToast({
+  //       title: '重新规划失败',
+  //       icon: 'none'
+  //     });
+  //   }
+  // },
   async reroute() {
     if (!this.cachedRoute || this.data.isRerouting || this.isUnloading) return;
-
     this.setData({ isRerouting: true });
-
     try {
       const res = await wx.getLocation({ type: 'gcj02' });
+      let routeRes;
 
-      let place: FavoritePlace | null = getPlace(this.data.placeId) as FavoritePlace;
-      if (!place) {
-        place = await favoritePlacesApi.getFavoritePlaceById(this.data.placeId);
-        savePlace(place);
+      if (this.data.isVoiceMode) {
+        // 语音模式偏航重算：直接调用通过经纬度重新规划路线的接口
+        routeRes = await navigationApi.navigateByCoordinates({
+          origin_lng: res.longitude.toString(),
+          origin_lat: res.latitude.toString(),
+          dest_lng: this.cachedRoute.destLng.toString(),
+          dest_lat: this.cachedRoute.destLat.toString()
+        });
+      } else {
+        // 收藏夹模式偏航重算：保持原样
+        let place: FavoritePlace | null = getPlace(this.data.placeId) as FavoritePlace;
+        if (!place) {
+          place = await favoritePlacesApi.getFavoritePlaceById(this.data.placeId);
+          savePlace(place);
+        }
+        routeRes = await navigationApi.navigateByAddress({
+          favorite_place_id: this.data.placeId,
+          origin_lng: res.longitude.toString(),
+          origin_lat: res.latitude.toString()
+        });
       }
-
-      const routeRes = await navigationApi.navigateByAddress({
-        favorite_place_id: this.data.placeId,
-        origin_lng: res.longitude.toString(),
-        origin_lat: res.latitude.toString()
-      });
-
       const { route } = routeRes;
       const allPoints = this.parsePolylineArray(route.polyline);
-
-      saveRoute(this.data.placeId, route);
-
+      if (!this.data.isVoiceMode) {
+        saveRoute(this.data.placeId, route);
+      }
       this.cachedRoute = {
         ...this.cachedRoute,
         route,
@@ -423,7 +536,6 @@ Page({
         allPoints,
         lastInstructionStep: -1
       };
-
       this.setData({
         polyline: [{
           points: allPoints,
@@ -452,27 +564,37 @@ Page({
     } catch (err: any) {
       console.error('重新规划路线失败:', err);
       this.setData({ isRerouting: false });
-      wx.showToast({
-        title: '重新规划失败',
-        icon: 'none'
-      });
     }
   },
-
   speakInstruction(text: string) {
     if (!this.audioContext) {
       this.initAudioContext();
     }
 
     const speakText = text.replace(/<[^>]+>/g, '');
-
     if (!speakText) return;
 
     speechApi.textToSpeech({ text: speakText })
       .then((res) => {
-        if (res.status === 'success' && res.audio_data) {
-          this.audioContext.src = `data:${res.audio_type};base64,${res.audio_data}`;
-          this.audioContext.play();
+        if (res && res.audio_data) {
+          const fs = wx.getFileSystemManager();
+          // 每次写入都会自动覆盖上一条
+          const filePath = `${wx.env.USER_DATA_PATH}/current_nav_voice.mp3`;
+          
+          fs.writeFile({
+            filePath: filePath,
+            data: res.audio_data,
+            encoding: 'base64',
+            success: () => {
+              console.log('语音文件缓存/覆盖成功:', filePath);
+              this.audioContext.stop();
+              this.audioContext.src = filePath;
+              this.audioContext.play();
+            },
+            fail: (err) => {
+              console.error('写入音频文件失败:', err);
+            }
+          });
         }
       })
       .catch((err) => {
@@ -565,5 +687,23 @@ Page({
         }
       }
     });
-  }
+  },
+  clearAudioCache() {
+    try {
+      const fs = wx.getFileSystemManager();
+      const dirPath = wx.env.USER_DATA_PATH;
+      // 读取目录下所有文件
+      const files = fs.readdirSync(dirPath);
+      
+      files.forEach((file) => {
+        // 只要是之前生成的语音文件，统统删掉释放空间
+        if (file.endsWith('.mp3') || file.includes('nav_speech_') || file.includes('temp_nav_voice')) {
+          fs.unlinkSync(`${dirPath}/${file}`);
+        }
+      });
+      console.log('历史语音缓存清理完成，空间已释放');
+    } catch (err) {
+      console.error('清理语音缓存失败:', err);
+    }
+  },
 });

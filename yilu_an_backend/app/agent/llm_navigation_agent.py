@@ -1,5 +1,5 @@
 from app.agent.tools.navigation import tools
-from app.agent.tools.speech_to_text import speech_to_text
+from app.agent.tools.speech_to_text import process_speech_to_text
 from app.llmclient import text_llm
 from fastapi import UploadFile
 from typing import Dict, Any

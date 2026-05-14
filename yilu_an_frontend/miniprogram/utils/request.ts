@@ -62,24 +62,31 @@ export const request = async <T = any>(config: RequestConfig): Promise<T> => {
       data,
       header: headers,
       success: (res) => {
-        const { statusCode, data: responseData } = res;
+        const { statusCode, data: rawData } = res;
         
         if (statusCode === 401) {
           removeToken();
+          wx.showToast({ title: '登录已过期，请重新登录', icon: 'none' });
           wx.reLaunch({
             url: '/common/login/login',
           });
           reject(new Error('登录已过期，请重新登录'));
-        } else if (statusCode >= 200 && statusCode < 300) {
-          resolve(responseData as T);
+          return;
+        } 
+        const responseData = rawData as any;
+        // 2. 处理 HTTP 正常的请求 (200-299)
+        if (statusCode >= 200 && statusCode < 300&& responseData?.code === 200) {
+          resolve(responseData.data);
         } else {
-          const errorMessage = typeof responseData === 'object' && responseData !== null
-            ? (responseData as any).detail || (responseData as any).message || `请求失败：${statusCode}`
-            : `请求失败：${statusCode}`;
-          reject(new Error(errorMessage));
+          // 3. 处理 HTTP 层面的其他错误 (如 404, 500)
+          const errorMsg = responseData?.message || `服务器请求失败 (${statusCode})`;
+          // 统一弹出后端精心准备的错误提示
+          wx.showToast({ title: errorMsg, icon: 'none' });
+          reject(new Error(errorMsg));
         }
       },
       fail: (err) => {
+        wx.showToast({ title: '网络请求失败', icon: 'none' });
         reject(new Error(`网络请求失败：${err.errMsg}`));
       },
       complete: () => {
