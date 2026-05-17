@@ -40,7 +40,7 @@ class NavigationRecordService:
     def create_record(self, record_data: NavigationRecordCreate) -> NavigationRecordResponse:
         """创建导航记录"""
         # 检查是否有进行中的导航记录
-        active_records = self.navigation_recorduser_id_repo.get_active_records(record_data.user_id)
+        active_records = self.navigation_record_repo.get_active_records(record_data.user_id)
         if active_records:
             # 可以选择结束之前的记录
             for record in active_records:

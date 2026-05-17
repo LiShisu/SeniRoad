@@ -134,40 +134,6 @@ class NavigationService:
             latitude=dest_lat,
             longitude=dest_lng
         )
-    
-    async def get_fast_amap_route(self, origin: str, destination: str) -> dict:
-        amap_key = settings.AMAP_API_KEY # 替换为你的高德 Web 服务 Key
-        # 高德步行导航 API V3
-        url = f"https://restapi.amap.com/v3/direction/walking?origin={origin}&destination={destination}&key={amap_key}"
-
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url, timeout=10.0)
-            
-        if response.status_code != 200:
-            return None
-            
-        data = response.json()
-        if data.get("status") != "1" or not data.get("route", {}).get("paths"):
-            return None
-        path = data["route"]["paths"][0]
-        formatted_steps = []
-        all_polyline_str = []
-        for step in path.get("steps", []):
-            formatted_steps.append({
-                "instruction": step.get("instruction", ""),
-                "distance": step.get("distance", "0"),
-                "road": step.get("road", ""),
-                "polyline": step.get("polyline", "")
-            })
-            all_polyline_str.append(step.get("polyline", ""))
-        full_polyline = ";".join(all_polyline_str)
-
-        return {
-            "distance": path.get("distance", "0"),
-            "duration": path.get("duration", "0"),
-            "polyline": full_polyline,
-            "steps": formatted_steps
-        }
 
     async def get_fast_amap_route(
         self,
@@ -216,14 +182,14 @@ class NavigationService:
 
         polyline = ";".join([step.get("polyline", "") for step in steps])
 
-        return {
-            "origin": route.get("origin", origin),
-            "destination": route.get("destination", destination),
-            "distance": path.get("distance", ""),
-            "duration": path.get("duration", ""),
-            "polyline": polyline,
-            "steps": steps
-        }
+        return NavigationRoute(
+            origin=route.get("origin", origin),
+            destination=route.get("destination", destination),
+            distance=path.get("distance", ""),
+            duration=path.get("duration", ""),
+            polyline=polyline,
+            steps=steps
+        )
     
     async def process_text_navigation(
         self,

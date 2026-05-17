@@ -11,7 +11,8 @@ from app.schemas.navigation import (
     NavigationPlanResponse,
     SmartNavigationResponse,
     VoiceNavigationResponse,
-    CoordinateNavRequest
+    CoordinateNavRequest,
+    NavigationRoute,
 )
 from app.schemas.base import Result
 router = APIRouter()
@@ -127,29 +128,37 @@ async def create_standard_route(
         origin_lat=request.origin_lat,
         user_id=current_user.user_id
     )
-    return Result(code=200, message="标准路线(基于纯高的API)规划成功", data=data)
+    return Result(code=200, message="标准路线(基于纯高德API)规划成功", data=data)
 
-@router.post("/routes/coordinates")
+@router.post("/routes/coordinates", response_model=Result[NavigationRoute])
 async def navigate_by_coordinates(
     req: CoordinateNavRequest,
     current_user = Depends(get_current_active_user) ,
     navigation_service: NavigationService = Depends(get_navigation_service),
 ):
     try:
-        # 将经纬度拼接成高德 API 需要的格式 "lng,lat"
-        origin = f"{req.origin_lng},{req.origin_lat}"
-        destination = f"{req.dest_lng},{req.dest_lat}"
-        # 调用底层 Service 直连高德 API
-        # 注意：你需要把 navigation_service 换成你实际实例化的服务对象
-        route_data = await navigation_service.get_fast_amap_route(origin, destination)
+        route_data = await navigation_service.get_fast_amap_route(
+            origin_lng=req.origin_lng,
+            origin_lat=req.origin_lat,
+            dest_lng=req.dest_lng,
+            dest_lat=req.dest_lat
+        )
         if not route_data:
-            return {"code": 500, "message": "语音重新规划：重新规划规划失败", "data": None}
+            return Result(
+                code=500, 
+                message="语音重新规划：重新规划规划失败", 
+                data=None
+            )
 
         # 完美对齐前端期待的数据格式
-        return {
-            "code": 200, 
-            "message": "success", 
-            "data": {"route": route_data}
-        }
+        return Result(
+            code=200, 
+            message="success", 
+            data=route_data
+        )
     except Exception as e:
-        return {"code": 500, "message": f"路线重算异常: {str(e)}", "data": None}
+        return Result(
+            code=500, 
+            message=f"路线重算异常: {str(e)}", 
+            data=None
+        )

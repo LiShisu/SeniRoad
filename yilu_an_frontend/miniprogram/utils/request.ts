@@ -54,7 +54,7 @@ export const request = async <T = any>(config: RequestConfig): Promise<T> => {
     const queryString = buildQueryParams(params);
     finalUrl = `${url}${queryString}`;
   }
-  
+  // 因为微信小程序的 API 设计早于 Promise 普及，所以必须手动包装才能用现代异步语法
   return new Promise((resolve, reject) => {
     wx.request({
       url: `${BASE_URL}${finalUrl}`,

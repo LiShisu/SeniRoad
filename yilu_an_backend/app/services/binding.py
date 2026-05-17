@@ -105,58 +105,58 @@ class BindingService:
         
         return self._build_response(created_binding)
 
+    # TODO:解绑、拒绝绑定、批准绑定待采用
+    def unbind(self, unbind_data: BindingUnbind) -> None:
+        elderly_user = self.user_repo.get_by_phone(unbind_data.elderly_phone)
+        if not elderly_user:
+            raise ValueError("未找到该手机号对应的老人用户")
 
-    # def unbind(self, unbind_data: BindingUnbind) -> None:
-    #     elderly_user = self.user_repo.get_by_phone(unbind_data.elderly_phone)
-    #     if not elderly_user:
-    #         raise ValueError("未找到该手机号对应的老人用户")
+        binding = self.binding_repo.get_binding_by_elderly_and_family(
+            elderly_user.user_id,
+            unbind_data.family_id
+        )
+        if not binding:
+            raise ValueError("绑定关系不存在")
 
-    #     binding = self.binding_repo.get_binding_by_elderly_and_family(
-    #         elderly_user.user_id,
-    #         unbind_data.family_id
-    #     )
-    #     if not binding:
-    #         raise ValueError("绑定关系不存在")
+        self.binding_repo.delete(binding)
 
-    #     self.binding_repo.delete(binding)
+    def approve_binding(self, binding_id: int, user_id: int) -> BindingResponse:
+        binding = self.binding_repo.get_by_id(binding_id)
+        if not binding:
+            raise ValueError("绑定关系不存在")
 
-    # def approve_binding(self, binding_id: int, user_id: int) -> BindingResponse:
-    #     binding = self.binding_repo.get_by_id(binding_id)
-    #     if not binding:
-    #         raise ValueError("绑定关系不存在")
+        if binding.elderly_id != user_id:
+            raise PermissionError("只有老人可以批准绑定请求")
 
-    #     if binding.elderly_id != user_id:
-    #         raise PermissionError("只有老人可以批准绑定请求")
+        binding.status = BindingStatus.ACCEPTED
+        updated_binding = self.binding_repo.update(binding)
+        response = BindingResponse.model_validate(updated_binding)
+        if binding.elderly:
+            response.elderly_nickname = binding.elderly.nickname
+            response.elderly_phone = binding.elderly.phone
+        if binding.family:
+            response.family_phone = binding.family.phone
+            response.family_nickname = binding.family.nickname
+        return response
 
-    #     binding.status = BindingStatus.ACCEPTED
-    #     updated_binding = self.binding_repo.update(binding)
-    #     response = BindingResponse.model_validate(updated_binding)
-    #     if binding.elderly:
-    #         response.elderly_nickname = binding.elderly.nickname
-    #         response.elderly_phone = binding.elderly.phone
-    #     if binding.family:
-    #         response.family_phone = binding.family.phone
-    #         response.family_nickname = binding.family.nickname
-    #     return response
+    def reject_binding(self, binding_id: int, user_id: int) -> BindingResponse:
+        binding = self.binding_repo.get_by_id(binding_id)
+        if not binding:
+            raise ValueError("绑定关系不存在")
 
-    # def reject_binding(self, binding_id: int, user_id: int) -> BindingResponse:
-    #     binding = self.binding_repo.get_by_id(binding_id)
-    #     if not binding:
-    #         raise ValueError("绑定关系不存在")
+        if binding.elderly_id != user_id:
+            raise PermissionError("只有老人可以拒绝绑定请求")
 
-    #     if binding.elderly_id != user_id:
-    #         raise PermissionError("只有老人可以拒绝绑定请求")
-
-    #     binding.status = BindingStatus.REJECTED
-    #     updated_binding = self.binding_repo.update(binding)
-    #     response = BindingResponse.model_validate(updated_binding)
-    #     if binding.elderly:
-    #         response.elderly_nickname = binding.elderly.nickname
-    #         response.elderly_phone = binding.elderly.phone
-    #     if binding.family:
-    #         response.family_phone = binding.family.phone
-    #         response.family_nickname = binding.family.nickname
-    #     return response
+        binding.status = BindingStatus.REJECTED
+        updated_binding = self.binding_repo.update(binding)
+        response = BindingResponse.model_validate(updated_binding)
+        if binding.elderly:
+            response.elderly_nickname = binding.elderly.nickname
+            response.elderly_phone = binding.elderly.phone
+        if binding.family:
+            response.family_phone = binding.family.phone
+            response.family_nickname = binding.family.nickname
+        return response
     def update_binding_status(self, binding_id: int, target_status: BindingStatus, current_user_id: int) -> BindingResponse:
         """更新资源状态 (核心逻辑：状态机保护 + 时间戳记录)"""
         binding = self.binding_repo.get_by_id(binding_id)

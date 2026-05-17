@@ -1,18 +1,18 @@
 # 颐路安后端服务
 
-老年人智能导航助手 FastAPI 后端
+老年人智能导航助手 FastAPI 后端，使用uv管理依赖
 
 ## 快速开始
 
 ```bash
 # 安装依赖
-pip install -r requirements.txt
+uv sync
 
 # 配置环境变量
 cp .env.example .env
 
 # 启动服务
-python run_server.py
+uv run python run_server.py
 ```
 
 ## 项目框架

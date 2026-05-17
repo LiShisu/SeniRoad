@@ -31,6 +31,7 @@ __pycache__/
 # 其他目录
 .trae/
 tests/
+documents/
 
 test_multi_agent_mock.py
 test_multi_agent.py
