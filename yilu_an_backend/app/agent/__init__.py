@@ -2,23 +2,20 @@
 智能导航Agent模块
 
 基于LangChain和LangGraph的多Agent协作系统：
-- multi_agent_navigation: 出行规划多Agent服务
+- workflow: 新的导航工作流（推荐使用）
+- multi_agent_navigation: 旧的多Agent导航服务（兼容）
 """
 
-from app.agent.multi_agent_navigation import (
-    plan_travel,
-    plan_travel_parallel,
-    setup_mcp_tools,
-    # create_agents,
-    create_travel_graph,
-    TravelState,
+from app.agent.workflow import (
+    create_navigation_graph,
+    execute_navigation_workflow,
+    execute_navigation_workflow_stream,
 )
+from app.agent.schemas import NavigationWorkflowState
 
 __all__ = [
-    "plan_travel",
-    "plan_travel_parallel",
-    "setup_mcp_tools",
-    "create_agents",
-    "create_travel_graph",
-    "TravelState",
+    "create_navigation_graph",
+    "execute_navigation_workflow",
+    "execute_navigation_workflow_stream",
+    "NavigationWorkflowState",
 ]

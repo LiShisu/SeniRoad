@@ -6,7 +6,7 @@ from typing import Dict, Optional
 from fastapi import UploadFile
 from difflib import SequenceMatcher
 
-
+# 废弃，使用workflow.py中的destination_parse_node.py
 class DestinationParseAgent:
     def __init__(self, favorite_place_service: Optional[FavoritePlaceService] = None):
         self.favorite_place_service = favorite_place_service

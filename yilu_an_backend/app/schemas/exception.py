@@ -21,3 +21,8 @@ class UnauthorizedException(BusinessException):
     """未授权异常 (401)"""
     def __init__(self, message: str = "登录已过期，请重新登录"):
         super().__init__(message=message, code=401, http_code=status.HTTP_401_UNAUTHORIZED)
+
+class AmapApiException(BusinessException):
+    """高德地图API调用异常"""
+    def __init__(self, message: str):
+        super().__init__(message=message, code=500, http_code=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -127,42 +127,123 @@ export const navigationApi = {
     return api.post<NavigationRouteResponse>('/navigation/routes/smart', data);
   },
 
-  navigateByVoice: (data: { audio_file: string, origin_lng: string, origin_lat: string }): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      const { audio_file, origin_lng, origin_lat } = data;
-      const token = getToken(); 
+  // navigateByVoice: (data: { audio_file: string, origin_lng: string, origin_lat: string }): Promise<any> => {
+  //   return new Promise((resolve, reject) => {
+  //     const { audio_file, origin_lng, origin_lat } = data;
+  //     const token = getToken(); 
 
+  //     wx.uploadFile({
+  //       url: `${BASE_URL}/navigation/routes/voice/stream`, 
+  //       filePath: audio_file,
+  //       name: 'audio_file', 
+  //       timeout: 360000, // 360秒防中断
+  //       formData: { origin_lng, origin_lat },
+  //       header: { 'Authorization': `Bearer ${token}` },
+  //       success: (res) => {
+  //         const statusCode = res.statusCode;
+  //         if (statusCode >= 200 && statusCode < 300) {
+  //           const rawData = res.data; 
+  //           // 1. 判断是否包含后端报错事件
+  //           if (rawData.includes('event: error')) {
+  //             const errMatch = extractSseEvent('error', rawData);
+  //             const errMsg = errMatch?.error || '抱歉，没听清您想去哪';
+  //             reject(new Error(errMsg));
+  //             return;
+  //           }
+  //           // 2. 依次提取四大模块数据
+  //           const destInfo = extractSseEvent('destination', rawData);
+  //           const routeInfo = extractSseEvent('route', rawData);
+  //           const weatherInfo = extractSseEvent('weather', rawData);
+  //           const adviceInfo = extractSseEvent('advice', rawData);
+  //           // 3. 将干净的 JSON 对象一次性返回给页面
+  //           resolve({ destInfo, routeInfo, weatherInfo, adviceInfo });
+  //         } else {
+  //           reject(new Error(`服务器请求失败 (${statusCode})`));
+  //         }
+  //       },
+  //       fail: (err) => {
+  //         reject(new Error(`上传文件失败 (${err.errMsg}`));
+  //       }
+  //     });
+  //   });
+  // },
+  // 替换原有的 navigateByVoice 函数
+  navigateByVoice: (data: { audio_file: string, origin_lng: string, origin_lat: string }): Promise<any> => {
+    return new Promise((resolve, reject) => { // 必须显式返回 Promise
+      const { audio_file, origin_lng, origin_lat } = data;
+      const token = getToken();
+      
       wx.uploadFile({
-        url: `${BASE_URL}/navigation/routes/voice/stream`, 
+        url: `${BASE_URL}/navigation/routes/voice/stream`,
         filePath: audio_file,
-        name: 'audio_file', 
-        timeout: 120000, // 120秒防中断
+        name: 'audio_file',
+        timeout: 360000,
         formData: { origin_lng, origin_lat },
-        header: { 'Authorization': `Bearer ${token}` },
+        header: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data' // 显式声明类型（可选，但推荐）
+        },
         success: (res) => {
           const statusCode = res.statusCode;
           if (statusCode >= 200 && statusCode < 300) {
-            const rawData = res.data; 
-            // 1. 判断是否包含后端报错事件
-            if (rawData.includes('event: error')) {
-              const errMatch = extractSseEvent('error', rawData);
-              const errMsg = errMatch?.error || '抱歉，没听清您想去哪';
-              reject(new Error(errMsg));
+            const rawData = res.data as string; // 确保类型为 string
+            
+            // 1. 错误处理
+            // 修改正则：使用非贪婪匹配和更宽松的换行符匹配，防止特殊字符导致 match 为 null
+            const errorRegex = /event:\s*error\s*data:\s*(\{.*\})/i;
+            const errorMatch = rawData.match(errorRegex);
+            if (errorMatch && errorMatch[1]) {
+              try {
+                const errData = JSON.parse(errorMatch[1]);
+                reject(new Error(errData.error || '语音识别失败'));
+                return;
+              } catch (e) {
+                reject(new Error('解析错误数据失败'));
+                return;
+              }
+            }
+
+            // 2. 数据提取
+            // 修改正则：使用 [\s\S] 代替 . 来匹配换行符，防止 JSON 跨行导致无法匹配
+            const extractSseEvent = (eventName: string): any => {
+              // 匹配 event: eventName 后面的 data: {json}，支持跨行
+              const regex = new RegExp(`event:\\s*${eventName}\\s*data:\\s*(\\{[\\s\\S]*?\\})`, 'i');
+              const match = rawData.match(regex);
+              if (match && match[1]) {
+                try {
+                  return JSON.parse(match[1]);
+                } catch (e) {
+                  console.error(`JSON解析失败 (${eventName}):`, e);
+                  return null;
+                }
+              }
+              return null;
+            };
+
+            const destInfo = extractSseEvent('destination');
+            const routeInfo = extractSseEvent('route');
+            const weatherInfo = extractSseEvent('weather');
+            const adviceInfo = extractSseEvent('advice');
+
+            // 防御性检查：确保至少有路线数据
+            if (!routeInfo) {
+              reject(new Error('未获取到路线信息'));
               return;
             }
-            // 2. 依次提取四大模块数据
-            const destInfo = extractSseEvent('destination', rawData);
-            const routeInfo = extractSseEvent('route', rawData);
-            const weatherInfo = extractSseEvent('weather', rawData);
-            const adviceInfo = extractSseEvent('advice', rawData);
-            // 3. 将干净的 JSON 对象一次性返回给页面
-            resolve({ destInfo, routeInfo, weatherInfo, adviceInfo });
+
+            // 3. 返回结果
+            resolve({ 
+              destInfo, 
+              routeInfo, 
+              weatherInfo, 
+              adviceInfo 
+            });
           } else {
-            reject(new Error(`服务器请求失败 (${statusCode})`));
+            reject(new Error(`HTTP ${statusCode}`));
           }
         },
         fail: (err) => {
-          reject(new Error(`上传文件失败 (${err.errMsg}`));
+          reject(new Error(`上传失败: ${err.errMsg}`));
         }
       });
     });

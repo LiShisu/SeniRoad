@@ -1,7 +1,9 @@
 from httpx import AsyncClient
 from app.config import settings
-from app.agent.destination_parse_agent import DestinationParseAgent
-from app.agent.multi_agent_navigation import MultiAgentNavigation
+# from app.agent.destination_parse_agent import DestinationParseAgent
+# from app.agent.multi_agent_navigation import MultiAgentNavigation
+# 延迟导入以避免循环导入
+# from app.agent.workflow import execute_navigation_workflow, execute_navigation_workflow_stream
 from app.services.voice_log import VoiceLogService
 from app.services.navigation_record import NavigationRecordService
 from app.schemas.voice_log import VoiceLogCreate
@@ -16,6 +18,7 @@ import logging
 import asyncio
 import json
 import httpx
+import re
 from app.schemas.navigation import (
     NavigationPlanResponse,
     SmartNavigationResponse,
@@ -32,25 +35,25 @@ class NavigationService:
         navigation_record_service: NavigationRecordService,
         voice_log_service: VoiceLogService,
         favorite_place_service: FavoritePlaceService,
-        destination_parse_agent: Optional[DestinationParseAgent] = None,
-        multi_agent_navigation: Optional[MultiAgentNavigation] = None,
+        # destination_parse_agent: Optional[DestinationParseAgent] = None,
+        # multi_agent_navigation: Optional[MultiAgentNavigation] = None,
     ):
         self.client = AsyncClient()
         self.amap_key = settings.AMAP_API_KEY
         self.base_url = "https://restapi.amap.com/v3"
-        self.destination_parse_agent = destination_parse_agent
-        self.multi_agent_navigation = multi_agent_navigation
+        # self.destination_parse_agent = destination_parse_agent
+        # self.multi_agent_navigation = multi_agent_navigation
         self.navigation_record_service = navigation_record_service
         self.voice_log_service = voice_log_service
         self.favorite_place_service = favorite_place_service
 
-    async def _stream_navigation_events(
-        self,
-        origin: str,
-        destination: str,
-    ) -> AsyncGenerator[Dict[str, Any], None]:
-        async for event in self.multi_agent_navigation.plan_travel_stream(origin, destination):
-            yield event
+    # async def _stream_navigation_events(
+    #     self,
+    #     origin: str,
+    #     destination: str,
+    # ) -> AsyncGenerator[Dict[str, Any], None]:
+    #     async for event in self.multi_agent_navigation.plan_travel_stream(origin, destination):
+    #         yield event
 
     def _format_sse_event(self, event_type: str, data: Any) -> str:
         return f"event: {event_type}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
@@ -198,43 +201,50 @@ class NavigationService:
         favorite_place_id: int,
         user_id: int,
     ) -> SmartNavigationResponse:  # 【规范】严格返回强类型 DTO
-            if not self.destination_parse_agent or not self.multi_agent_navigation:
-                raise BusinessException(code=500, message="系统内部错误：导航大模型服务未就绪,缺少必要的Agent组件")
+        # 延迟导入避免循环导入
+        from app.agent.workflow import execute_navigation_workflow
+        
+        favorite_place = self.favorite_place_service.get_place_by_id(favorite_place_id)
+        if not favorite_place:
+            raise NotFoundException("收藏地点不存在")
 
-            favorite_place = self.favorite_place_service.get_place_by_id(favorite_place_id)
-            if not favorite_place:
-                raise NotFoundException("收藏地点不存在")
+        destination = favorite_place.address
+        latitude = favorite_place.latitude
+        longitude = favorite_place.longitude
 
-            destination = favorite_place.address
-            latitude = favorite_place.latitude
-            longitude = favorite_place.longitude
-            if latitude and longitude:
-                destination = destination + f"，经度{longitude}，纬度{latitude}"
+        logger.info(f"开始导航，起点：经度{origin_lng},纬度{origin_lat}，终点：{destination}")
 
-            origin = f"经度{origin_lng},纬度{origin_lat}"
+        # 使用新的工作流
+        navigation_result = await execute_navigation_workflow(
+            origin_lng=origin_lng,
+            origin_lat=origin_lat,
+            user_id=user_id,
+            destination_name=destination,
+            destination_lng=str(longitude) if longitude else None,
+            destination_lat=str(latitude) if latitude else None,
+            favorite_place_id=favorite_place_id,
+            favorite_place_service=self.favorite_place_service
+        )
 
-            logger.info(f"开始导航，起点：{origin}，终点：{destination}")
+        route_data = navigation_result.get("route", {})
+        weather_data = navigation_result.get("weather", {})
+        advice_data = navigation_result.get("advice", "")
 
-            navigation_result = await self.multi_agent_navigation.plan_travel(origin, destination)
-
-            route_data = navigation_result.get("route", {})
-            weather_data = navigation_result.get("weather", "")
-            advice_data = navigation_result.get("advice", "")
-
-            # 创建导航记录
-            record_data = NavigationRecordCreate(
+        # 创建导航记录
+        record_data = NavigationRecordCreate(
             user_id=user_id,
             start_time=datetime.now(),
             origin_lat=Decimal(origin_lat),
             origin_lng=Decimal(origin_lng),
-            dest_lat=Decimal(latitude),
-            dest_lng=Decimal(longitude),
+            dest_lat=Decimal(latitude) if latitude else None,
+            dest_lng=Decimal(longitude) if longitude else None,
             dest_name=favorite_place.address,
             polyline=route_data.get("polyline", ""),
             status=1
         )
-            record = self.navigation_record_service.create_record(record_data)
-            return SmartNavigationResponse(
+        record = self.navigation_record_service.create_record(record_data)
+        
+        return SmartNavigationResponse(
             status="success",
             destination=destination,
             place_name=favorite_place.place_name,
@@ -243,15 +253,15 @@ class NavigationService:
                 record_id=record.record_id,
                 text=route_data.get("text", ""),
                 origin=f"{origin_lng},{origin_lat}",
-                destination=f"{longitude},{latitude}",
+                destination=f"{longitude},{latitude}" if longitude and latitude else "",
                 distance=str(route_data.get("distance", "")),
                 duration=str(route_data.get("duration", "")),
                 steps=route_data.get("steps", []),
                 polyline=route_data.get("polyline", "")
             ),
             weather=weather_data,
-            latitude=float(latitude),
-            longitude=float(longitude)
+            latitude=float(latitude) if latitude else 0.0,
+            longitude=float(longitude) if longitude else 0.0
         )
 
     async def process_text_navigation_stream(
@@ -261,6 +271,9 @@ class NavigationService:
         favorite_place_id: int,
         user_id: int,
     ) -> AsyncGenerator[str, None]:
+        # 延迟导入避免循环导入
+        from app.agent.workflow import execute_navigation_workflow_stream
+        
         try:
             yield self._format_sse_event("start", {"status": "开始处理导航请求..."})
 
@@ -272,40 +285,56 @@ class NavigationService:
             destination = favorite_place.address
             latitude = favorite_place.latitude
             longitude = favorite_place.longitude
-            if latitude and longitude:
-                destination = destination + f"，经度{longitude}，纬度{latitude}"
 
-            origin = f"经度{origin_lng},纬度{origin_lat}"
-
-            yield self._format_sse_event("destination", {"destination": destination, "place_name": favorite_place.place_name})
+            yield self._format_sse_event("destination", {
+                "destination": destination, 
+                "place_name": favorite_place.place_name
+            })
 
             route_data = {}
-            async for event in self._stream_navigation_events(origin, destination):
+            async for event in execute_navigation_workflow_stream(
+                origin_lng=origin_lng,
+                origin_lat=origin_lat,
+                user_id=user_id,
+                destination_name=destination,
+                destination_lng=str(longitude) if longitude else None,
+                destination_lat=str(latitude) if latitude else None,
+                favorite_place_id=favorite_place_id,
+                favorite_place_service=self.favorite_place_service
+            ):
                 if event["event"] == "route":
                     route_data = event["data"]
                     yield self._format_sse_event("route", route_data)
                 elif event["event"] == "weather":
                     weather_data = event["data"]
-                    weather_data = json.loads(weather_data)
+                    # 天气数据可能是字符串，需要转换为字典
+                    if isinstance(weather_data, str):
+                        weather_data = {"weather_text": weather_data}
                     yield self._format_sse_event("weather", weather_data)
                 elif event["event"] == "advice":
                     advice_data = event["data"]
-                    advice_data = json.loads(advice_data)
+                    # 尝试解析JSON，如果失败则保持原样
+                    try:
+                        advice_data = json.loads(advice_data)
+                    except (json.JSONDecodeError, TypeError):
+                        advice_data = {"advice_text": advice_data}
                     yield self._format_sse_event("advice", advice_data)
-
-            record_data = NavigationRecordCreate(
-                user_id=user_id,
-                start_time=datetime.now(),
-                origin_lat=Decimal(origin_lat),
-                origin_lng=Decimal(origin_lng),
-                dest_lat=Decimal(latitude) if latitude else None,
-                dest_lng=Decimal(longitude) if longitude else None,
-                dest_name=favorite_place.address,
-                polyline=route_data.get("polyline", ""),
-                status=1
-            )
-            self.navigation_record_service.create_record(record_data)
-            yield self._format_sse_event("complete", {"status": "done"})
+                elif event["event"] == "complete":
+                    # 创建导航记录
+                    if route_data:
+                        record_data = NavigationRecordCreate(
+                            user_id=user_id,
+                            start_time=datetime.now(),
+                            origin_lat=Decimal(origin_lat),
+                            origin_lng=Decimal(origin_lng),
+                            dest_lat=Decimal(latitude) if latitude else None,
+                            dest_lng=Decimal(longitude) if longitude else None,
+                            dest_name=favorite_place.address,
+                            polyline=route_data.get("polyline", ""),
+                            status=1
+                        )
+                        self.navigation_record_service.create_record(record_data)
+                    yield self._format_sse_event("complete", {"status": "done"})
 
         except Exception as e:
             yield self._format_sse_event("error", {"error": str(e)})
@@ -317,84 +346,76 @@ class NavigationService:
         origin_lng: str,
         origin_lat: str
     ) -> VoiceNavigationResponse:  # 【规范】严格返回强类型 DTO
+        # 延迟导入避免循环导入
+        from app.agent.workflow import execute_navigation_workflow
 
-            if not self.destination_parse_agent or not self.multi_agent_navigation:
-                raise BusinessException(code=500, message="系统内部错误：语音解析大模型服务未就绪,缺少必要的Agent组件")
+        # 使用新的工作流
+        navigation_result = await execute_navigation_workflow(
+            origin_lng=origin_lng,
+            origin_lat=origin_lat,
+            user_id=user_id,
+            audio_file=audio_file,
+            favorite_place_service=self.favorite_place_service
+        )
 
-            parse_result = self.destination_parse_agent.process_voice_input(
-                audio_file,
-                user_id=user_id
-            )
+        voice_text = navigation_result.get("voice_text", "")
+        destination = navigation_result.get("destination_name", "")
+        matched_type = navigation_result.get("matched_type", "")
+        latitude = navigation_result.get("destination_lat")
+        longitude = navigation_result.get("destination_lng")
 
-            if "error" in parse_result:
-                raise BusinessException(code=400, message=f"语音解析失败: {parse_result['error']}")
+        if not destination:
+            raise BusinessException(code=400, message="无法从语音中解析出目的地，请再说一遍")
 
-            voice_text = parse_result.get("voice_text", "")
-            destination = parse_result.get("destination", "")
-            matched_type = parse_result.get("matched_type", "llm")
-            latitude = parse_result.get("latitude")
-            longitude = parse_result.get("longitude")
+        route_data = navigation_result.get("route", {})
+        weather_data = navigation_result.get("weather", "")
+        advice_data = navigation_result.get("advice", "")
 
-            if not destination:
-                raise BusinessException(code=400, message="无法从语音中解析出目的地，请再说一遍")
+        voice_log = VoiceLogCreate(
+            user_id=user_id,
+            audio_url=audio_file.filename,
+            asr_text=voice_text,
+            intent_json={
+                "destination": destination,
+                "matched_type": matched_type,
+                "origin": f"{origin_lng},{origin_lat}"
+            },
+            response_text=advice_data,
+            log_time=datetime.now()
+        )
+        await self.voice_log_service.create_log(voice_log)
 
-            origin = f"经度{origin_lng},纬度{origin_lat}"
-            
-            if latitude and longitude:
-                destination = destination + f"，经度{longitude}，纬度{latitude}"
-
-            navigation_result = await self.multi_agent_navigation.plan_travel(origin, destination)
-
-            route_data = navigation_result.get("route", {})
-            weather_data = navigation_result.get("weather", "")
-            advice_data = navigation_result.get("advice", "")
-
-            voice_log = VoiceLogCreate(
+        # 创建导航记录
+        record_id = None
+        if latitude and longitude:
+            record_data = NavigationRecordCreate(
                 user_id=user_id,
-                audio_url=audio_file.filename,
-                asr_text=voice_text,
-                intent_json={
-                    "destination": destination,
-                    "matched_type": matched_type,
-                    "origin": origin
-                },
-                response_text=advice_data,
-                log_time=datetime.now()
+                start_time=datetime.now(),
+                origin_lat=Decimal(origin_lat),
+                origin_lng=Decimal(origin_lng),
+                dest_lat=Decimal(latitude),
+                dest_lng=Decimal(longitude),
+                dest_name=destination,
+                polyline=route_data.get("polyline", ""),
+                status=1
             )
-            await self.voice_log_service.create_log(voice_log)
+            record = self.navigation_record_service.create_record(record_data)
+            record_id = record.record_id
+        
+        # 清理 route.origin 和 route.destination，去除"经度""纬度"字样
+        route_origin = route_data.get("origin", "")
+        route_destination = route_data.get("destination", "")
+        
+        # 使用正则表达式提取经纬度数值
+        origin_match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', route_origin)
+        if origin_match:
+            route_origin = f"{origin_match.group(1)},{origin_match.group(2)}"
+        
+        dest_match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', route_destination)
+        if dest_match:
+            route_destination = f"{dest_match.group(1)},{dest_match.group(2)}"
 
-            # 创建导航记录
-            record_id = None
-            if latitude and longitude:
-                record_data = NavigationRecordCreate(
-                    user_id=user_id,
-                    start_time=datetime.now(),
-                    origin_lat=Decimal(origin_lat),
-                    origin_lng=Decimal(origin_lng),
-                    dest_lat=Decimal(latitude),
-                    dest_lng=Decimal(longitude),
-                    dest_name=destination,
-                    polyline=route_data.get("polyline", ""),
-                    status=1
-                )
-                record = self.navigation_record_service.create_record(record_data)
-                record_id = record.record_id
-            
-            # 清理 route.origin 和 route.destination，去除"经度""纬度"字样
-            route_origin = route_data.get("origin", "")
-            route_destination = route_data.get("destination", "")
-            
-            # 使用正则表达式提取经纬度数值
-            import re
-            origin_match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', route_origin)
-            if origin_match:
-                route_origin = f"{origin_match.group(1)},{origin_match.group(2)}"
-            
-            dest_match = re.search(r'经度([0-9.]+)[,，]纬度([0-9.]+)', route_destination)
-            if dest_match:
-                route_destination = f"{dest_match.group(1)},{dest_match.group(2)}"
-
-            return VoiceNavigationResponse(
+        return VoiceNavigationResponse(
             status="success",
             voice_text=voice_text,
             destination=destination,
@@ -422,58 +443,54 @@ class NavigationService:
         origin_lng: str,
         origin_lat: str
     ) -> AsyncGenerator[str, None]:
+        # 延迟导入避免循环导入
+        from app.agent.workflow import execute_navigation_workflow_stream
+        
         try:
             yield self._format_sse_event("start", {"status": "开始处理语音导航请求..."})
 
-            if not self.destination_parse_agent or not self.multi_agent_navigation:
-                yield self._format_sse_event("error", {"error": "服务未正确初始化，缺少必要的Agent组件"})
-                return
-
-            parse_result = await self.destination_parse_agent.process_voice_input(
-                audio_file,
-                user_id=user_id
-            )
-
-            if "error" in parse_result:
-                yield self._format_sse_event("error", {"error": parse_result["error"]})
-                return
-
-            voice_text = parse_result.get("voice_text", "")
-            destination = parse_result.get("destination", "")
-            matched_type = parse_result.get("matched_type", "llm")
-            latitude = parse_result.get("latitude")
-            longitude = parse_result.get("longitude")
-
-            if not destination:
-                yield self._format_sse_event("error", {"error": "无法从语音中解析出目的地"})
-                return
-
-            origin = f"经度{origin_lng},纬度{origin_lat}"
-            agent_target = destination
-            if latitude and longitude:
-                agent_target = destination + f"，经度{longitude}，纬度{latitude}"
-
-            yield self._format_sse_event("destination", {
-                "destination": destination,
-                "voice_text": voice_text,
-                "matched_type": matched_type,
-            })
-
             route_data = {}
-            async for event in self._stream_navigation_events(origin, agent_target):
-                if event["event"] == "route":
+            destination = ""
+            voice_text = ""
+            matched_type = ""
+            latitude = None
+            longitude = None
+
+            async for event in execute_navigation_workflow_stream(
+                origin_lng=origin_lng,
+                origin_lat=origin_lat,
+                user_id=user_id,
+                audio_file=audio_file,
+                favorite_place_service=self.favorite_place_service
+            ):
+                if event["event"] == "destination":
+                    destination = event["data"].get("destination", "")
+                    voice_text = event["data"].get("voice_text", "")
+                    matched_type = event["data"].get("matched_type", "")
+                    latitude = event["data"].get("destination_lat")
+                    longitude = event["data"].get("destination_lng")
+                    yield self._format_sse_event("destination", event["data"])
+                elif event["event"] == "route":
                     route_data = event["data"]
                     yield self._format_sse_event("route", route_data)
                 elif event["event"] == "weather":
                     weather_data = event["data"]
-                    weather_data = json.loads(weather_data)
+                    if isinstance(weather_data, str):
+                        weather_data = {"weather_text": weather_data}
                     yield self._format_sse_event("weather", weather_data)
                 elif event["event"] == "advice":
-                    original_advice_str = event["data"] 
+                    original_advice_str = event["data"]
                     # 转换成字典（专门用来发给前端 SSE）
-                    parsed_advice_data = json.loads(original_advice_str)
+                    try:
+                        parsed_advice_data = json.loads(original_advice_str)
+                    except (json.JSONDecodeError, TypeError):
+                        parsed_advice_data = {"advice_text": original_advice_str}
                     yield self._format_sse_event("advice", parsed_advice_data)
 
+                    # 从工作流结果中获取目的地坐标
+                    latitude = route_data.get("destination_lat")
+                    longitude = route_data.get("destination_lng")
+                    
                     current_record_id = None
                     if latitude and longitude:
                         record_data = NavigationRecordCreate(
@@ -489,6 +506,7 @@ class NavigationService:
                         )
                         saved_record = self.navigation_record_service.create_record(record_data)
                         current_record_id = getattr(saved_record, "record_id", getattr(saved_record, "id", None))
+                    
                     voice_log = VoiceLogCreate(
                         user_id=user_id,
                         audio_url=audio_file.filename,
@@ -496,15 +514,15 @@ class NavigationService:
                         intent_json={
                             "destination": destination,
                             "matched_type": matched_type,
-                            "origin": origin
+                            "origin": f"{origin_lng},{origin_lat}"
                         },
                         response_text=original_advice_str,
                         log_time=datetime.now(),
                         record_id=current_record_id
                     )
-                    self.voice_log_service.create_log(voice_log)
-                yield self._format_sse_event("complete", {"status": "done"})
-                
+                    await self.voice_log_service.create_log(voice_log)
+                elif event["event"] == "complete":
+                    yield self._format_sse_event("complete", {"status": "done"})
 
         except Exception as e:
             yield self._format_sse_event("error", {"error": str(e)})

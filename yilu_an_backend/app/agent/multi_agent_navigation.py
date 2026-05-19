@@ -32,7 +32,7 @@
            │                      整合结果返回用户                              │
            └─────────────────────────────────────────────────────────────────┘
 """
-
+# 废弃，使用workflow.py
 import asyncio
 import re
 import json
@@ -729,8 +729,8 @@ async def plan_travel_parallel(origin: str, destination: str) -> Dict[str, Any]:
             messages=[],
             origin=origin,
             destination=destination,
-            route_result=route_result.get("route_result", {}),
-            weather_result=weather_result.get("weather_result", ""),
+            route_result=route_result,
+            weather_result=weather_result,
             final_advice=""
         )
 
