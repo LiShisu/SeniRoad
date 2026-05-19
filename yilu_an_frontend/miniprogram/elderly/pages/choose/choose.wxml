@@ -19,7 +19,7 @@
       </view>
       <text class="voice-hint">按住按钮开始说话...</text>
       <view class="speak-btn" bindtap="startVoice">
-        <image class="btn-icon" src="/assets/svg/microphone-icon.svg" mode="aspectFit" />
+        <!-- <image class="btn-icon" src="/assets/svg/microphone-icon.svg" mode="aspectFit" /> -->
         <!-- <text class="btn-text">按住说话</text> -->
         <button class="voice-btn" bindtouchstart="handleTouchStart"bindtouchend="handleTouchEnd">
 {{ isRecording ? '松开 导航' : '按住 说话' }}</button>
@@ -27,7 +27,7 @@
     </view>
 
     <view class="action-buttons">
-      <view class="action-btn orange" bindtap="goToPlaces">
+      <view class="action-btn green" bindtap="goToPlaces">
         <image class="btn-icon" src="/assets/svg/location-icon.svg" mode="aspectFit" />
         <text class="btn-text">常用地点一键选</text>
       </view>

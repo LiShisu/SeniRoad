@@ -56,10 +56,6 @@
           <text class="weather-label">湿度：</text>
           <text class="weather-value">{{weather.humidity}}</text>
         </view>
-        <view class="weather-row" wx:if="{{weather.air_quality}}">
-          <text class="weather-label">空气质量：</text>
-          <text class="weather-value">{{weather.air_quality}}</text>
-        </view>
       </view>
     </view>
 
@@ -68,7 +64,7 @@
       
       <view class="advice-section" wx:if="{{navigationAdvice.clothing_advice}}">
         <text class="advice-section-title">🧥 穿衣建议</text>
-        <text class="advice-section-content">{{navigationAdvice.clothing_advice}}</text>
+        <div class="advice-section-content">{{navigationAdvice.clothing_advice}}</div>
       </view>
 
       <view class="advice-section" wx:if="{{navigationAdvice.items_to_bring.length}}">
@@ -76,7 +72,7 @@
         <view class="advice-list">
           <view class="advice-list-item" wx:for="{{navigationAdvice.items_to_bring}}" wx:key="index">
             <text class="list-bullet">•</text>
-            <text class="list-content">{{item}}</text>
+            <div class="list-content">{{item}}</div>
           </view>
         </view>
       </view>
@@ -86,14 +82,14 @@
         <view class="advice-list">
           <view class="advice-list-item" wx:for="{{navigationAdvice.safety_reminders}}" wx:key="index">
             <text class="list-bullet">•</text>
-            <text class="list-content">{{item}}</text>
+            <div class="list-content">{{item}}</div>
           </view>
         </view>
       </view>
 
       <view class="advice-section" wx:if="{{navigationAdvice.best_time}}">
         <text class="advice-section-title">⏰ 最佳出行时段</text>
-        <text class="advice-section-content">{{navigationAdvice.best_time}}</text>
+        <div class="advice-section-content">{{navigationAdvice.best_time}}</div>
       </view>
 
       <view class="advice-section" wx:if="{{navigationAdvice.tips.length}}">
@@ -101,7 +97,7 @@
         <view class="advice-list">
           <view class="advice-list-item" wx:for="{{navigationAdvice.tips}}" wx:key="index">
             <text class="list-bullet">•</text>
-            <text class="list-content">{{item}}</text>
+            <div class="list-content">{{item}}</div>
           </view>
         </view>
       </view>
@@ -110,11 +106,11 @@
     <view class="action-buttons">
       <view class="action-btn primary" bindtap="startNavigate">
         <image class="btn-icon" src="/assets/svg/play-icon.svg" mode="aspectFit" />
-        <text class="btn-text">开始导航</text>
+        <div class="btn-text">开始导航</div>
       </view>
       <view class="action-btn secondary" bindtap="replan">
         <image class="btn-icon" src="/assets/svg/refresh-icon.svg" mode="aspectFit" />
-        <text class="btn-text">重新规划</text>
+        <div class="btn-text">重新规划</div>
       </view>
     </view>
   </view>

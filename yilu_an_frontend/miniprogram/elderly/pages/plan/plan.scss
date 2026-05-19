@@ -1,253 +1,656 @@
-/* elderly/pages/plan/plan.scss */
+/* elderly/pages/plan/plan.scss - 美化版本 */
 
 .container {
-  background-color: #FFFFFF;
+  background: linear-gradient(160deg, #E8F4FF 0%, #F0F8FF 100%); // 柔和的渐变背景
   min-height: 100vh;
+  padding-bottom: 60rpx;
+  position: relative;
+  overflow-x: hidden;
+  
+  // 背景装饰元素
+  &::before {
+    content: '';
+    position: absolute;
+    top: -100rpx;
+    right: -100rpx;
+    width: 300rpx;
+    height: 300rpx;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 140, 66, 0.1) 0%, rgba(255, 140, 66, 0) 70%);
+    z-index: 0;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -150rpx;
+    left: -100rpx;
+    width: 400rpx;
+    height: 400rpx;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(24, 144, 255, 0.08) 0%, rgba(24, 144, 255, 0) 70%);
+    z-index: 0;
+  }
 }
 
 .header {
   display: flex;
   align-items: center;
-  padding: 32rpx 40rpx;
+  padding: 50rpx 40rpx 30rpx;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFF 100%);
+  border-bottom-left-radius: 40rpx;
+  border-bottom-right-radius: 40rpx;
+  box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.08);
+  position: relative;
+  z-index: 10;
+  margin-bottom: 20rpx;
+  
+  // 标题装饰
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 6rpx;
+    background: linear-gradient(90deg, transparent, #FF8C42, transparent);
+    border-radius: 3rpx;
+  }
 
   .back-button {
-    width: 80rpx;
-    height: 80rpx;
+    width: 100rpx;
+    height: 100rpx;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 48rpx;
-    color: #333333;
+    font-size: 52rpx;
+    color: #FF8C42;
     border-radius: 50%;
-    background-color: #F5F5F5;
+    background: linear-gradient(135deg, #FFF4E8 0%, #FFE8D6 100%);
+    box-shadow: 0 6rpx 15rpx rgba(255, 140, 66, 0.25);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    
+    // 按钮内部装饰
+    &::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 140, 66, 0.2) 0%, transparent 70%);
+      transform: scale(0);
+      transition: transform 0.3s ease;
+    }
+    
+    &:active {
+      transform: scale(0.95);
+      box-shadow: 0 4rpx 10rpx rgba(255, 140, 66, 0.3);
+      
+      &::before {
+        transform: scale(1);
+      }
+    }
+  }
+  
+  .header-title {
+    flex: 1;
+    text-align: center;
+    font-size: 48rpx;
+    font-weight: 700;
+    color: #1890FF;
+    text-shadow: 0 2rpx 4rpx rgba(24, 144, 255, 0.2);
+    letter-spacing: 2rpx;
   }
 }
 
 .content {
-  padding: 60rpx 32rpx;
+  padding: 20rpx 32rpx 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
 .success-icon {
-  width: 200rpx;
-  height: 200rpx;
-  margin-bottom: 32rpx;
-  font-size: 150rpx;
+  width: 280rpx;
+  height: 280rpx;
+  margin-bottom: 50rpx;
+  font-size: 200rpx;
+  border-radius: 32rpx;
+  background: linear-gradient(135deg, #FFF4E8 0%, #FFE8D6 100%);
+  box-shadow: 0 12rpx 40rpx rgba(255, 140, 66, 0.3);
+  display: flex;
   align-items: center;
   justify-content: center;
-  // background-color: #333333;
+  color: #FF8C42;
+  position: relative;
+  overflow: hidden;
+  transform: translateY(0);
+  animation: float 3s ease-in-out infinite;
+  
+  // 图标内部装饰
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 140, 66, 0.3) 0%, transparent 70%);
+    transform: rotate(45deg);
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10rpx); }
+  }
 }
 
 .title {
-  font-size: 44rpx;
-  font-weight: 600;
-  color: #FF8C42;
-  margin-bottom: 40rpx;
+  font-size: 60rpx; // 标题更大
+  font-weight: 800;
+  color: #FF6B35;
+  margin-bottom: 70rpx;
+  text-align: center;
+  text-shadow: 0 4rpx 8rpx rgba(255, 107, 53, 0.3);
+  background: linear-gradient(45deg, #FF6B35, #FF8C42);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+  padding: 0 20rpx;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -15rpx;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80rpx;
+    height: 8rpx;
+    background: #FF8C42;
+    border-radius: 4rpx;
+  }
 }
 
+// 路线卡片 - 主要信息
 .route-card {
   width: 100%;
-  background-color: #F8F8F8;
-  border-radius: 24rpx;
-  padding: 32rpx;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFF 100%);
+  border-radius: 40rpx;
+  padding: 45rpx;
   margin-bottom: 40rpx;
-}
-
-.route-item {
-  display: flex;
-  align-items: center;
-  padding: 20rpx 0;
-  border-bottom: 1rpx solid #EEEEEE;
-
-  &:last-child {
-    border-bottom: none;
+  box-shadow: 0 12rpx 40rpx rgba(0, 0, 0, 0.08);
+  border: 2rpx solid #E6F7FF;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5rpx);
+    box-shadow: 0 15rpx 50rpx rgba(0, 0, 0, 0.12);
   }
 
-  .item-icon {
-    width: 48rpx;
-    height: 48rpx;
-    margin-right: 20rpx;
+  .card-title {
+    font-size: 42rpx;
+    font-weight: 700;
+    color: #1890FF;
+    margin-bottom: 30rpx;
+    text-align: center;
+    position: relative;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -10rpx;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120rpx;
+      height: 4rpx;
+      background: linear-gradient(90deg, transparent, #1890FF, transparent);
+      border-radius: 2rpx;
+    }
   }
 
-  .item-label {
-    font-size: 28rpx;
-    color: #999999;
-    width: 120rpx;
-  }
-
-  .item-value {
-    font-size: 28rpx;
-    color: #333333;
-    flex: 1;
-  }
-}
-
-.weather-card {
-  width: 100%;
-  background: linear-gradient(135deg, #E8F4FD 0%, #D6EBFF 100%);
-  border-radius: 24rpx;
-  padding: 28rpx 32rpx;
-  margin-bottom: 24rpx;
-  border: 1rpx solid #B8D4F5;
-
-  .weather-header {
+  .route-item {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20rpx;
-
-    .weather-title {
-      font-size: 32rpx;
-      font-weight: 600;
-      color: #2A7BBE;
+    padding: 36rpx 0;
+    border-bottom: 2rpx dashed #E6F7FF;
+    transition: background-color 0.3s ease;
+    
+    &:hover {
+      background-color: rgba(24, 144, 255, 0.05);
+      border-radius: 20rpx;
     }
 
-    .weather-date {
-      font-size: 24rpx;
-      color: #5A9DC8;
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
     }
-  }
 
-  .weather-detail {
-    display: flex;
-    flex-direction: column;
-    gap: 12rpx;
-    margin-bottom: 16rpx;
-
-    .weather-row {
+    .item-icon {
+      width: 70rpx;
+      height: 70rpx;
+      margin-right: 36rpx;
+      background: linear-gradient(135deg, #FFF4E8 0%, #FFE8D6 100%);
+      padding: 14rpx;
+      border-radius: 20rpx;
       display: flex;
       align-items: center;
-
-      .weather-label {
-        font-size: 26rpx;
-        color: #5A9DC8;
-        width: 140rpx;
-      }
-
-      .weather-value {
-        font-size: 26rpx;
-        color: #333333;
-        flex: 1;
+      justify-content: center;
+      box-shadow: 0 4rpx 12rpx rgba(255, 140, 66, 0.2);
+      flex-shrink: 0;
+      
+      .icon-inner {
+        font-size: 40rpx;
+        color: #FF8C42;
       }
     }
-  }
 
-  .weather-tip {
-    background-color: rgba(255, 255, 255, 0.6);
-    border-radius: 12rpx;
-    padding: 16rpx;
-    margin-top: 8rpx;
+    .item-label {
+      font-size: 36rpx; // 标签更大
+      color: #4096FF;
+      width: 150rpx;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
 
-    .tip-text {
-      font-size: 24rpx;
-      color: #444444;
-      line-height: 1.6;
+    .item-value {
+      font-size: 40rpx; // 数值更大
+      color: #1890FF;
+      flex: 1;
+      font-weight: 700;
+      word-break: break-all;
+      line-height: 1.5;
+      
+      .sub-value {
+        display: block;
+        font-size: 30rpx;
+        color: #8C8C8C;
+        font-weight: 400;
+        margin-top: 8rpx;
+      }
     }
   }
 }
 
+// 天气卡片 - 温馨提示
+.weather-card {
+  width: 100%;
+  background: linear-gradient(135deg, #E8F7FF 0%, #D4F0FF 100%);
+  border-radius: 40rpx;
+  padding: 40rpx;
+  margin-bottom: 40rpx;
+  border: 3rpx solid #B5E0FF;
+  box-shadow: 0 8rpx 30rpx rgba(24, 144, 255, 0.15);
+  position: relative;
+  overflow: hidden;
+
+  // 卡片装饰
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
+    transform: rotate(30deg);
+  }
+
+  .weather-title {
+    font-size: 40rpx;
+    font-weight: 800;
+    color: #1890FF;
+    margin-bottom: 30rpx;
+    display: block;
+    text-align: center;
+    position: relative;
+    
+    &::after {
+      content: '🌤️';
+      position: absolute;
+      right: -40rpx;
+      top: -10rpx;
+      font-size: 40rpx;
+      animation: weather-icon 5s infinite alternate;
+    }
+    
+    @keyframes weather-icon {
+      0% { transform: translateY(0) rotate(0deg); }
+      100% { transform: translateY(-5rpx) rotate(5deg); }
+    }
+  }
+
+  .weather-content {
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 28rpx;
+    padding: 24rpx;
+    backdrop-filter: blur(10rpx);
+  }
+
+  .weather-row {
+    display: flex;
+    padding: 20rpx 0;
+    align-items: center;
+    
+    &:not(:last-child) {
+      border-bottom: 2rpx solid #E6F7FF;
+    }
+
+    .weather-icon {
+      width: 50rpx;
+      height: 50rpx;
+      margin-right: 20rpx;
+      font-size: 36rpx;
+      color: #1890FF;
+      flex-shrink: 0;
+    }
+
+    .weather-label {
+      font-size: 34rpx;
+      color: #4096FF;
+      width: 140rpx;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .weather-value {
+      font-size: 34rpx;
+      color: #1890FF;
+      flex: 1;
+      font-weight: 700;
+      
+      &.warning {
+        color: #FA8C16;
+        animation: pulse 2s infinite;
+      }
+      
+      @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+      }
+    }
+  }
+}
+
+// 出行建议卡片 - 重点关怀
 .advice-card {
   width: 100%;
-  background-color: #FFF9F0;
-  border-radius: 24rpx;
-  padding: 28rpx 32rpx;
-  margin-bottom: 40rpx;
-  border: 1rpx solid #FFE0B2;
+  background: linear-gradient(135deg, #FFF9F0 0%, #FFE8D6 100%);
+  border-radius: 40rpx;
+  padding: 45rpx;
+  margin-bottom: 60rpx;
+  border: 3rpx solid #FFD590;
+  box-shadow: 0 8rpx 30rpx rgba(250, 140, 22, 0.2);
+  position: relative;
+
+  // 卡片装饰
+  &::before {
+    content: '💡';
+    position: absolute;
+    top: -30rpx;
+    right: 30rpx;
+    font-size: 50rpx;
+    color: #FF8C42;
+    animation: float 4s ease-in-out infinite;
+  }
 
   .advice-main-title {
-    font-size: 32rpx;
-    font-weight: 600;
-    color: #E67E22;
+    font-size: 42rpx;
+    font-weight: 800;
+    color: #FA8C16;
     display: block;
-    margin-bottom: 24rpx;
+    margin-bottom: 36rpx;
+    text-align: center;
+    position: relative;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -12rpx;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 140rpx;
+      height: 6rpx;
+      background: linear-gradient(90deg, transparent, #FF8C42, transparent);
+      border-radius: 3rpx;
+    }
   }
 
   .advice-section {
-    margin-bottom: 24rpx;
-    padding-bottom: 24rpx;
-    border-bottom: 1rpx dashed #FFD09A;
-
-    &:last-child {
-      margin-bottom: 0;
-      padding-bottom: 0;
-      border-bottom: none;
+    margin-bottom: 36rpx;
+    background-color: rgba(255, 255, 255, 0.85);
+    border-radius: 30rpx;
+    padding: 30rpx;
+    box-shadow: 0 4rpx 15rpx rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+    
+    &:hover {
+      transform: translateX(5rpx);
     }
 
-    .advice-section-header {
+    .advice-section-title {
+      font-size: 36rpx;
+      font-weight: 700;
+      color: #D46B08;
+      margin-bottom: 20rpx;
+      display: block;
       display: flex;
       align-items: center;
-      margin-bottom: 12rpx;
-
-      .advice-emoji {
-        font-size: 32rpx;
+      
+      &::before {
+        content: '★';
         margin-right: 12rpx;
-      }
-
-      .advice-section-title {
-        font-size: 28rpx;
-        font-weight: 600;
-        color: #D35400;
+        color: #FF8C42;
+        font-size: 32rpx;
       }
     }
 
     .advice-section-content {
-      padding-left: 48rpx;
+      font-size: 32rpx;
+      color: #595959;
+      line-height: 2.6;
+      margin-left: 0;
+      background-color: #FFFFFF;
+      padding: 28rpx;
+      border-radius: 24rpx;
+      border-left: 8rpx solid #FF8C42;
+      box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+      
+      strong {
+        color: #FF6B35;
+        font-weight: 700;
+      }
+    }
 
-      .advice-text {
-        font-size: 26rpx;
-        color: #555555;
-        line-height: 1.7;
+    .advice-list {
+      margin-left: 0;
+      background-color: #FFFFFF;
+      padding: 28rpx;
+      border-radius: 24rpx;
+      box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+      
+      .advice-list-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 20rpx;
+        padding-left: 12rpx;
+        border-left: 4rpx solid #FFD590;
+        padding-left: 24rpx;
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+        
+        .list-bullet {
+          font-size: 40rpx;
+          margin-top: 8rpx;
+          margin-right: 16rpx;
+          color: #FF8C42;
+          min-width: 40rpx;
+        }
+        
+        .list-content {
+          font-size: 32rpx;
+          color: #595959;
+          flex: 1;
+          line-height: 1.8;
+          
+          strong {
+            color: #FA8C16;
+            font-weight: 600;
+          }
+        }
       }
     }
   }
 }
 
+// 操作按钮 - 更大更醒目
 .action-buttons {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 24rpx;
+  gap: 40rpx;
+  padding: 0 20rpx;
+  margin-top: 20rpx;
 }
 
 .action-btn {
   width: 100%;
-  height: 100rpx;
-  border-radius: 50rpx;
+  height: 130rpx; // 按钮更高
+  border-radius: 65rpx; // 更圆润
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16rpx;
+  gap: 25rpx;
+  font-size: 40rpx; // 字体更大
+  font-weight: 700;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8rpx 25rpx rgba(0, 0, 0, 0.15);
+  transition: all 0.4s ease;
+  
+  // 按钮背景动画
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: inherit;
+    opacity: 0.2;
+    z-index: 1;
+  }
 
   &.primary {
-    background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
+    background: linear-gradient(135deg, #FF7722 0%, #FF5500 100%);
+    box-shadow: 0 10rpx 30rpx rgba(255, 85, 0, 0.35);
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+      transform: scale(0);
+      transition: transform 0.3s ease;
+      z-index: 1;
+    }
+    
+    &:active {
+      transform: translateY(3rpx);
+      box-shadow: 0 5rpx 15rpx rgba(255, 85, 0, 0.4);
+      
+      &::after {
+        transform: scale(1);
+      }
+    }
 
     .btn-icon {
-      width: 40rpx;
-      height: 40rpx;
+      width: 52rpx;
+      height: 52rpx;
       filter: brightness(0) invert(1);
+      z-index: 2;
     }
 
     .btn-text {
-      font-size: 32rpx;
-      font-weight: 600;
       color: #FFFFFF;
+      text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+      z-index: 2;
+    }
+    
+    // 悬停动画
+    &:hover {
+      transform: translateY(-3rpx);
+      box-shadow: 0 15rpx 35rpx rgba(255, 85, 0, 0.4);
     }
   }
 
   &.secondary {
-    background-color: #CCCCCC;
+    background: linear-gradient(135deg, #E0E0E0 0%, #F0F0F0 100%);
+    border: 3rpx solid #CCCCCC;
+    
+    &:active {
+      transform: translateY(3rpx);
+      box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+    }
 
     .btn-icon {
-      width: 40rpx;
-      height: 40rpx;
+      width: 52rpx;
+      height: 52rpx;
+      color: #666666;
+      z-index: 2;
     }
 
     .btn-text {
-      font-size: 32rpx;
-      font-weight: 600;
       color: #666666;
+      z-index: 2;
+    }
+    
+    &:hover {
+      transform: translateY(-3rpx);
+      background: linear-gradient(135deg, #D6D6D6 0%, #E8E8E8 100%);
     }
   }
+  
+  // 通用悬停效果
+  &:hover {
+    transform: translateY(-5rpx);
+  }
+}
+
+// 响应式优化
+@media (max-width: 375px) {
+  .container {
+    padding-bottom: 80rpx;
+  }
+  
+  .header {
+    padding: 40rpx 30rpx 25rpx;
+  }
+  
+  .route-card, .weather-card, .advice-card {
+    padding: 35rpx 25rpx;
+  }
+  
+  .action-btn {
+    height: 120rpx;
+    font-size: 36rpx;
+  }
+}
+
+// 动画效果
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }

@@ -383,7 +383,7 @@ class NavigationService:
             response_text=advice_data,
             log_time=datetime.now()
         )
-        await self.voice_log_service.create_log(voice_log)
+        self.voice_log_service.create_log(voice_log)
 
         # 创建导航记录
         record_id = None
@@ -520,7 +520,7 @@ class NavigationService:
                         log_time=datetime.now(),
                         record_id=current_record_id
                     )
-                    await self.voice_log_service.create_log(voice_log)
+                    self.voice_log_service.create_log(voice_log)
                 elif event["event"] == "complete":
                     yield self._format_sse_event("complete", {"status": "done"})
 

@@ -1,102 +1,207 @@
 /* elderly/pages/choose/choose.scss */
 
 .container {
-  background-color: #FFFFFF;
-  // min-height: 100vh;
+  background: linear-gradient(180deg, #F8F9FF 0%, #FFFFFF 100%);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  
+  // 背景装饰元素
+  &::before {
+    content: '';
+    position: absolute;
+    top: -100rpx;
+    right: -100rpx;
+    width: 300rpx;
+    height: 300rpx;
+    background: radial-gradient(circle, rgba(255, 140, 66, 0.1) 0%, rgba(255, 140, 66, 0) 70%);
+    border-radius: 50%;
+    z-index: 0;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -150rpx;
+    left: -100rpx;
+    width: 400rpx;
+    height: 400rpx;
+    background: radial-gradient(circle, rgba(75, 138, 255, 0.1) 0%, rgba(75, 138, 255, 0) 70%);
+    border-radius: 50%;
+    z-index: 0;
+  }
 }
 
 .header {
   display: flex;
   align-items: center;
-  padding: 32rpx 40rpx;
+  padding: 40rpx 40rpx 20rpx;
+  position: relative;
+  z-index: 10;
 
   .back-button {
-    width: 80rpx;
-    height: 80rpx;
+    width: 88rpx;
+    height: 88rpx;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 48rpx;
-    color: #333333;
+    font-size: 44rpx;
+    color: #FF8C42;
     border-radius: 50%;
-    background-color: #F5F5F5;
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.15) 0%, rgba(255, 140, 66, 0.05) 100%);
+    box-shadow: 0 4rpx 12rpx rgba(255, 140, 66, 0.15);
+    transition: all 0.3s ease;
+    
+    &:active {
+      transform: scale(0.95);
+      box-shadow: 0 2rpx 8rpx rgba(255, 140, 66, 0.2);
+    }
   }
 }
 
 .content {
-  padding: 40rpx 32rpx;
+  padding: 32rpx 32rpx 60rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
 .title-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 60rpx;
+  margin-bottom: 50rpx;
+  text-align: center;
+  max-width: 90%;
 
   .main-title {
-    font-size: 44rpx;
-    font-weight: 600;
-    color: #333333;
-    margin-bottom: 24rpx;
+    font-size: 48rpx;
+    font-weight: 700;
+    color: #2D3748;
+    margin-bottom: 20rpx;
+    line-height: 1.4;
+    text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.05);
   }
 
   .hint-text {
-    font-size: 28rpx;
-    color: #999999;
-    margin-bottom: 8rpx;
+    font-size: 30rpx;
+    color: #667085;
+    margin-bottom: 12rpx;
+    font-weight: 400;
+    opacity: 0.9;
   }
 }
 
 .voice-section {
   width: 100%;
-  background-color: #FFF9E6;
-  border-radius: 32rpx;
-  padding: 60rpx 40rpx;
+  background: linear-gradient(145deg, #FFF9E6 0%, #FFFFFF 100%);
+  border-radius: 40rpx;
+  padding: 70rpx 40rpx 50rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 40rpx;
+  margin-bottom: 50rpx;
+  box-shadow: 0 12rpx 30rpx rgba(255, 140, 66, 0.15);
+  position: relative;
+  overflow: hidden;
+  border: 2rpx solid rgba(255, 140, 66, 0.2);
+  
+  // 装饰性波纹
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 140, 66, 0.08) 0%, transparent 70%);
+    transform: rotate(30deg);
+    z-index: 0;
+  }
 
   .microphone-icon {
-    width: 160rpx;
-    height: 160rpx;
-    margin-bottom: 24rpx;
+    width: 180rpx;
+    height: 180rpx;
+    margin-bottom: 28rpx;
+    background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10rpx 25rpx rgba(255, 107, 53, 0.3);
+    position: relative;
+    z-index: 2;
+    animation: pulse 2s infinite;
 
     image {
-      width: 100%;
-      height: 100%;
+      width: 90rpx;
+      height: 90rpx;
+      filter: brightness(0) invert(1);
     }
   }
 
   .voice-hint {
-    font-size: 28rpx;
-    color: #999999;
-    margin-bottom: 40rpx;
+    font-size: 32rpx;
+    color: #FF8C42;
+    font-weight: 500;
+    margin-bottom: 45rpx;
+    text-align: center;
+    line-height: 1.5;
+    z-index: 2;
   }
 
   .speak-btn {
     width: 100%;
-    height: 100rpx;
-    background-color: #FFFFFF;
-    border: 4rpx solid #FF8C42;
-    border-radius: 50rpx;
+    height: 110rpx;
+    background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
+    border-radius: 60rpx;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 16rpx;
-
-    .btn-icon {
-      width: 40rpx;
-      height: 40rpx;
+    gap: 20rpx;
+    box-shadow: 0 8rpx 20rpx rgba(255, 107, 53, 0.4);
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+    transform: scale(1);
+    
+    &:active {
+      transform: scale(0.98);
+      box-shadow: 0 6rpx 15rpx rgba(255, 107, 53, 0.5);
     }
-
-    .btn-text {
-      font-size: 32rpx;
-      font-weight: 600;
-      color: #FF8C42;
+    
+    .voice-btn {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36rpx;
+      font-weight: 700;
+      color: white;
+      position: relative;
+      z-index: 3;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 60rpx;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      
+      &:active::after {
+        opacity: 1;
+      }
     }
   }
 }
@@ -105,47 +210,134 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 24rpx;
+  gap: 32rpx;
+  max-width: 600rpx;
+  margin: 0 auto;
 }
 
 .action-btn {
   width: 100%;
-  height: 100rpx;
-  border-radius: 50rpx;
+  height: 110rpx;
+  border-radius: 60rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16rpx;
+  gap: 24rpx;
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  transform: translateY(0);
+  position: relative;
+  overflow: hidden;
+  
+  &:active {
+    transform: translateY(4rpx);
+    box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
+  }
+  
+  // 按钮内部装饰
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+    transform: rotate(45deg);
+    transition: all 0.8s ease;
+    opacity: 0;
+  }
+  
+  &:active::before {
+    opacity: 1;
+    transform: rotate(45deg) translateX(100%);
+  }
 
-  &.orange {
-    background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
-
+  &.green {
+    background: linear-gradient(135deg, #4CAF50 0%, #43A047 100%);
+    
     .btn-icon {
-      width: 40rpx;
-      height: 40rpx;
+      width: 48rpx;
+      height: 48rpx;
       filter: brightness(0) invert(1);
+      animation: float 3s ease-in-out infinite;
     }
 
     .btn-text {
-      font-size: 32rpx;
-      font-weight: 600;
+      font-size: 36rpx;
+      font-weight: 700;
       color: #FFFFFF;
+      text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
     }
   }
 
   &.blue {
     background: linear-gradient(135deg, #4B8AFF 0%, #3366FF 100%);
-
+    
     .btn-icon {
-      width: 40rpx;
-      height: 40rpx;
+      width: 48rpx;
+      height: 48rpx;
       filter: brightness(0) invert(1);
+      animation: float 3s ease-in-out infinite 0.5s;
     }
 
     .btn-text {
-      font-size: 32rpx;
-      font-weight: 600;
+      font-size: 36rpx;
+      font-weight: 700;
       color: #FFFFFF;
+      text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
     }
   }
+}
+
+// 动画效果
+@keyframes pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 140, 66, 0.4); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 15rpx rgba(255, 140, 66, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 140, 66, 0); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8rpx); }
+}
+
+// 响应式调整
+@media (max-width: 375px) {
+  .voice-section {
+    padding: 60rpx 30rpx 40rpx;
+    
+    .microphone-icon {
+      width: 160rpx;
+      height: 160rpx;
+    }
+    
+    .voice-hint {
+      font-size: 28rpx;
+    }
+  }
+  
+  .action-btn {
+    height: 100rpx;
+  }
+}
+
+// 录音状态样式
+.recording-state {
+  .microphone-icon {
+    animation: recording-pulse 1.5s infinite;
+    background: linear-gradient(135deg, #FF4D4F 0%, #FF7875 100%);
+    box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.4);
+  }
+  
+  .speak-btn {
+    background: linear-gradient(135deg, #FF4D4F 0%, #FF7875 100%);
+    box-shadow: 0 8rpx 20rpx rgba(255, 77, 79, 0.4);
+  }
+}
+
+@keyframes recording-pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.4); }
+  70% { transform: scale(1.03); box-shadow: 0 0 0 12rpx rgba(255, 77, 79, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 79, 0); }
 }
