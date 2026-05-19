@@ -2,6 +2,7 @@ from langchain_openai import ChatOpenAI
 from dashscope.audio.tts_v2 import SpeechSynthesizer
 from dashscope.audio.asr import Recognition
 import dashscope
+import os
 from app.config import settings
 
 # 初始化 DashScope 配置
@@ -28,19 +29,23 @@ def create_tts_synthesizer():
     )
     
 # ASR Recognition (使用 MultiModalConversation API)
-def call_asr(audio_data_uri):
+def call_asr(audio_file_path):
     """
     使用 DashScope Qwen3-ASR-Flash 模型进行语音识别
     
     参数:
-        audio_data_uri: Base64 编码的音频数据 URI，格式为 data:audio/wav;base64,...
+        audio_file_path: 本地音频文件路径，如 "C:/audio/test.wav"
     
     返回:
         ASR 识别结果
     """
+    if not os.path.exists(audio_file_path):
+        raise FileNotFoundError(f"音频文件不存在: {audio_file_path}")
+    
+    audio_uri = f"file://{audio_file_path}"
     return dashscope.MultiModalConversation.call(
         model=settings.DASHSCOPE_ASR_MODEL,
-        messages=[{"role": "user", "content": [{"audio": audio_data_uri}]}],
+        messages=[{"role": "user", "content": [{"audio": audio_uri}]}],
         result_format="message"
     )
 

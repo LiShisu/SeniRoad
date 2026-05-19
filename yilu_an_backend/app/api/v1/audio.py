@@ -1,14 +1,13 @@
-from fastapi import APIRouter, Depends, status, UploadFile, File
-from app.agent.tools.speech_to_text import process_speech_to_text
-from app.agent.tools.text_to_speech import process_text_to_speech
+from fastapi import APIRouter, Depends, status, UploadFile, File, Response
+# from app.agent.tools.speech_to_text import process_speech_to_text
+# from app.agent.tools.text_to_speech import process_text_to_speech
 # from app.schemas.speech import TextToSpeechRequest
-from typing import Dict
-import base64
-import os
+# from typing import Dict
+# import base64
+# import os
 from app.schemas.base import Result
 from app.schemas.speech import (
     SpeechSynthesisRequest,
-    SpeechSynthesisResponse,
     SpeechRecognitionResponse
 )
 from app.services.speech import SpeechService
@@ -39,8 +38,7 @@ async def create_speech_recognition(
 # 2. 文本转语音 (原 /text-to-speech)
 @router.post(
     "/tts", 
-    response_model=Result[SpeechSynthesisResponse], 
-    status_code=status.HTTP_201_CREATED, 
+    status_code=status.HTTP_200_OK, 
     tags=["语音服务"]
 )
 async def create_speech_synthesis(
@@ -50,7 +48,13 @@ async def create_speech_synthesis(
 ):
     """
     创建语音合成 (TTS)
-    - 接收文本内容，返回 Base64 编码的音频流数据。
+    - 接收文本内容，直接返回二进制音频流数据。
     """
-    data = await speech_service.synthesize_speech(request.text)
-    return Result(code=200, message="语音合成成功", data=data)
+    audio_data = await speech_service.synthesize_speech(request.text)
+    return Response(
+        content=audio_data.audio_data,
+        media_type=audio_data.audio_type,
+        headers={
+            "Content-Disposition": "attachment; filename=speech.mp3"
+        }
+    )

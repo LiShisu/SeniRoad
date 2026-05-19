@@ -1,9 +1,10 @@
 import { favoritePlacesApi } from '../../../api/favorite-places';
 import type { FavoritePlace } from '../../../api/favorite-places';
 import { navigationApi, AddressNavigationResponse, NavigationStep } from '../../../api/navigation';
-import { speechApi } from '../../../api/speech';
 import { locationApi } from '../../../api/location';
 import { getPlace, savePlace, getRoute, saveRoute } from '../../storage';
+import { getLocation } from '../../../utils/geo';
+import { playSpeech } from '../../../utils/speech-player';
 
 interface CachedRouteData {
   route: AddressNavigationResponse['route'];
@@ -37,21 +38,22 @@ Page({
     stepsCount: 0,
     isDeviating: false,
     isRerouting: false,
-    isVoiceMode: false
+    isVoiceMode: false,
+
+    volume: 0.8,
   },
 
   cachedRoute: null as CachedRouteData | null,
-  locationWatchId: 0,
+  locationWatchTimer: null as ReturnType<typeof setInterval> | null,
   audioContext: null as any,
   lastLocation: null as { latitude: number; longitude: number } | null,
   deviationThreshold: 50,
-  rerouteDebounceTimer: 0,
+  rerouteDebounceTimer: null as ReturnType<typeof setTimeout> | null,
   mapCtx: null as WechatMiniprogram.MapContext | null,
   isUnloading: false,
 
   onLoad(options: any) {
     this.clearAudioCache();
-    const placeId = options?.place_id;
     if (options?.voiceMode === '1') {
       this.setData({ isVoiceMode: true });
       this.loadVoiceRoute(); // 调用语音导航专属加载器
@@ -63,6 +65,7 @@ Page({
 
   onReady() {
     this.mapCtx = wx.createMapContext('navMap');
+    this.initAudioContext();
   },
 
   onUnload() {
@@ -75,6 +78,11 @@ Page({
       this.audioContext.destroy();
     }
     this.audioContext = wx.createInnerAudioContext();
+    this.audioContext.useWebAudioImplementation = true;
+    this.audioContext.volume = this.data.volume;
+    this.audioContext.onPlay(() => {
+      console.log('语音播放开始');
+    });
     this.audioContext.onError((err: any) => {
       console.error('音频播放失败:', err);
     });
@@ -89,6 +97,12 @@ Page({
       this.audioContext.destroy();
       this.audioContext = null;
     }
+  },
+
+  // TODO: 完善调整音量的功能
+  changeVolume(volume: number) {
+    this.audioContext.volume = volume;
+    this.setData({ volume });
   },
 
   async loadPlaceAndRoute() {
@@ -119,9 +133,7 @@ Page({
         return;
       }
 
-      const res = await wx.getLocation({
-        type: 'gcj02'
-      });
+      const res = await getLocation();
 
       const allPoints = this.parsePolylineArray(route.polyline);
 
@@ -161,7 +173,7 @@ Page({
       const { route, destInfo } = voiceNavData;
       this.setData({ placeName: destInfo.destination });
       // 2. 获取当前位置作为起点
-      const res = await wx.getLocation({ type: 'gcj02' });
+      const res = await getLocation();
       const allPoints = this.parsePolylineArray(route.polyline);
       // 3. 构建缓存路由数据结构（对齐原本的 this.cachedRoute）
       this.cachedRoute = {
@@ -266,15 +278,15 @@ Page({
   },
 
   startLocationWatch() {
-    this.locationWatchId = setInterval(() => {
+    this.locationWatchTimer = setInterval(() => {
       this.updateCurrentPosition();
     }, 3000);
   },
 
   stopLocationWatch() {
-    if (this.locationWatchId) {
-      clearInterval(this.locationWatchId);
-      this.locationWatchId = 0;
+    if (this.locationWatchTimer) {
+      clearInterval(this.locationWatchTimer);
+      this.locationWatchTimer = null;
     }
   },
 
@@ -282,7 +294,7 @@ Page({
     if (!this.cachedRoute || this.isUnloading) return;
 
     try {
-      const res = await wx.getLocation({ type: 'gcj02' });
+      const res = await getLocation();
       const { route, allPoints, traveledPoints, currentStepIndex } = this.cachedRoute;
 
       if (this.lastLocation) {
@@ -429,7 +441,7 @@ Page({
 
   //   this.setData({ isRerouting: true });
   //   try {
-  //     const res = await wx.getLocation({ type: 'gcj02' });
+  //     const res = await getLocation();
 
   //     let place: FavoritePlace | null = getPlace(this.data.placeId) as FavoritePlace;
   //     if (!place) {
@@ -497,7 +509,7 @@ Page({
     if (!this.cachedRoute || this.data.isRerouting || this.isUnloading) return;
     this.setData({ isRerouting: true });
     try {
-      const res = await wx.getLocation({ type: 'gcj02' });
+      const res = await getLocation();
       let routeRes;
 
       if (this.data.isVoiceMode) {
@@ -567,39 +579,10 @@ Page({
     }
   },
   speakInstruction(text: string) {
-    if (!this.audioContext) {
+    playSpeech(text, this.audioContext, () => {
       this.initAudioContext();
-    }
-
-    const speakText = text.replace(/<[^>]+>/g, '');
-    if (!speakText) return;
-
-    speechApi.textToSpeech({ text: speakText })
-      .then((res) => {
-        if (res && res.audio_data) {
-          const fs = wx.getFileSystemManager();
-          // 每次写入都会自动覆盖上一条
-          const filePath = `${wx.env.USER_DATA_PATH}/current_nav_voice.mp3`;
-          
-          fs.writeFile({
-            filePath: filePath,
-            data: res.audio_data,
-            encoding: 'base64',
-            success: () => {
-              console.log('语音文件缓存/覆盖成功:', filePath);
-              this.audioContext.stop();
-              this.audioContext.src = filePath;
-              this.audioContext.play();
-            },
-            fail: (err) => {
-              console.error('写入音频文件失败:', err);
-            }
-          });
-        }
-      })
-      .catch((err) => {
-        console.error('TTS请求失败:', err);
-      });
+      return this.audioContext!;
+    });
   },
 
   fallbackSpeak(text: string) {

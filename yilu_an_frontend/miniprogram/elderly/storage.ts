@@ -1,3 +1,4 @@
+// TODO：待与utils/storage.ts合并
 export function getStorageSync<T>(key: string): T | null {
   try {
     const value = wx.getStorageSync(key);

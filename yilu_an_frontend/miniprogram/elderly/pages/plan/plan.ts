@@ -2,7 +2,8 @@ import { favoritePlacesApi } from '../../../api/favorite-places';
 import type { FavoritePlace } from '../../../api/favorite-places';
 import { navigationApi, AddressNavigationResponse, SSEPlanResponse } from '../../../api/navigation';
 import { getPlace, savePlace, getRoute, saveRoute, getNavigationExtra, saveNavigationExtra, type NavigationAdvice, type WeatherInfo } from '../../storage';
-import { API_BASE_URL } from '../../../utils/config';
+import { getLocation } from '../../../utils/geo';
+
 function removeStorageSync(key: string) {
   try {
     wx.removeStorageSync(key);
@@ -35,7 +36,9 @@ Page({
     navigationAdvice: {} as NavigationAdvice,
     weather: {} as WeatherInfo,
     isLoading: true,
-    loadingText: '正在规划路线...'
+    loadingText: '正在规划路线...',
+    cur_lat: '',
+    cur_lng: ''
   },
 
   onLoad(options: any) {
@@ -53,20 +56,43 @@ Page({
         isVoiceMode: true,
       });
       this.loadPlanByVoice(
-        decodeURIComponent(options.audioPath), 
-        options.lat, 
-        options.lng
+        decodeURIComponent(options.audioPath)
       );
     }
   },
+  // 获取当前位置
+  async getLocation() {
+    try {
+      const location = await getLocation();
+      console.log('当前位置:', location);
+      this.setData({
+        cur_lat: location.latitude.toString(),
+        cur_lng: location.longitude.toString()
+      });
+      console.log(this.data);
+      
+    } catch (error) {
+      console.error('获取位置失败:', error);
+      wx.showToast({ title: '获取位置失败，请重试', icon: 'none', duration: 2000 });
+      // 报错后停留两秒，自动退回上一页让长辈重新选择常用地点或重新录音
+      setTimeout(() => {
+        wx.navigateBack();
+      }, 2000);
+    }
+  },
+
   //语音录音规划逻辑
-  async loadPlanByVoice(audioPath: string, lat: string, lng: string) {
+  async loadPlanByVoice(audioPath: string) {
+    await this.getLocation();
     wx.showLoading({ title: this.data.loadingText });
+    if (!this.data.cur_lat || !this.data.cur_lng) {
+      throw new Error('获取当前位置失败，请重试');
+    }
     try {
       const res = await navigationApi.navigateByVoice({
         audio_file: audioPath,
-        origin_lat: lat,
-        origin_lng: lng
+        origin_lat: this.data.cur_lat,
+        origin_lng: this.data.cur_lng
       });
       const { destInfo, routeInfo, weatherInfo, adviceInfo } = res;
       if (!routeInfo || !destInfo) {
@@ -104,6 +130,7 @@ Page({
     }
   },
   async loadPlaceAndRoute() {
+    await this.getLocation();
     let loadingShown = false;
     try {
       wx.showLoading({ title: '规划路线中...' });
@@ -139,11 +166,7 @@ Page({
 
   async planRoute(place: FavoritePlace) {
     try {
-      const res = await wx.getLocation({
-        type: 'gcj02'
-      });
-
-      console.log('当前定位:', res.latitude, res.longitude);
+      console.log('当前定位:', this.data.cur_lat, this.data.cur_lng);
       console.log('目标地点:', place.place_id, place.place_name, place.latitude, place.longitude);
 
       let route: AddressNavigationResponse['route'] | null = null;
@@ -202,8 +225,8 @@ Page({
             navigationApi.planRouteStream(
               {
                 favorite_place_id: place.place_id,
-                origin_lng: res.longitude.toString(),
-                origin_lat: res.latitude.toString()
+                origin_lng: this.data.cur_lng,
+                origin_lat: this.data.cur_lat
               },
               (event, data) => {
                 console.log('SSE 事件:', event, typeof data, data);
@@ -271,10 +294,10 @@ Page({
           }else {
             const routeRes = await navigationApi.navigateByAddress({
               favorite_place_id: place.place_id,
-              origin_lng: res.longitude.toString(),
-              origin_lat: res.latitude.toString()
+              origin_lng: this.data.cur_lng,
+              origin_lat: this.data.cur_lat
             });
-
+            
             console.log('路线规划结果:', routeRes);
             route = routeRes.route;
             

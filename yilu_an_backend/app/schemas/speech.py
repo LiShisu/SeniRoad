@@ -19,8 +19,8 @@ class SpeechSynthesisRequest(BaseModel):
 
 # ---------------- 响应表述 ----------------
 class SpeechSynthesisResponse(BaseModel):
-    """文本转语音响应 (去除没用的 url 字段，专注 base64)"""
-    audio_data: str = Field(..., description="Base64 编码的音频数据")
+    """文本转语音响应"""
+    audio_data: bytes = Field(..., description="音频数据")
     audio_type: str = Field(default="audio/mpeg", description="音频 MIME 类型")
 
 class SpeechRecognitionResponse(BaseModel):

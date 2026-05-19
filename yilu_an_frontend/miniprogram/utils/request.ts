@@ -28,11 +28,12 @@ export interface RequestConfig {
   params?: any;
   header?: any;
   token?: boolean;
+  responseType?: 'text' | 'arraybuffer';
 }
 
 // 网络请求函数
 export const request = async <T = any>(config: RequestConfig): Promise<T> => {
-  const { url, method, data, params, header = {}, token = true } = config;
+  const { url, method, data, params, header = {}, token = true, responseType = 'text' } = config;
   
   // 构建请求头
   const headers = {
@@ -61,6 +62,7 @@ export const request = async <T = any>(config: RequestConfig): Promise<T> => {
       method,
       data,
       header: headers,
+      responseType,
       success: (res) => {
         const { statusCode, data: rawData } = res;
         
@@ -73,9 +75,21 @@ export const request = async <T = any>(config: RequestConfig): Promise<T> => {
           reject(new Error('登录已过期，请重新登录'));
           return;
         } 
+        
+        // 二进制响应直接返回原始数据
+        if (responseType === 'arraybuffer') {
+          if (statusCode >= 200 && statusCode < 300) {
+            resolve(rawData as T);
+          } else {
+            wx.showToast({ title: `服务器请求失败 (${statusCode})`, icon: 'none' });
+            reject(new Error(`服务器请求失败 (${statusCode})`));
+          }
+          return;
+        }
+        
         const responseData = rawData as any;
         // 2. 处理 HTTP 正常的请求 (200-299)
-        if (statusCode >= 200 && statusCode < 300&& responseData?.code === 200) {
+        if (statusCode >= 200 && statusCode < 300 && responseData?.code === 200) {
           resolve(responseData.data);
         } else {
           // 3. 处理 HTTP 层面的其他错误 (如 404, 500)

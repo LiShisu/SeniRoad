@@ -1,3 +1,5 @@
+import { safeSetStorageSync, safeGetStorageSync } from '../utils/storage';
+
 const CURRENT_ELDER_KEY = 'current_elder_info';
 
 export interface CurrentElderInfo {
@@ -8,7 +10,7 @@ export interface CurrentElderInfo {
 
 export function saveCurrentElder(elder: CurrentElderInfo): void {
   try {
-    wx.setStorageSync(CURRENT_ELDER_KEY, JSON.stringify(elder));
+    safeSetStorageSync(CURRENT_ELDER_KEY, JSON.stringify(elder));
   } catch (error) {
     console.error('保存当前监护老人信息失败:', error);
   }
@@ -16,7 +18,7 @@ export function saveCurrentElder(elder: CurrentElderInfo): void {
 
 export function getCurrentElder(): CurrentElderInfo | null {
   try {
-    const data = wx.getStorageSync(CURRENT_ELDER_KEY);
+    const data = safeGetStorageSync(CURRENT_ELDER_KEY); 
     return data ? JSON.parse(data) : null;
   } catch (error) {
     console.error('获取当前监护老人信息失败:', error);

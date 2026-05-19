@@ -4,11 +4,10 @@ from app.llmclient import call_asr
 import tempfile
 import asyncio
 import os
-import base64
 
 async def process_speech_to_text(audio_file: UploadFile) -> str:
     """将前端上传的音频文件转换为文本"""
-    """使用Base64编码方式将本地音频文件上传到Qwen3-ASR-Flash模型"""
+    """直接传入本地文件路径到Qwen3-ASR-Flash模型"""
     temp_file_path = None
     try:
         os.makedirs(settings.TEMP_DIR, exist_ok=True)
@@ -28,15 +27,8 @@ async def process_speech_to_text(audio_file: UploadFile) -> str:
         if not os.path.exists(temp_file_path):
             return f"Error: 音频文件不存在 - {temp_file_path}"
         
-        # 将音频文件转换为Base64编码
-        with open(temp_file_path, "rb") as f:
-            audio_bytes = f.read()
-        
-        base64_audio = base64.b64encode(audio_bytes).decode("utf-8")
-        data_uri = f"data:audio/wav;base64,{base64_audio}"
-        
         def _call_asr():
-            return call_asr(data_uri)
+            return call_asr(temp_file_path)
         
         result = await asyncio.to_thread(_call_asr)
         

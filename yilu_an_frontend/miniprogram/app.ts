@@ -1,5 +1,5 @@
 // app.ts
-import { wechatLogin } from './utils/auth';
+import { wechatLogin, getToken, getUserRole } from './utils/auth';
 
 // 全局应用类型定义
 interface IAppOption {
@@ -11,7 +11,6 @@ interface IAppOption {
   checkLoginState(): void;
   login(): Promise<void>;
   switchToCorrectHomePage(): void;
-  getUserInfo(code: string): any;
 }
 
 App<IAppOption>({
@@ -36,11 +35,11 @@ App<IAppOption>({
   checkLoginState() {
     try {
       // 检查是否已有登录状态（使用安全的方式）
-      let accessToken = '';
-      let userType = '';
+      let accessToken = null;
+      let userType = null;
       try {
-        accessToken = wx.getStorageSync('access_token');
-        userType = wx.getStorageSync('userType');
+        accessToken = getToken();
+        userType = getUserRole();
       } catch (e) {
         console.log('存储系统尚未就绪，稍后重试...');
         // 存储系统未就绪，稍后再检查
@@ -120,20 +119,4 @@ App<IAppOption>({
     }
   },
   
-  getUserInfo(code: string) {
-    // 根据code获取用户信息的方法
-    console.log('获取用户信息，code:', code);
-    try {
-      let userInfo = null;
-      try {
-        userInfo = wx.getStorageSync('userInfo');
-      } catch (e) {
-        console.warn('获取用户信息时存储系统未就绪');
-      }
-      return userInfo || null;
-    } catch (error) {
-      console.error('获取用户信息失败:', error);
-      return null;
-    }
-  }
 })

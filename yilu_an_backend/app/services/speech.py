@@ -28,17 +28,15 @@ class SpeechService:
 
     async def synthesize_speech(self, text: str) -> SpeechSynthesisResponse:
         try:
-            # 【核心修改】：现在 process_text_to_speech 直接返回了 base64！
-            # 不用再去 open 文件读写，也不用 os.remove 删除文件了，全删掉！
-            audio_base64 = await process_text_to_speech(text)
+            audio_data = await process_text_to_speech(text)
             
-            if "Error" in audio_base64:
-                raise BusinessException(code=400, message=audio_base64)
+            if isinstance(audio_data, str) and "Error" in audio_data:
+                raise BusinessException(code=400, message=audio_data)
             
-            return SpeechSynthesisResponse(
-                audio_data=audio_base64,
-                audio_type="audio/mpeg"
-            )
+            if not isinstance(audio_data, bytes):
+                raise BusinessException(code=500, message="TTS 返回无效的音频数据格式")
+            
+            return SpeechSynthesisResponse(audio_data=audio_data)
             
         except BusinessException:
             raise

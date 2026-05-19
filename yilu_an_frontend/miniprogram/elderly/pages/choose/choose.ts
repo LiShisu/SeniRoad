@@ -1,17 +1,14 @@
 const recorderManager = wx.getRecorderManager();
-import { API_BASE_URL } from '../../../utils/config';
-import { navigationApi } from '../../../api/navigation';
-const BASE_URL=API_BASE_URL
-import { api } from '../../../utils/request'; // 根据你实际的 request 文件路径调整
 
 Page({
   data: {
     isRecording: false
   },
 
-  onLoad() {
+  onShow() {
     this.initRecorder();
   },
+
   initRecorder() {
       // 监听录音开始
     recorderManager.onStart(() => {
@@ -22,10 +19,10 @@ Page({
       this.setData({ isRecording: false });
       const { tempFilePath } = res;
       // 获取位置
-      const loc = await wx.getLocation({ type: 'gcj02' });
+
       // 带着音频路径和经纬度，秒切到 plan 页面
       wx.navigateTo({
-        url: `/elderly/pages/plan/plan?audioPath=${encodeURIComponent(tempFilePath)}&lat=${loc.latitude}&lng=${loc.longitude}`
+        url: `/elderly/pages/plan/plan?audioPath=${encodeURIComponent(tempFilePath)}`
       });
     });
   },

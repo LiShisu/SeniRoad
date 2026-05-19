@@ -1,5 +1,24 @@
 import { TENCENT_MAP_KEY, GAODE_MAP_KEY } from './config';
 
+// 定位配置常量 - 统一设置
+export const LOCATION_CONFIG: WechatMiniprogram.GetLocationOption = {
+  type: 'gcj02',
+  isHighAccuracy: true,
+  highAccuracyExpireTime: 10000
+};
+
+// 统一的获取位置函数 - 返回 Promise
+export function getLocation(options?: Partial<WechatMiniprogram.GetLocationOption>): Promise<WechatMiniprogram.GetLocationSuccessCallbackResult> {
+  const config = { ...LOCATION_CONFIG, ...options };
+  return new Promise((resolve, reject) => {
+    wx.getLocation({
+      ...config,
+      success: (res) => resolve(res),
+      fail: (err) => reject(err)
+    });
+  });
+}
+
 export interface ReverseGeocodeResult {
   address: string;
   province: string;

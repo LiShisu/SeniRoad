@@ -1,3 +1,4 @@
+import os
 from pydantic_settings import BaseSettings
 from functools import lru_cache  # 缓存函数调用结果
 from passlib.context import CryptContext
@@ -28,7 +29,7 @@ class Settings(BaseSettings):
     # 服务器配置
     HOST: str = "0.0.0.0"
     PORT: int = 8000
-    TEMP_DIR: str = "temp"
+    TEMP_DIR: str = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "temp")
     
     # modelscope 配置
     MODELSCOPE_API_KEY: str = ""

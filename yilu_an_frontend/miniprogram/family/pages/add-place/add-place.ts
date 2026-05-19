@@ -1,7 +1,7 @@
 // add-place.ts
 import { favoritePlacesApi } from '../../../api/favorite-places';
 import { getCurrentElder } from '../../storage';
-import { gaodeReverseGeocode, gaodePlaceSearch } from '../../../utils/geo';
+import { gaodeReverseGeocode, gaodePlaceSearch, getLocation } from '../../../utils/geo';
 
 // TODO: 待完善，添加地图选择功能和地址详情功能
 interface SearchResult {
@@ -87,24 +87,21 @@ Page({
     });
   },
 
-  doGetLocation() {
-    wx.getLocation({
-      type: 'gcj02',
-      success: (res) => {
-        this.setData({
-          latitude: res.latitude,
-          longitude: res.longitude,
-          isLoadingLocation: false
-        });
-        this.reverseGeocode(res.latitude, res.longitude);
-      },
-      fail: (err) => {
-        console.error('获取位置失败:', err);
-        this.setData({ isLoadingLocation: false });
-        wx.showToast({ title: '获取位置失败，将使用默认位置', icon: 'none' });
-        this.reverseGeocode(this.data.latitude, this.data.longitude);
-      }
-    });
+  async doGetLocation() {
+    try {
+      const res = await getLocation();
+      this.setData({
+        latitude: res.latitude,
+        longitude: res.longitude,
+        isLoadingLocation: false
+      });
+      this.reverseGeocode(res.latitude, res.longitude);
+    } catch (err) {
+      console.error('获取位置失败:', err);
+      this.setData({ isLoadingLocation: false });
+      wx.showToast({ title: '获取位置失败，将使用默认位置', icon: 'none' });
+      this.reverseGeocode(this.data.latitude, this.data.longitude);
+    }
   },
 
   loadPlaceDetail(placeId: number) {
