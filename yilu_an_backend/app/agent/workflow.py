@@ -8,6 +8,7 @@
 
 import asyncio
 import json
+from fastapi.encoders import jsonable_encoder
 from typing import Dict, Any, AsyncGenerator, Optional
 from langgraph.graph import StateGraph, END
 from app.agent.schemas import NavigationWorkflowState, RouteResult, WeatherResult
@@ -219,12 +220,21 @@ async def execute_navigation_workflow_stream(
     while not (route_done and weather_done):
         await asyncio.sleep(0.5)
 
-        if route_done and route_result_data is not None and not route_pushed:
-            yield {"event": "route", "data": route_result_data.model_dump()}
-            route_pushed = True
+        # if route_done and route_result_data is not None and not route_pushed:
+        #     yield {"event": "route", "data": route_result_data}
+        #     route_pushed = True
 
+        # if weather_done and weather_result_data is not None and not weather_pushed:
+        #     yield {"event": "weather", "data": weather_result_data}
+        #     weather_pushed = True
+        
+        if route_done and route_result_data is not None and not route_pushed:
+            # 使用 jsonable_encoder，无论是模型还是字典，统统安全转换
+            yield {"event": "route", "data": jsonable_encoder(route_result_data)}
+            route_pushed = True        
         if weather_done and weather_result_data is not None and not weather_pushed:
-            yield {"event": "weather", "data": weather_result_data.model_dump()}
+            # 同上，安全转换
+            yield {"event": "weather", "data": jsonable_encoder(weather_result_data)}
             weather_pushed = True
 
     await asyncio.gather(route_task, weather_task)
