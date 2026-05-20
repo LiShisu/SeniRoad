@@ -9,6 +9,8 @@ import json
 from langchain_core.messages import HumanMessage
 from app.agent.schemas import NavigationWorkflowState
 from app.llmclient import text_llm
+from app.agent.schemas import AdviceResult
+
 
 
 async def advisor_node(state: NavigationWorkflowState) -> dict:
@@ -86,37 +88,37 @@ async def advisor_node(state: NavigationWorkflowState) -> dict:
         # 尝试提取并验证JSON格式
         try:
             json_match = json.loads(final_advice)
-            final_advice = json.dumps(json_match, ensure_ascii=False)
+            final_advice = AdviceResult(**json_match)
         except (json.JSONDecodeError, TypeError):
             json_match = extract_json_from_text(final_advice)
             if json_match:
-                final_advice = json.dumps(json_match, ensure_ascii=False)
+                final_advice = json_match
     except Exception as e:
-        final_advice = json.dumps({
-            "clothing_advice": "请根据天气情况准备合适的衣物",
-            "items_to_bring": ["手机", "钥匙", "钱包"],
-            "safety_reminders": ["注意交通安全"],
-            "best_time": "建议选择白天出行",
-            "tips": ["如有不适请及时休息"]
-        }, ensure_ascii=False)
+        final_advice = AdviceResult(
+            clothing_advice="请根据天气情况准备合适的衣物",
+            items_to_bring=["手机", "钥匙", "钱包"],
+            safety_reminders=["注意交通安全"],
+            best_time="建议选择白天出行",
+            tips=["如有不适请及时休息"]
+        )
 
-    return {"final_advice": final_advice}
+    return final_advice
 
 
-def extract_json_from_text(text: str) -> dict:
+def extract_json_from_text(text: str) -> AdviceResult:
     """从文本中提取JSON对象"""
     try:
         import re
         json_match = re.search(r'\{[\s\S]*\}', text)
         if json_match:
-            return json.loads(json_match.group(0))
+            return AdviceResult(**json.loads(json_match.group(0)))
     except Exception:
         pass
     
-    return {
-        "clothing_advice": "请根据天气情况准备合适的衣物",
-        "items_to_bring": ["手机", "钥匙", "钱包"],
-        "safety_reminders": ["注意交通安全"],
-        "best_time": "建议选择白天出行",
-        "tips": ["如有不适请及时休息"]
-    }
+    return AdviceResult(
+        clothing_advice="请根据天气情况准备合适的衣物",
+        items_to_bring=["手机", "钥匙", "钱包"],
+        safety_reminders=["注意交通安全"],
+        best_time="建议选择白天出行",
+        tips=["如有不适请及时休息"]
+    )

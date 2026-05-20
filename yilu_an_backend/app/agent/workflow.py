@@ -166,8 +166,8 @@ async def execute_navigation_workflow_stream(
         destination_lat=destination_lat,
         favorite_place_id=favorite_place_id,
         audio_file=audio_file,
-        route_result=RouteResult(),
-        weather_result=WeatherResult(),
+        route_result=RouteResult().model_dump(),
+        weather_result=WeatherResult().model_dump(),
         final_advice="",
         matched_type="",
         voice_text=""
@@ -204,14 +204,12 @@ async def execute_navigation_workflow_stream(
 
     async def run_route():
         nonlocal route_result_data, route_done
-        result = await route_query_node(updated_state)
-        route_result_data = result
+        route_result_data = await route_query_node(updated_state)
         route_done = True
 
     async def run_weather():
         nonlocal weather_result_data, weather_done
-        result = await weather_query_node(updated_state)
-        weather_result_data = result
+        weather_result_data = await weather_query_node(updated_state)
         weather_done = True
 
     route_task = asyncio.create_task(run_route())
@@ -246,9 +244,8 @@ async def execute_navigation_workflow_stream(
 
     try:
         advisor_result = await advisor_node(advisor_state)
-        advice = advisor_result.get("final_advice", "抱歉，无法生成出行建议。")
-        yield {"event": "advice", "data": advice}
+        yield {"event": "advice", "data": advisor_result.model_dump()}
     except Exception as e:
-        yield {"event": "advice", "data": f"生成出行建议失败: {str(e)}"}
+        yield {"event": "error", "data": {"error": f"生成出行建议失败: {str(e)}"}}
 
     yield {"event": "complete", "data": {"status": "done"}}

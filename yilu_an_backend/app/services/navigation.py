@@ -304,20 +304,14 @@ class NavigationService:
             ):
                 if event["event"] == "route":
                     route_data = event["data"]
+                    logger.info(f"Received route data: {route_data}")
                     yield self._format_sse_event("route", route_data)
                 elif event["event"] == "weather":
                     weather_data = event["data"]
-                    # 天气数据可能是字符串，需要转换为字典
-                    if isinstance(weather_data, str):
-                        weather_data = {"weather_text": weather_data}
+                    logger.info(f"Received weather data: {weather_data}")
                     yield self._format_sse_event("weather", weather_data)
                 elif event["event"] == "advice":
                     advice_data = event["data"]
-                    # 尝试解析JSON，如果失败则保持原样
-                    try:
-                        advice_data = json.loads(advice_data)
-                    except (json.JSONDecodeError, TypeError):
-                        advice_data = {"advice_text": advice_data}
                     yield self._format_sse_event("advice", advice_data)
                 elif event["event"] == "complete":
                     # 创建导航记录
@@ -371,20 +365,6 @@ class NavigationService:
         weather_data = navigation_result.get("weather", "")
         advice_data = navigation_result.get("advice", "")
 
-        voice_log = VoiceLogCreate(
-            user_id=user_id,
-            audio_url=audio_file.filename,
-            asr_text=voice_text,
-            intent_json={
-                "destination": destination,
-                "matched_type": matched_type,
-                "origin": f"{origin_lng},{origin_lat}"
-            },
-            response_text=advice_data,
-            log_time=datetime.now()
-        )
-        self.voice_log_service.create_log(voice_log)
-
         # 创建导航记录
         record_id = None
         if latitude and longitude:
@@ -401,6 +381,21 @@ class NavigationService:
             )
             record = self.navigation_record_service.create_record(record_data)
             record_id = record.record_id
+        
+        voice_log = VoiceLogCreate(
+            user_id=user_id,
+            audio_url=audio_file.filename,
+            record_id=record_id,
+            asr_text=voice_text,
+            intent_json={
+                "destination": destination,
+                "matched_type": matched_type,
+                "origin": f"{origin_lng},{origin_lat}"
+            },
+            response_text=advice_data,
+            log_time=datetime.now()
+        )
+        self.voice_log_service.create_log(voice_log)
         
         # 清理 route.origin 和 route.destination，去除"经度""纬度"字样
         route_origin = route_data.get("origin", "")
@@ -464,28 +459,19 @@ class NavigationService:
                 favorite_place_service=self.favorite_place_service
             ):
                 if event["event"] == "destination":
-                    destination = event["data"].get("destination", "")
-                    voice_text = event["data"].get("voice_text", "")
-                    matched_type = event["data"].get("matched_type", "")
-                    latitude = event["data"].get("destination_lat")
-                    longitude = event["data"].get("destination_lng")
+                    destination = event["data"]["destination"]
+                    matched_type = event["data"]["matched_type"]
+                    voice_text = event["data"]["voice_text"]
                     yield self._format_sse_event("destination", event["data"])
                 elif event["event"] == "route":
                     route_data = event["data"]
                     yield self._format_sse_event("route", route_data)
                 elif event["event"] == "weather":
                     weather_data = event["data"]
-                    if isinstance(weather_data, str):
-                        weather_data = {"weather_text": weather_data}
                     yield self._format_sse_event("weather", weather_data)
                 elif event["event"] == "advice":
-                    original_advice_str = event["data"]
-                    # 转换成字典（专门用来发给前端 SSE）
-                    try:
-                        parsed_advice_data = json.loads(original_advice_str)
-                    except (json.JSONDecodeError, TypeError):
-                        parsed_advice_data = {"advice_text": original_advice_str}
-                    yield self._format_sse_event("advice", parsed_advice_data)
+                    advice = event["data"]
+                    yield self._format_sse_event("advice", advice)
 
                     # 从工作流结果中获取目的地坐标
                     latitude = route_data.get("destination_lat")
@@ -516,7 +502,7 @@ class NavigationService:
                             "matched_type": matched_type,
                             "origin": f"{origin_lng},{origin_lat}"
                         },
-                        response_text=original_advice_str,
+                        response_text=json.dumps(advice, ensure_ascii=False),
                         log_time=datetime.now(),
                         record_id=current_record_id
                     )
@@ -526,131 +512,3 @@ class NavigationService:
 
         except Exception as e:
             yield self._format_sse_event("error", {"error": str(e)})
-
-    # async def plan_route(self, origin: str, destination: str, priority: str = "elderly_friendly"):
-    #     params = {
-    #         "origin": origin,
-    #         "destination": destination,
-    #         "key": self.amap_key,
-    #         "extensions": "all"
-    #     }
-
-    #     response = await self.client.get(f"{self.base_url}/direction/walking", params=params)
-    #     route_data = response.json()
-
-    #     if priority == "elderly_friendly":
-    #         route_data = self._filter_elderly_friendly(route_data)
-    #     elif priority == "time":
-    #         route_data = self._filter_fastest_route(route_data)
-    #     elif priority == "distance":
-    #         route_data = self._filter_shortest_route(route_data)
-
-    #     return route_data
-
-    # def _filter_elderly_friendly(self, route_data: dict) -> dict:
-    #     if "route" not in route_data:
-    #         return route_data
-
-    #     route = route_data["route"]
-    #     if "paths" not in route:
-    #         return route_data
-
-    #     paths = route["paths"]
-    #     if not paths:
-    #         return route_data
-
-    #     best_path = None
-    #     best_score = -1
-
-    #     for path in paths:
-    #         score = self._calculate_elderly_friendly_score(path)
-    #         if score > best_score:
-    #             best_score = score
-    #             best_path = path
-
-    #     route["paths"] = [best_path] if best_path else []
-    #     route_data["route"] = route
-
-    #     return route_data
-
-    # def _calculate_elderly_friendly_score(self, path: dict) -> float:
-    #     score = 0.0
-
-    #     score += 100.0
-
-    #     distance = path.get("distance", 0)
-    #     distance = float(distance) if distance else 0
-    #     score -= distance / 100
-
-    #     duration = path.get("duration", 0)
-    #     duration = float(duration) if duration else 0
-    #     score -= duration / 60
-
-    #     steps = path.get("steps", [])
-    #     step_count = len(steps)
-    #     score -= step_count * 0.5
-
-    #     for step in steps:
-    #         instruction = step.get("instruction", "")
-    #         if "阶梯" in instruction:
-    #             score -= 10.0
-    #         if "上坡" in instruction:
-    #             score -= 5.0
-    #         if "下坡" in instruction:
-    #             score -= 3.0
-
-    #     return max(0, score)
-
-    # def _filter_fastest_route(self, route_data: dict) -> dict:
-    #     if "route" not in route_data:
-    #         return route_data
-
-    #     route = route_data["route"]
-    #     if "paths" not in route:
-    #         return route_data
-
-    #     paths = route["paths"]
-    #     if not paths:
-    #         return route_data
-
-    #     fastest_path = None
-    #     min_duration = float('inf')
-
-    #     for path in paths:
-    #         duration = path.get("duration", 0)
-    #         duration = float(duration) if duration else 0
-    #         if duration < min_duration:
-    #             min_duration = duration
-    #             fastest_path = path
-
-    #     route["paths"] = [fastest_path] if fastest_path else []
-    #     route_data["route"] = route
-
-    #     return route_data
-
-    # def _filter_shortest_route(self, route_data: dict) -> dict:
-    #     if "route" not in route_data:
-    #         return route_data
-
-    #     route = route_data["route"]
-    #     if "paths" not in route:
-    #         return route_data
-
-    #     paths = route["paths"]
-    #     if not paths:
-    #         return route_data
-
-    #     shortest_path = None
-    #     min_distance = float('inf')
-
-    #     for path in paths:
-    #         distance = path.get("distance", 0)
-    #         distance = float(distance) if distance else 0
-    #         if distance < min_distance:
-    #             min_distance = distance
-    #             shortest_path = path
-
-    #     route["paths"] = [shortest_path] if shortest_path else []
-    #     route_data["route"] = route
-
-    #     return route_data
