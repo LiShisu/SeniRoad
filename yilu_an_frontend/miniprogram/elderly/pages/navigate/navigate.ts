@@ -152,6 +152,14 @@ Page({
 
       this.parseRoute(route, allPoints, res.latitude, res.longitude, place.latitude, place.longitude);
       this.startLocationWatch();
+      locationApi.createLocation({
+        latitude: res.latitude,
+        longitude: res.longitude,
+        accuracy: res.accuracy,
+        record_id: route.record_id
+      }).catch((err) => {
+        console.error('初始化位置记录失败:', err);
+      });
       this.speakInstruction(route.steps?.[0]?.instruction || '导航开始');
     } catch (err: any) {
       console.error('加载地点或路线失败:', err);
@@ -191,6 +199,14 @@ Page({
       // 4. 渲染地图并开始导航监听
       this.parseRoute(route, allPoints, res.latitude, res.longitude, destInfo.latitude, destInfo.longitude);
       this.startLocationWatch();
+      locationApi.createLocation({
+        latitude: res.latitude,
+        longitude: res.longitude,
+        accuracy: res.accuracy,
+        record_id: route.record_id
+      }).catch((err) => {
+        console.error('初始化位置记录失败:', err);
+      });
       // 5. 播报起始语音
       this.speakInstruction(route.steps?.[0]?.instruction || `开始导航前往${destInfo.destination}`);
     } catch (err: any) {

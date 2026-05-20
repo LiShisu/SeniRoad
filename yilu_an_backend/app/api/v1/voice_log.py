@@ -5,6 +5,7 @@ from app.schemas.voice_log import VoiceLogCreate, VoiceLogUpdate, VoiceLogRespon
 from app.services.voice_log import VoiceLogService
 from app.dependencies import get_voice_log_service, get_current_active_user
 from app.models import User
+from app.schemas.base import Result
 
 router = APIRouter()
 
@@ -20,7 +21,7 @@ router = APIRouter()
 #     return voice_log_service.create_log(log)
 
 
-@router.get("/", response_model=List[VoiceLogResponse])
+@router.get("/", response_model=Result[List[VoiceLogResponse]])
 async def get_voice_logs(
     user_id: int = None,
     limit: int = 100,
@@ -29,20 +30,22 @@ async def get_voice_logs(
 ):
     if user_id is None:
         user_id = current_user.user_id
-    return voice_log_service.get_logs_by_user_id(user_id, limit)
+    logs = voice_log_service.get_logs_by_user_id(user_id, limit)
+    return Result(code=200, message="语音日志查询成功", data=logs)
 
 
-@router.get("/record/{record_id}", response_model=List[VoiceLogResponse])
+@router.get("/record/{record_id}", response_model=Result[List[VoiceLogResponse]])
 async def get_voice_logs_by_record(
     record_id: int,
     limit: int = 100,
     voice_log_service: VoiceLogService = Depends(get_voice_log_service),
     current_user: User = Depends(get_current_active_user)
 ):
-    return voice_log_service.get_logs_by_record_id(record_id, limit)
+    logs = voice_log_service.get_logs_by_record_id(record_id, limit)
+    return Result(code=200, message="语音日志查询成功", data=logs)
 
 
-@router.get("/time-range/{user_id}", response_model=List[VoiceLogResponse])
+@router.get("/time-range/{user_id}", response_model=Result[List[VoiceLogResponse]])
 async def get_voice_logs_by_time_range(
     user_id: int = None,
     start_time: datetime = None,
@@ -52,10 +55,11 @@ async def get_voice_logs_by_time_range(
 ):
     if user_id is None:
         user_id = current_user.user_id
-    return voice_log_service.get_logs_by_time_range(user_id, start_time, end_time)
+    logs = voice_log_service.get_logs_by_time_range(user_id, start_time, end_time)
+    return Result(code=200, message="语音日志查询成功", data=logs)
 
 
-@router.get("/recent/{user_id}", response_model=List[VoiceLogResponse])
+@router.get("/recent/{user_id}", response_model=Result[List[VoiceLogResponse]])
 async def get_recent_voice_logs(
     user_id: int = None,
     hours: int = 24,
@@ -64,10 +68,11 @@ async def get_recent_voice_logs(
 ):
     if user_id is None:
         user_id = current_user.user_id
-    return voice_log_service.get_recent_logs(user_id, hours)
+    logs = voice_log_service.get_recent_logs(user_id, hours)
+    return Result(code=200, message="语音日志查询成功", data=logs)
 
 
-@router.get("/{log_id}", response_model=VoiceLogResponse)
+@router.get("/{log_id}", response_model=Result[VoiceLogResponse])
 async def get_voice_log(
     log_id: int,
     voice_log_service: VoiceLogService = Depends(get_voice_log_service),
@@ -79,7 +84,7 @@ async def get_voice_log(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="语音日志不存在"
         )
-    return log
+    return Result(code=200, message="语音日志查询成功", data=log)
 
 
 # @router.put("/{log_id}", response_model=VoiceLogResponse)
@@ -112,7 +117,7 @@ async def delete_voice_log(
         )
 
 
-@router.delete("/user/{user_id}/old", response_model=dict)
+@router.delete("/user/{user_id}/old", response_model=Result[dict])
 async def delete_old_voice_logs(
     user_id: int = None,
     days: int = 30,
@@ -122,4 +127,4 @@ async def delete_old_voice_logs(
     if user_id is None:
         user_id = current_user.user_id
     deleted_count = voice_log_service.delete_old_logs(user_id, days)
-    return {"deleted_count": deleted_count}
+    return Result(code=200, message="删除成功", data={"deleted_count": deleted_count})

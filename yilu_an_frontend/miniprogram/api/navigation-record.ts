@@ -46,16 +46,18 @@ export const navigationRecordApi = {
   
   // 获取导航记录列表
   getRecords: (params?: GetRecordsParams) => {
-    return api.get<NavigationRecord[]>('/navigation-records/', { data: params });
+    console.log('getRecords params:', params);
+    return api.get<NavigationRecord[]>('/navigation-records/', { params });
   },
   
   // 获取用户的进行中导航记录
-  getActiveRecords: () => {
-    return navigationRecordApi.getRecords({ status: 1 });
+  getActiveRecords: (userId: number) => {
+    console.log('getActiveRecords userId:', userId);
+    return navigationRecordApi.getRecords({ user_id: userId, status: 1 });
   },
   
-  getCompletedRecords: (startDate?: string, endDate?: string) => {
-    const params: GetRecordsParams = { status: 2 };
+  getCompletedRecords: (userId: number, startDate?: string, endDate?: string) => {
+    const params: GetRecordsParams = { user_id: userId, status: 2 };
     if (startDate) params.start_date = startDate;
     if (endDate) params.end_date = endDate;
     return navigationRecordApi.getRecords(params);

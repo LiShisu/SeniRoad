@@ -43,17 +43,17 @@
   <!-- 快捷入口卡片 -->
   <view class="quick-entry-section">
     <view class="entry-card" bindtap="goToPlaces">
-      <image src="/assets/svg/compass-icon.svg" class="entry-icon"></image>
+      <image src="/assets/svg/places-icon.svg" class="entry-icon"></image>
       <text>预设常用地点</text>
       <view class="arrow">›</view>
     </view>
     <view class="entry-card" bindtap="goToRecords">
-      <image src="/assets/svg/navigation-icon.svg" class="entry-icon"></image>
+      <image src="/assets/svg/records-icon.svg" class="entry-icon"></image>
       <text>出行记录查询</text>
       <view class="arrow">›</view>
     </view>
     <view class="entry-card" bindtap="goToElders">
-      <image src="/assets/svg/user-icon.svg" class="entry-icon"></image>
+      <image src="/assets/svg/elder-icon.svg" class="entry-icon"></image>
       <text>老人管理</text>
       <view class="arrow">›</view>
     </view>

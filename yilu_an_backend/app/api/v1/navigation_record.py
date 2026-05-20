@@ -25,11 +25,11 @@ async def create_navigation_record(
 
 @router.get("/", response_model=Result[List[NavigationRecordResponse]])
 async def get_navigation_records(
+    user_id: int = Query(..., description="老人ID", gt=0),
     status_filter: Optional[int] = Query(None, alias="status", ge=1, le=3, description="状态: 1-进行中, 2-完成, 3-取消"),
     start_date: Optional[datetime] = Query(None, description="起始时间"),
     end_date: Optional[datetime] = Query(None, description="结束时间"),
     navigation_record_service: NavigationRecordService = Depends(get_navigation_record_service),
-    user_id: int = Query(..., description="老人ID", gt=0),
 ):
     """
     获取当前用户的导航记录列表 

@@ -35,8 +35,10 @@ Page({
    */
   async loadCurrentElderInfo() {
     const currentElder = getCurrentElder();
+    console.log('getCurrentElder:', currentElder);
     if (currentElder) {
       const userId = parseInt(currentElder.id);
+      console.log('userId:', userId, 'currentElder.id:', currentElder.id);
       this.setData({
         elderName: currentElder.name,
         currentElderId: currentElder.id
@@ -86,6 +88,7 @@ Page({
    */
   async loadNavigationStatus(userId: number) {
     try {
+      console.log('loadNavigationStatus userId:', userId, 'typeof:', typeof userId);
       const res = await navigationRecordApi.getActiveRecords(userId) as any;
       const records = res?.data || res;
       if (records && records.length > 0) {
