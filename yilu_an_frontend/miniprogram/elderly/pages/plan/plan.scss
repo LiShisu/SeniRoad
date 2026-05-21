@@ -1,5 +1,38 @@
 /* elderly/pages/plan/plan.scss - 美化版本 */
+/* 出行方式切换栏整体容器 */
+.mode-tabs {
+  display: flex;
+  background-color: #f5f5f5;
+  border-radius: 16rpx;
+  padding: 8rpx;
+  margin: 30rpx 0;
+  border: 2rpx solid #e0e0e0;
+}
 
+/* 单个标签选项 */
+.tab-item {
+  flex: 1;
+  text-align: center;
+  font-size: 34rpx;        /* 适老版特意放大字号 */
+  font-weight: bold;
+  padding: 24rpx 0;        /* 扩大点击热区，防止长辈手指发抖点错 */
+  color: #666666;
+  border-radius: 12rpx;
+  transition: all 0.2s ease;
+}
+
+/* 激活状态：变成醒目的亮蓝色 */
+.tab-item.active {
+  background-color: #1890ff;
+  color: #ffffff;
+  box-shadow: 0 4rpx 12rpx rgba(24, 144, 255, 0.3);
+}
+
+/* 高亮突出的交通工具文本 */
+.mode-highlight {
+  color: #1890ff;
+  font-weight: bold;
+}
 .container {
   background: linear-gradient(160deg, #E8F4FF 0%, #F0F8FF 100%); // 柔和的渐变背景
   min-height: 100vh;

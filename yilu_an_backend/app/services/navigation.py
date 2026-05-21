@@ -270,6 +270,8 @@ class NavigationService:
         origin_lat: str,
         favorite_place_id: int,
         user_id: int,
+        travel_mode: str = "walking", # 👈 补充参数
+        city: str = ""
     ) -> AsyncGenerator[str, None]:
         # 延迟导入避免循环导入
         from app.agent.workflow import execute_navigation_workflow_stream
@@ -300,7 +302,9 @@ class NavigationService:
                 destination_lng=str(longitude) if longitude else None,
                 destination_lat=str(latitude) if latitude else None,
                 favorite_place_id=favorite_place_id,
-                favorite_place_service=self.favorite_place_service
+                favorite_place_service=self.favorite_place_service,
+                travel_mode=travel_mode, # 👈 传递下去
+                city=city
             ):
                 if event["event"] == "route":
                     route_data = event["data"]
@@ -436,7 +440,9 @@ class NavigationService:
         audio_file: UploadFile,
         user_id: int,
         origin_lng: str,
-        origin_lat: str
+        origin_lat: str,
+        travel_mode: str = "walking", # 🌟 锁住多模态
+        city: str = ""                # 🌟 锁住城市
     ) -> AsyncGenerator[str, None]:
         # 延迟导入避免循环导入
         from app.agent.workflow import execute_navigation_workflow_stream
@@ -448,6 +454,8 @@ class NavigationService:
             destination = ""
             voice_text = ""
             matched_type = ""
+            
+            # 🌟 防御性变量：提前初始化，防止在 destination 事件外拿不到坐标
             latitude = None
             longitude = None
 
@@ -456,36 +464,44 @@ class NavigationService:
                 origin_lat=origin_lat,
                 user_id=user_id,
                 audio_file=audio_file,
-                favorite_place_service=self.favorite_place_service
+                favorite_place_service=self.favorite_place_service,
+                travel_mode=travel_mode, # 🌟 核心修改 3：深层灌入大模型状态机
+                city=city                # 🌟 核心修改 3：深层灌入大模型状态机
             ):
                 if event["event"] == "destination":
                     destination = event["data"]["destination"]
                     matched_type = event["data"]["matched_type"]
                     voice_text = event["data"]["voice_text"]
+                    
+                    # 🌟 核心修复：直接从解析结果中拦截并锁死终点经纬度，最安全、最通配！
+                    latitude = event["data"].get("destination_lat")
+                    longitude = event["data"].get("destination_lng")
+                    
                     yield self._format_sse_event("destination", event["data"])
+                    
                 elif event["event"] == "route":
                     route_data = event["data"]
                     yield self._format_sse_event("route", route_data)
+                    
                 elif event["event"] == "weather":
                     weather_data = event["data"]
                     yield self._format_sse_event("weather", weather_data)
+                    
                 elif event["event"] == "advice":
                     advice = event["data"]
                     yield self._format_sse_event("advice", advice)
-
-                    # 从工作流结果中获取目的地坐标
-                    latitude = route_data.get("destination_lat")
-                    longitude = route_data.get("destination_lng")
                     
+                    # 3. 创建导航记录与日志
                     current_record_id = None
+                    # 此时 latitude 和 longitude 百分百有值，哪怕是公交模式也不会出错
                     if latitude and longitude:
                         record_data = NavigationRecordCreate(
                             user_id=user_id,
                             start_time=datetime.now(),
                             origin_lat=Decimal(origin_lat),
                             origin_lng=Decimal(origin_lng),
-                            dest_lat=Decimal(latitude),
-                            dest_lng=Decimal(longitude),
+                            dest_lat=Decimal(str(latitude)),
+                            dest_lng=Decimal(str(longitude)),
                             dest_name=destination,
                             polyline=route_data.get("polyline", ""),
                             status=1
@@ -500,13 +516,15 @@ class NavigationService:
                         intent_json={
                             "destination": destination,
                             "matched_type": matched_type,
-                            "origin": f"{origin_lng},{origin_lat}"
+                            "origin": f"{origin_lng},{origin_lat}",
+                            "travel_mode": travel_mode # 顺手存入日志，方便后续大数据统计长辈出行习惯
                         },
                         response_text=json.dumps(advice, ensure_ascii=False),
                         log_time=datetime.now(),
                         record_id=current_record_id
                     )
                     self.voice_log_service.create_log(voice_log)
+                    
                 elif event["event"] == "complete":
                     yield self._format_sse_event("complete", {"status": "done"})
 

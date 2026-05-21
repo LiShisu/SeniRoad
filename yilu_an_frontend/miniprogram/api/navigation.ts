@@ -9,6 +9,8 @@ export interface PlanRouteParams {
   favorite_place_id: number;
   origin_lng: string;
   origin_lat: string;
+  travel_mode?: 'walking' | 'transit'; // 新增
+  city?: string;                       // 新增
 }
 
 // 语音导航请求参数
@@ -16,17 +18,18 @@ export interface VoiceNavigationParams {
   origin_lng: string;
   origin_lat: string;
   audio_file: any;
+  travel_mode?: 'walking' | 'transit'; // 新增
+  city?: string;                       // 新增
 }
 
 // 导航步骤
 export interface NavigationStep {
   instruction: string;
-  distance: string;
-  duration: string;
-  road: string;
   polyline: string;
+  distance?: string; // 变成可选
+  duration?: string; // 变成可选
+  road?: string;     // 变成可选
 }
-
 // 地址导航路线数据
 export interface AddressRouteData {
   distance: string;
@@ -35,29 +38,50 @@ export interface AddressRouteData {
   polyline: string;
   record_id: number;
 }
-
+//增加公交段落类型
+export interface TransitSegment {
+  walking?: { steps?: NavigationStep[] };
+  bus?: {
+    name: string;
+    departure_stop: string;
+    arrival_stop: string;
+    via_num: number;
+    polyline: string;
+  };
+}
+//统一使用 type 定义返回的 RouteData，兼容双模
+export type SmartRouteData = {
+  record_id: number;
+  distance: string;
+  duration: string;
+  polyline: string;
+  steps: NavigationStep[];         // 必须有，公交模式由适配器生成空数组
+  segments?: TransitSegment[];      // 公交模式特有
+  [key: string]: any;
+}
 // 地址导航响应
 export interface AddressNavigationResponse {
   status: string;
   destination: string;
   place_name: string;
-  route: AddressRouteData;
+  route: SmartRouteData; // 指向新类型
   latitude: string;
   longitude: string;
 }
 
 // 导航路线数据（智能导航）
-export interface NavigationRouteData {
-  record_id: number;
-  text: string;
-  origin: string;
-  destination: string;
-  distance: string;
-  duration: string;
-  steps: NavigationStep[];
-  polyline: string;
-}
-
+// export interface NavigationRouteData {
+//   record_id: number;
+//   text: string;
+//   origin: string;
+//   destination: string;
+//   distance: string;
+//   duration: string;
+//   steps: NavigationStep[];
+//   polyline: string;
+// }
+// 为了向下兼容代码里写到的 NavigationRouteData，也让它等同于 SmartRouteData
+export type NavigationRouteData = SmartRouteData;
 // 智能导航响应
 export interface NavigationRouteResponse {
   status: string;
@@ -101,6 +125,8 @@ export interface CoordinateNavigationParams {
   origin_lat: string;
   dest_lng: string;
   dest_lat: string;
+  travel_mode?: 'walking' | 'transit'; // 新增
+  city?: string;                       // 新增
 }
 const extractSseEvent = (eventName: string, rawText: string) => {
   // 使用 [\s\S]*? 替代 .*? 完美解决 JSON 中带换行符的问题
@@ -126,207 +152,61 @@ export const navigationApi = {
   planRoute: (data: PlanRouteParams) => {
     return api.post<NavigationRouteResponse>('/navigation/routes/smart', data);
   },
-
-  // navigateByVoice: (data: { audio_file: string, origin_lng: string, origin_lat: string }): Promise<any> => {
-  //   return new Promise((resolve, reject) => {
-  //     const { audio_file, origin_lng, origin_lat } = data;
-  //     const token = getToken(); 
-
-  //     wx.uploadFile({
-  //       url: `${BASE_URL}/navigation/routes/voice/stream`, 
-  //       filePath: audio_file,
-  //       name: 'audio_file', 
-  //       timeout: 360000, // 360秒防中断
-  //       formData: { origin_lng, origin_lat },
-  //       header: { 'Authorization': `Bearer ${token}` },
-  //       success: (res) => {
-  //         const statusCode = res.statusCode;
-  //         if (statusCode >= 200 && statusCode < 300) {
-  //           const rawData = res.data; 
-  //           // 1. 判断是否包含后端报错事件
-  //           if (rawData.includes('event: error')) {
-  //             const errMatch = extractSseEvent('error', rawData);
-  //             const errMsg = errMatch?.error || '抱歉，没听清您想去哪';
-  //             reject(new Error(errMsg));
-  //             return;
-  //           }
-  //           // 2. 依次提取四大模块数据
-  //           const destInfo = extractSseEvent('destination', rawData);
-  //           const routeInfo = extractSseEvent('route', rawData);
-  //           const weatherInfo = extractSseEvent('weather', rawData);
-  //           const adviceInfo = extractSseEvent('advice', rawData);
-  //           // 3. 将干净的 JSON 对象一次性返回给页面
-  //           resolve({ destInfo, routeInfo, weatherInfo, adviceInfo });
-  //         } else {
-  //           reject(new Error(`服务器请求失败 (${statusCode})`));
-  //         }
-  //       },
-  //       fail: (err) => {
-  //         reject(new Error(`上传文件失败 (${err.errMsg}`));
-  //       }
-  //     });
-  //   });
-  // },
-  // 替换原有的 navigateByVoice 函数
-  // navigateByVoice: (data: { audio_file: string, origin_lng: string, origin_lat: string }): Promise<any> => {
-  //   return new Promise((resolve, reject) => { // 必须显式返回 Promise
-  //     const { audio_file, origin_lng, origin_lat } = data;
-  //     const token = getToken();
-      
-  //     wx.uploadFile({
-  //       url: `${BASE_URL}/navigation/routes/voice/stream`,
-  //       filePath: audio_file,
-  //       name: 'audio_file',
-  //       timeout: 360000,
-  //       formData: { origin_lng, origin_lat },
-  //       header: { 
-  //         'Authorization': `Bearer ${token}`,
-  //         'Content-Type': 'multipart/form-data' // 显式声明类型（可选，但推荐）
-  //       },
-  //       success: (res) => {
-  //         const statusCode = res.statusCode;
-  //         if (statusCode >= 200 && statusCode < 300) {
-  //           const rawData = res.data as string; // 确保类型为 string
-            
-  //           // 1. 错误处理
-  //           // 修改正则：使用非贪婪匹配和更宽松的换行符匹配，防止特殊字符导致 match 为 null
-  //           const errorRegex = /event:\s*error\s*data:\s*(\{.*\})/i;
-  //           const errorMatch = rawData.match(errorRegex);
-  //           if (errorMatch && errorMatch[1]) {
-  //             try {
-  //               const errData = JSON.parse(errorMatch[1]);
-  //               reject(new Error(errData.error || '语音识别失败'));
-  //               return;
-  //             } catch (e) {
-  //               reject(new Error('解析错误数据失败'));
-  //               return;
-  //             }
-  //           }
-
-  //           // 2. 数据提取
-  //           // 修改正则：使用 [\s\S] 代替 . 来匹配换行符，防止 JSON 跨行导致无法匹配
-  //           const extractSseEvent = (eventName: string): any => {
-  //             // 匹配 event: eventName 后面的 data: {json}，支持跨行
-  //             const regex = new RegExp(`event:\\s*${eventName}\\s*data:\\s*(\\{[\\s\\S]*?\\})`, 'i');
-  //             const match = rawData.match(regex);
-  //             if (match && match[1]) {
-  //               try {
-  //                 return JSON.parse(match[1]);
-  //               } catch (e) {
-  //                 console.error(`JSON解析失败 (${eventName}):`, e);
-  //                 return null;
-  //               }
-  //             }
-  //             return null;
-  //           };
-
-  //           const destInfo = extractSseEvent('destination');
-  //           const routeInfo = extractSseEvent('route');
-  //           const weatherInfo = extractSseEvent('weather');
-  //           const adviceInfo = extractSseEvent('advice');
-
-  //           // 防御性检查：确保至少有路线数据
-  //           if (!routeInfo) {
-  //             reject(new Error('未获取到路线信息'));
-  //             return;
-  //           }
-
-  //           // 3. 返回结果
-  //           resolve({ 
-  //             destInfo, 
-  //             routeInfo, 
-  //             weatherInfo, 
-  //             adviceInfo 
-  //           });
-  //         } else {
-  //           reject(new Error(`HTTP ${statusCode}`));
-  //         }
-  //       },
-  //       fail: (err) => {
-  //         reject(new Error(`上传失败: ${err.errMsg}`));
-  //       }
-  //     });
-  //   });
-  // },
-  navigateByVoice: (data: { audio_file: string, origin_lng: string, origin_lat: string }): Promise<any> => {
+  navigateByVoice: (data: { audio_file: string, origin_lng: string, origin_lat: string, travel_mode?: string, city?: string }): Promise<any> => {
     return new Promise((resolve, reject) => {
-      const { audio_file, origin_lng, origin_lat } = data;
+      const { audio_file, origin_lng, origin_lat, travel_mode, city } = data;
       const token = getToken();
       
       wx.uploadFile({
         url: `${BASE_URL}/navigation/routes/voice/stream`,
         filePath: audio_file,
         name: 'audio_file',
-        timeout: 360000, // 微信前端的超时足够长，不用管
-        formData: { origin_lng, origin_lat },
+        timeout: 360000,
+        // 🌟 把新参数加进 formData 里传给后端
+        formData: { 
+          origin_lng, 
+          origin_lat,
+          travel_mode: travel_mode || 'walking',
+          city: city || '济南市' 
+        },
         header: { 
           'Authorization': `Bearer ${token}`
         },
         success: (res) => {
           const statusCode = res.statusCode;
-          
           if (statusCode >= 200 && statusCode < 300) {
             const rawData = res.data as string;
-            
-            // 准备好我们要返回的数据容器
-            let destInfo = null;
-            let routeInfo = null;
-            let weatherInfo = null;
-            let adviceInfo = null;
-
-            // 1. 标准 SSE 解析：按双换行符切分每一个事件块
+            let destInfo = null, routeInfo = null, weatherInfo = null, adviceInfo = null;
             const events = rawData.split('\n\n');
             
             for (const eventBlock of events) {
-              // 忽略空块
               if (!eventBlock.trim()) continue;
-
-              // 提取事件名和数据体
               const eventMatch = eventBlock.match(/event:\s*(\w+)/);
               const dataMatch = eventBlock.match(/data:\s*([\s\S]*)/);
-
               if (eventMatch && dataMatch) {
                 const eventName = eventMatch[1];
                 const rawJsonStr = dataMatch[1].trim();
-
                 try {
-                  // 2. 核心：只有提取出来的纯 JSON 字符串才去 parse
                   const parsedData = JSON.parse(rawJsonStr);
-
-                  // 3. 根据不同的事件名，分别赋值
                   switch (eventName) {
                     case 'error':
                       reject(new Error(parsedData.error || '语音处理失败'));
-                      return; // 遇到严重错误直接阻断
-                    case 'destination':
-                      destInfo = parsedData;
-                      break;
-                    case 'route':
-                      routeInfo = parsedData;
-                      break;
-                    case 'weather':
-                      weatherInfo = parsedData;
-                      break;
-                    case 'advice':
-                      adviceInfo = parsedData;
-                      break;
+                      return; 
+                    case 'destination': destInfo = parsedData; break;
+                    case 'route': routeInfo = parsedData; break;
+                    case 'weather': weatherInfo = parsedData; break;
+                    case 'advice': adviceInfo = parsedData; break;
                   }
                 } catch (e) {
-                  console.error(`事件 [${eventName}] JSON 解析失败，可能是网关超时截断了数据:`, rawJsonStr);
-                  // 故意不 reject，让其他成功的事件能继续
+                  console.error(`事件 [${eventName}] JSON 解析失败:`, rawJsonStr);
                 }
               }
             }
-
-            // 4. 防御性检查：确保核心路线数据存在
             if (!routeInfo) {
               reject(new Error('未获取到完整路线信息，请检查网络或稍后重试'));
               return;
             }
-
-            // 5. 完美返回结果
             resolve({ destInfo, routeInfo, weatherInfo, adviceInfo });
-            
           } else {
             reject(new Error(`服务器错误: HTTP ${statusCode}`));
           }

@@ -5,6 +5,8 @@ class NavigationPlanRequest(BaseModel):
     favorite_place_id: int
     origin_lng: str
     origin_lat: str
+    travel_mode: Optional[str] = "walking"  # 默认为步行
+    city: Optional[str] = "济南市"
 
 
 # ---------------- 子资源表述 ----------------

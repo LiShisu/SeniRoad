@@ -1,9 +1,9 @@
 import { favoritePlacesApi } from '../../../api/favorite-places';
 import type { FavoritePlace } from '../../../api/favorite-places';
-import { navigationApi, AddressNavigationResponse, SSEPlanResponse } from '../../../api/navigation';
+import { navigationApi, AddressNavigationResponse, SSEPlanResponse,SmartRouteData } from '../../../api/navigation';
 import { getPlace, savePlace, getRoute, saveRoute, getNavigationExtra, saveNavigationExtra, type NavigationAdvice, type WeatherInfo } from '../../storage';
 import { getLocation } from '../../../utils/geo';
-
+import { getRealLocation } from '../../../utils/geo';
 function removeStorageSync(key: string) {
   try {
     wx.removeStorageSync(key);
@@ -27,6 +27,11 @@ Page({
     isVoiceMode: false, // 新增：标识是否为语音导航模式
     placeId: 0,
     placeName: '',
+    // 🌟 新增：当前选中的地点数据和出行模式
+    currentPlace: null as FavoritePlace | null,
+    travelMode: 'walking', // 默认步行
+    city: '济南市',        // TODO: 建议后续在 getLocation() 时获取真实城市名
+    currentAudioPath: '',
     routeInfo: {
       destination: '',
       distance: '',
@@ -41,8 +46,17 @@ Page({
     cur_lng: ''
   },
 
+  // elderly/pages/plan/plan.ts -> onLoad
+
   onLoad(options: any) {
-    // 场景 1：来自常用地点点击
+    // 🌟 核心修改 1：进门一把锁，接住传过来的模式和城市状态机
+    if (options?.travelMode) {
+      this.setData({
+        travelMode: options.travelMode,
+        city: decodeURIComponent(options.city || '济南市')
+      });
+    }
+
     if (options?.place_id) {
       this.setData({ 
         placeId: parseInt(options.place_id),
@@ -50,34 +64,57 @@ Page({
       });
       this.loadPlaceAndRoute();
     } 
-    // 场景 2：来自语音输入跳转
     else if (options?.audioPath) {
+      // 🌟 核心修改 2：语音模式直达逻辑
+      // 我们锁死 isVoiceMode，并把解密后的音频路径【安全地】锁进 data 状态机！
       this.setData({ 
         isVoiceMode: true,
+        currentAudioPath: decodeURIComponent(options.audioPath) 
       });
-      this.loadPlanByVoice(
-        decodeURIComponent(options.audioPath)
-      );
+      
+      // 直接调用刚在 Router 里打通了公交参数透传的语音规划接口
+      this.loadPlanByVoice(this.data.currentAudioPath);
+    }
+  },
+  // 新增：用户点击切换出行方式的事件
+  // elderly/pages/plan/plan.ts -> switchTravelMode
+
+  switchTravelMode(e: any) {
+    const mode = e.currentTarget.dataset.mode; 
+    if (mode === this.data.travelMode) return;
+    
+    this.setData({ travelMode: mode });
+    
+    if (this.data.isVoiceMode && this.data.currentAudioPath) {
+      // 语音直达模式切换
+      wx.showLoading({ title: '正在重新聆听...', mask: true });
+      this.loadPlanByVoice(this.data.currentAudioPath);
+    } 
+    else if (this.data.currentPlace) {
+      // 🌟 核心修复 1：收藏夹（常用地点）模式切换时，立刻无死角拉起等待遮罩！
+      // mask: true 可以让长辈在加载期间无法点击屏幕其他地方，极其重要
+      wx.showLoading({ title: '正在重新规划...', mask: true }); 
+      this.planRoute(this.data.currentPlace);
     }
   },
   // 获取当前位置
   async getLocation() {
     try {
-      const location = await getLocation();
-      console.log('当前位置:', location);
+      // 🌟 核心修改 4：將原本的 getLocation 替換為 getRealLocation
+      const location = await getRealLocation();
+      console.log('成功動態感知長輩所在環境，當前城市為:', location.city);
+      
+      // 一箭三雕：把坐標和真正的城市統統寫進 data 狀態機中
       this.setData({
         cur_lat: location.latitude.toString(),
-        cur_lng: location.longitude.toString()
+        cur_lng: location.longitude.toString(),
+        city: location.city // 動態覆蓋！從此徹底告別死代碼
       });
-      console.log(this.data);
       
     } catch (error) {
-      console.error('获取位置失败:', error);
-      wx.showToast({ title: '获取位置失败，请重试', icon: 'none', duration: 2000 });
-      // 报错后停留两秒，自动退回上一页让长辈重新选择常用地点或重新录音
-      setTimeout(() => {
-        wx.navigateBack();
-      }, 2000);
+      console.error('獲取位置失敗:', error);
+      wx.showToast({ title: '獲取位置失敗，請重試', icon: 'none', duration: 2000 });
+      setTimeout(() => { wx.navigateBack(); }, 2000);
     }
   },
 
@@ -92,7 +129,9 @@ Page({
       const res = await navigationApi.navigateByVoice({
         audio_file: audioPath,
         origin_lat: this.data.cur_lat,
-        origin_lng: this.data.cur_lng
+        origin_lng: this.data.cur_lng,
+        travel_mode: this.data.travelMode, // 传入模式
+        city: this.data.city               // 传入城市
       });
       const { destInfo, routeInfo, weatherInfo, adviceInfo } = res;
       if (!routeInfo || !destInfo) {
@@ -104,7 +143,7 @@ Page({
         routeInfo: {
           destination: destInfo.destination,
           distance: routeInfo.distance || '0',
-          transport: '步行', 
+          transport: this.data.travelMode === 'transit' ? '公交' : '步行', // 动态文案
           estimate: formatDuration(durationNum)
         },
         weather: weatherInfo || {},
@@ -148,7 +187,10 @@ Page({
         savePlace(place);
       }
 
-      this.setData({ placeName: place.place_name });
+      this.setData({ 
+        placeName: place.place_name,
+        currentPlace: place // 🌟 记录当前地点，方便切换模式时复用
+      });
       await this.planRoute(place);
     } catch (err: any) {
       console.error('加载地点或路线失败:', err);
@@ -167,57 +209,35 @@ Page({
   async planRoute(place: FavoritePlace) {
     try {
       console.log('当前定位:', this.data.cur_lat, this.data.cur_lng);
-      console.log('目标地点:', place.place_id, place.place_name, place.latitude, place.longitude);
+      const travelMode = this.data.travelMode as 'walking' | 'transit';
+      const city = this.data.city;
 
-      let route: AddressNavigationResponse['route'] | null = null;
+      let route: SmartRouteData | null = null;
       let navigationAdvice: NavigationAdvice = {
-        clothing_advice: '',
-        items_to_bring: [],
-        safety_reminders: [],
-        best_time: '',
-        tips: []
+        clothing_advice: '', items_to_bring: [], safety_reminders: [], best_time: '', tips: []
       };
       let weather: WeatherInfo = {
-        weather_text: '',
-        temperature: '',
-        wind: '',
-        humidity: '',
-        air_quality: ''
+        weather_text: '', temperature: '', wind: '', humidity: '', air_quality: ''
       };
 
-      const cachedRoute = getRoute(place.place_id);
-      const cachedExtra = getNavigationExtra(place.place_id);
+      const cachedRoute = getRoute(place.place_id, travelMode);
+      const cachedExtra = getNavigationExtra(place.place_id, travelMode);
 
       if (cachedRoute && cachedExtra) {
         console.log('使用本地缓存路线和导航信息');
-        console.log('缓存路线:', cachedRoute);
-        console.log('缓存导航信息:', cachedExtra);
-        
-        route = cachedRoute as AddressNavigationResponse['route'];
-        
+        route = cachedRoute as SmartRouteData;
         if (typeof cachedExtra.navigation_advice === 'object') {
           navigationAdvice = cachedExtra.navigation_advice as NavigationAdvice;
         } else {
-          navigationAdvice = {
-            clothing_advice: cachedExtra.navigation_advice || '',
-            items_to_bring: [],
-            safety_reminders: [],
-            best_time: '',
-            tips: []
-          };
+          navigationAdvice.clothing_advice = cachedExtra.navigation_advice || '';
         }
-        
         if (typeof cachedExtra.weather === 'object') {
           weather = cachedExtra.weather as WeatherInfo;
-        } else {
-          weather = {
-            weather_text: '',
-            temperature: '',
-            wind: '',
-            humidity: '',
-            air_quality: ''
-          };
         }
+        
+        // 🌟 核心修复 2：如果直接命中本地缓存，速度极快（毫秒级），直接在这里手动关掉 Loading
+        wx.hideLoading();
+        
       } else {
         let planSuccess = false;
         try {
@@ -226,62 +246,39 @@ Page({
               {
                 favorite_place_id: place.place_id,
                 origin_lng: this.data.cur_lng,
-                origin_lat: this.data.cur_lat
+                origin_lat: this.data.cur_lat,
+                travel_mode: travelMode,
+                city: city
               },
-              (event, data) => {
-                console.log('SSE 事件:', event, typeof data, data);
-              },
-              (result) => {
-                console.log('SSE 流式规划完成:', result);
-                resolve(result);
-              },
-              (error) => {
-                console.error('SSE 流式规划失败:', error);
-                reject(error);
-              }
+              (event, data) => { console.log('SSE 事件:', event, typeof data, data); },
+              (result) => { resolve(result); },
+              (error) => { reject(error); }
             );
           });
 
-          console.log('智能规划路线结果:', planResult);
-          
           if (planResult.navigation_advice) {
             if (typeof planResult.navigation_advice === 'object') {
               navigationAdvice = planResult.navigation_advice as NavigationAdvice;
             } else {
-              navigationAdvice = {
-                clothing_advice: planResult.navigation_advice || '',
-                items_to_bring: [],
-                safety_reminders: [],
-                best_time: '',
-                tips: []
-              };
+              navigationAdvice.clothing_advice = planResult.navigation_advice || '';
             }
           }
-          
           if (planResult.weather) {
             if (typeof planResult.weather === 'object') {
               weather = planResult.weather as WeatherInfo;
-            } else {
-              weather = {
-                weather_text: '',
-                temperature: '',
-                wind: '',
-                humidity: '',
-                air_quality: ''
-              };
             }
           }
           
           route = planResult.route || null;
           planSuccess = !!route;
           if (route) {
-            saveRoute(place.place_id, route);
+            saveRoute(place.place_id, route, travelMode);
           }
           if (planSuccess) {
             saveNavigationExtra(place.place_id, {
               navigation_advice: navigationAdvice,
               weather: weather
-            });
+            }, travelMode);
           }
         } catch (planErr) {
           console.error('智能导航接口调用失败:', planErr);
@@ -289,25 +286,26 @@ Page({
 
         if (!planSuccess) {
           if (cachedRoute) {
-            console.log('智能导航失败，使用本地缓存路线');
-            route = cachedRoute as AddressNavigationResponse['route'];
-          }else {
+            route = cachedRoute as SmartRouteData;
+          } else {
             const routeRes = await navigationApi.navigateByAddress({
               favorite_place_id: place.place_id,
               origin_lng: this.data.cur_lng,
-              origin_lat: this.data.cur_lat
+              origin_lat: this.data.cur_lat,
+              travel_mode: travelMode,
+              city: city
             });
-            
-            console.log('路线规划结果:', routeRes);
             route = routeRes.route;
-            
-            saveRoute(place.place_id, route);
+            saveRoute(place.place_id, route, travelMode);
           }
         }
+        
+        // 🌟 核心修复 3：不管大模型流式请求是完美跑完，还是降级走到了保底的高德标准接口，
+        // 只要这个异步流程尘埃落定了，立刻在这里关掉转圈圈，把屏幕控制权交还长辈！
+        wx.hideLoading();
       }
 
       if (!route) {
-        console.error('路线数据为空');
         wx.showToast({ title: '路线规划失败', icon: 'none' });
         return;
       }
@@ -317,13 +315,16 @@ Page({
         routeInfo: {
           destination: place.place_name,
           distance: route.distance,
-          transport: '步行',
+          transport: travelMode === 'transit' ? '公交' : '步行',
           estimate: formatDuration(durationNum)
         },
         navigationAdvice: navigationAdvice,
         weather: weather
       });
+      
     } catch (err: any) {
+      // 🌟 核心修复 4：极端的异常捕获区，万一彻底断网或者崩溃了，也必须解开 Loading
+      wx.hideLoading();
       console.error('规划路线失败:', err);
       throw err;
     }
@@ -335,10 +336,9 @@ Page({
   startNavigate() {
     // 根据不同模式，给导航页传递不同的参数
     if (this.data.isVoiceMode) {
-      // 语音模式：通过 voiceMode 标记，navigate.ts 会自动去读取 tempVoiceRoute 缓存
-      wx.navigateTo({ url: '/elderly/pages/navigate/navigate?voiceMode=1' });
+      wx.navigateTo({ url: `/elderly/pages/navigate/navigate?voiceMode=1&travelMode=${this.data.travelMode}&city=${this.data.city}` }); // 将状态传递给导航页
     } else {
-      const url = `/elderly/pages/navigate/navigate?place_id=${this.data.placeId}`;
+      const url = `/elderly/pages/navigate/navigate?place_id=${this.data.placeId}&travelMode=${this.data.travelMode}&city=${this.data.city}`; // 同上
       wx.navigateTo({ url });
     }
   },
@@ -350,14 +350,14 @@ async replan() {
       wx.navigateBack();
     }, 2000);
   } else {
-    // 收藏夹模式的重新规划
-    const cachedPlace = getPlace(this.data.placeId);
-    if (cachedPlace) {
-      removeStorageSync(`route_${this.data.placeId}`);
-      removeStorageSync(`nav_extra_${this.data.placeId}`);
-      this.setData({ isLoading: true });
-      await this.loadPlaceAndRoute();
+      const cachedPlace = getPlace(this.data.placeId);
+      if (cachedPlace) {
+        // 清除当前模式下的路线缓存
+        removeStorageSync(`route_${this.data.placeId}_${this.data.travelMode}`); 
+        removeStorageSync(`nav_extra_${this.data.placeId}`);
+        this.setData({ isLoading: true });
+        await this.loadPlaceAndRoute();
+      }
     }
   }
-}
 });

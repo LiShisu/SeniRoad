@@ -1,4 +1,3 @@
-<!--elderly/pages/plan/plan.wxml-->
 <view class="container">
   <view class="header">
     <view class="back-button" bindtap="goBack">
@@ -8,11 +7,19 @@
 
   <view class="content">
     <view class="success-icon">
-      <!-- <image src="/assets/svg/check-icon.svg" mode="aspectFit" /> -->
        ✅
     </view>
 
     <text class="title">路线规划好啦</text>
+
+    <view class="mode-tabs">
+  <view class="tab-item {{travelMode === 'walking' ? 'active' : ''}}" bindtap="switchTravelMode" data-mode="walking">
+    🚶‍♂️ 步行前往
+  </view>
+  <view class="tab-item {{travelMode === 'transit' ? 'active' : ''}}" bindtap="switchTravelMode" data-mode="transit">
+    🚌 公交/地铁
+  </view>
+</view>
 
     <view class="route-card">
       <view class="route-item">
@@ -27,12 +34,12 @@
       </view>
       <view class="route-item">
         <image class="item-icon" src="/assets/svg/route-icon.svg" mode="aspectFit" />
-        <text class="item-label">交通:</text>
-        <text class="item-value">{{routeInfo.transport}}</text>
+        <text class="item-label">交通方式:</text>
+        <text class="item-value mode-highlight">{{routeInfo.transport}}</text>
       </view>
       <view class="route-item">
         <image class="item-icon" src="/assets/svg/time-icon.svg" mode="aspectFit" />
-        <text class="item-label">预计:</text>
+        <text class="item-label">预计耗时:</text>
         <text class="item-value">{{routeInfo.estimate}}</text>
       </view>
     </view>
@@ -64,7 +71,7 @@
       
       <view class="advice-section" wx:if="{{navigationAdvice.clothing_advice}}">
         <text class="advice-section-title">🧥 穿衣建议</text>
-        <div class="advice-section-content">{{navigationAdvice.clothing_advice}}</div>
+        <view class="advice-section-content">{{navigationAdvice.clothing_advice}}</view>
       </view>
 
       <view class="advice-section" wx:if="{{navigationAdvice.items_to_bring.length}}">
@@ -72,7 +79,7 @@
         <view class="advice-list">
           <view class="advice-list-item" wx:for="{{navigationAdvice.items_to_bring}}" wx:key="index">
             <text class="list-bullet">•</text>
-            <div class="list-content">{{item}}</div>
+            <view class="list-content">{{item}}</view>
           </view>
         </view>
       </view>
@@ -82,14 +89,14 @@
         <view class="advice-list">
           <view class="advice-list-item" wx:for="{{navigationAdvice.safety_reminders}}" wx:key="index">
             <text class="list-bullet">•</text>
-            <div class="list-content">{{item}}</div>
+            <view class="list-content">{{item}}</view>
           </view>
         </view>
       </view>
 
       <view class="advice-section" wx:if="{{navigationAdvice.best_time}}">
         <text class="advice-section-title">⏰ 最佳出行时段</text>
-        <div class="advice-section-content">{{navigationAdvice.best_time}}</div>
+        <view class="advice-section-content">{{navigationAdvice.best_time}}</view>
       </view>
 
       <view class="advice-section" wx:if="{{navigationAdvice.tips.length}}">
@@ -97,7 +104,7 @@
         <view class="advice-list">
           <view class="advice-list-item" wx:for="{{navigationAdvice.tips}}" wx:key="index">
             <text class="list-bullet">•</text>
-            <div class="list-content">{{item}}</div>
+            <view class="list-content">{{item}}</view>
           </view>
         </view>
       </view>
@@ -106,11 +113,11 @@
     <view class="action-buttons">
       <view class="action-btn primary" bindtap="startNavigate">
         <image class="btn-icon" src="/assets/svg/play-icon.svg" mode="aspectFit" />
-        <div class="btn-text">开始导航</div>
+        <text class="btn-text">开始导航</text>
       </view>
       <view class="action-btn secondary" bindtap="replan">
         <image class="btn-icon" src="/assets/svg/refresh-icon.svg" mode="aspectFit" />
-        <div class="btn-text">重新规划</div>
+        <text class="btn-text">重新规划</text>
       </view>
     </view>
   </view>

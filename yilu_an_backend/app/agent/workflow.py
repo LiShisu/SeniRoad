@@ -135,7 +135,9 @@ async def execute_navigation_workflow_stream(
     destination_lat: Optional[str] = None,
     favorite_place_id: Optional[int] = None,
     audio_file = None,
-    favorite_place_service: Optional[FavoritePlaceService] = None
+    favorite_place_service: Optional[FavoritePlaceService] = None,
+    travel_mode: str = "walking", # 👈 补充参数
+    city: str = ""
 ) -> AsyncGenerator[Dict[str, Any], None]:
     """执行导航工作流（流式）
 
@@ -171,7 +173,9 @@ async def execute_navigation_workflow_stream(
         weather_result=WeatherResult().model_dump(),
         final_advice="",
         matched_type="",
-        voice_text=""
+        voice_text="",
+        travel_mode=travel_mode, 
+        city=city,              
     )
 
     # 第一步：目的地解析

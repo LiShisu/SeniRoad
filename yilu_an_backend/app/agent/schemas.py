@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any, Sequence
 from langgraph.graph import add_messages
 from langchain_core.messages import BaseMessage
-
+from typing import Union
 #TODO：待移动到schemas文件夹
 class WeatherResult(BaseModel):
     """天气查询结果结构
@@ -85,8 +85,30 @@ class NavigationWorkflowState(BaseModel):
     destination_lat: Optional[str] = Field(default=None, description="目的地纬度")
     favorite_place_id: Optional[int] = Field(default=None, description="收藏地点ID")
     audio_file: Optional[Any] = Field(default=None, description="音频文件")
-    route_result: RouteResult = Field(default_factory=RouteResult, description="路线规划结果")
+    route_result: Union[RouteResult, TransitRouteResult] = Field(default_factory=RouteResult, description="路线规划结果")
     weather_result: WeatherResult = Field(default_factory=WeatherResult, description="天气查询结果")
     final_advice: str = Field(default="", description="最终出行建议")
     matched_type: str = Field(default="", description="目的地匹配类型")
     voice_text: str = Field(default="", description="语音识别文本")
+    travel_mode: str = Field(default="walking", description="出行方式（walking/transit）")
+    city: Optional[str] = Field(default=None, description="城市名称或区号（公交规划必需）")
+
+# --- 新增公交专属模型 ---
+class TransitLine(BaseModel):
+    name: str           # e.g., "地铁1号线"
+    departure_stop: str # 上车站
+    arrival_stop: str   # 下车站
+    via_num: int        # 乘坐站数
+    duration: str       # 乘车时间
+    polyline: str       # 公交线路轨迹
+
+class TransitSegment(BaseModel):
+    walking: Optional[RouteStep] = None # 这一段的步行部分（前往车站）
+    bus: Optional[TransitLine] = None   # 这一段的乘车部分
+
+class TransitRouteResult(BaseModel):
+    text: str
+    distance: str
+    duration: str
+    segments: List[TransitSegment]      # 换乘段落
+    polyline: str                       # 完整的总轨迹（前端画线用）
