@@ -1,8 +1,5 @@
 import { TENCENT_MAP_KEY, AMAP_KEY } from './config';
-// utils/geo.ts
-import AmapWX from './amap-wx.js'; // 🌟 确保引入了高德小程序SDK
-const GAODE_KEY = AMAP_KEY; // 你的高德 KEY
-const amapInstance = new AmapWX.AMapWX({ key: GAODE_KEY });
+
 // 定位配置常量 - 统一设置
 export const LOCATION_CONFIG: WechatMiniprogram.GetLocationOption = {
   type: 'gcj02',
@@ -21,21 +18,6 @@ export function getLocation(options?: Partial<WechatMiniprogram.GetLocationOptio
     });
   });
 }
-// 核心新增
-// 1. 先定义高德逆地理编码返回的类型（解决TS报错核心）
-interface AddressComponent {
-  city: string;
-  province: string;
-}
-
-interface RegeocodeData {
-  addressComponent: AddressComponent;
-}
-
-interface AmapRegeoItem {
-  regeocodeData: RegeocodeData;
-}
-
 // 继承微信原生定位结果，扩展city字段
 export interface RealLocation extends WechatMiniprogram.GetLocationSuccessCallbackResult {
   city: string; 
@@ -43,44 +25,32 @@ export interface RealLocation extends WechatMiniprogram.GetLocationSuccessCallba
 
 export async function getRealLocation(options?: Partial<WechatMiniprogram.GetLocationOption>): Promise<RealLocation> {
   try {
-    // 完美的复用：直接 await 你原本的 Promise 版本的 getLocation
     const geoRes = await getLocation(options);
     
-    // 拿着拿到的经纬度，立刻去高德做逆地理编码
-    return new Promise((resolve) => {
-      amapInstance.getRegeo({
-        location: `${geoRes.longitude},${geoRes.latitude}`,
-        success: (regeoRes: AmapRegeoItem[]) => {
-          console.log('🗺️ 高德动态逆地理感知成功:', regeoRes);
-          
-          const component = regeoRes[0].regeocodeData.addressComponent;
-          let city = '';
-          
-          // 适老化脏数据清洗：直辖市（北京、上海等）的 city 字段为空，省份字段即为城市名
-          if (typeof component.city === 'string' && component.city.length > 0) {
-            city = component.city; 
-          } else if (typeof component.province === 'string') {
-            city = component.province; 
-          }
-          
-          // 完美继承原 geoRes 的全部字段（latitude、longitude、accuracy等），并强行注入 city
-          resolve({
-            ...geoRes,
-            city: city || '济南市' // 极限保底
-          });
-        },
-        fail: (err: any) => {
-          console.error('高德逆地理转换失败，降级使用保底城市:', err);
-          resolve({
-            ...geoRes,
-            city: '济南市' // 降级保底城市，确保长辈端即使高德欠费也能正常步行导航
-          });
-        }
-      });
-    });
+    try {
+      const regeoResult = await gaodeReverseGeocode(geoRes.latitude, geoRes.longitude);
+      console.log('🗺️ 高德动态逆地理感知成功:', regeoResult);
+      
+      let city = '';
+      if (typeof regeoResult.city === 'string' && regeoResult.city.length > 0) {
+        city = regeoResult.city;
+      } else if (typeof regeoResult.province === 'string' && regeoResult.province.length > 0) {
+        city = regeoResult.province;
+      }
+      
+      return {
+        ...geoRes,
+        city: city || '济南市'
+      };
+    } catch (err) {
+      console.error('高德逆地理转换失败，降级使用保底城市:', err);
+      return {
+        ...geoRes,
+        city: '济南市'
+      };
+    }
     
   } catch (error) {
-    // 如果你原本的 getLocation 失败了（比如长辈没开GPS、拒绝了定位权限），直接向上抛出错误
     throw error;
   }
 }
@@ -99,6 +69,7 @@ export interface PlaceSearchResult {
   longitude: number;
 }
 
+// 逆地理编码 - 腾讯地图（不用）
 export function reverseGeocode(latitude: number, longitude: number): Promise<ReverseGeocodeResult> {
   return new Promise((resolve, reject) => {
     wx.request({
@@ -126,7 +97,7 @@ export function reverseGeocode(latitude: number, longitude: number): Promise<Rev
 export function gaodeReverseGeocode(latitude: number, longitude: number): Promise<ReverseGeocodeResult> {
   return new Promise((resolve, reject) => {
     wx.request({
-      url: `https://restapi.amap.com/v3/geocode/regeo?key=${GAODE_MAP_KEY}&location=${longitude},${latitude}&extensions=base`,
+      url: `https://restapi.amap.com/v3/geocode/regeo?key=${AMAP_KEY}&location=${longitude},${latitude}&extensions=base`,
       success: (res: any) => {
         if (res.data.status === '1' && res.data.regeocode) {
           const result = res.data.regeocode;
@@ -150,7 +121,7 @@ export function gaodeReverseGeocode(latitude: number, longitude: number): Promis
 
 export function gaodePlaceSearch(keyword: string, city: string): Promise<PlaceSearchResult[]> {
   return new Promise((resolve, reject) => {
-    const url = `https://restapi.amap.com/v5/place/text?keywords=${encodeURIComponent(keyword)}&region=${encodeURIComponent(city)}&key=${GAODE_MAP_KEY}`;
+    const url = `https://restapi.amap.com/v5/place/text?keywords=${encodeURIComponent(keyword)}&region=${encodeURIComponent(city)}&key=${AMAP_KEY}`;
     console.log('高德搜索请求URL:', url);
 
     wx.request({

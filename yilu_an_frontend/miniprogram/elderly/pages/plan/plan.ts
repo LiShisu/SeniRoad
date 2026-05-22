@@ -24,13 +24,12 @@ function formatDuration(seconds: number): string {
 
 Page({
   data: {
-    isVoiceMode: false, // 新增：标识是否为语音导航模式
+    isVoiceMode: false,
     placeId: 0,
     placeName: '',
-    // 🌟 新增：当前选中的地点数据和出行模式
     currentPlace: null as FavoritePlace | null,
-    travelMode: 'walking', // 默认步行
-    city: '济南市',        // TODO: 建议后续在 getLocation() 时获取真实城市名
+    travelMode: 'walking',
+    city: '济南市',
     currentAudioPath: '',
     routeInfo: {
       destination: '',
@@ -43,13 +42,13 @@ Page({
     isLoading: true,
     loadingText: '正在规划路线...',
     cur_lat: '',
-    cur_lng: ''
+    cur_lng: '',
+    hasRouteData: false
   },
 
   // elderly/pages/plan/plan.ts -> onLoad
 
   onLoad(options: any) {
-    // 🌟 核心修改 1：进门一把锁，接住传过来的模式和城市状态机
     if (options?.travelMode) {
       this.setData({
         travelMode: options.travelMode,
@@ -62,37 +61,59 @@ Page({
         placeId: parseInt(options.place_id),
         isVoiceMode: false 
       });
-      this.loadPlaceAndRoute();
     } 
     else if (options?.audioPath) {
-      // 🌟 核心修改 2：语音模式直达逻辑
-      // 我们锁死 isVoiceMode，并把解密后的音频路径【安全地】锁进 data 状态机！
       this.setData({ 
         isVoiceMode: true,
         currentAudioPath: decodeURIComponent(options.audioPath) 
       });
-      
-      // 直接调用刚在 Router 里打通了公交参数透传的语音规划接口
-      this.loadPlanByVoice(this.data.currentAudioPath);
     }
+    
+    this.setData({ 
+      isLoading: false 
+    });
   },
-  // 新增：用户点击切换出行方式的事件
-  // elderly/pages/plan/plan.ts -> switchTravelMode
+  selectTravelMode(e: any) {
+    const mode = e.currentTarget.dataset.mode; 
+    if (mode === this.data.travelMode) return;
+    
+    this.setData({ travelMode: mode });
+  },
+
+  async confirmAndPlan() {
+    await this.getLocation();
+    
+    if (!this.data.cur_lat || !this.data.cur_lng) {
+      wx.showToast({ title: '获取位置失败，请重试', icon: 'none', duration: 2000 });
+      return;
+    }
+
+    wx.showLoading({ title: '正在规划路线...', mask: true });
+
+    if (this.data.isVoiceMode && this.data.currentAudioPath) {
+      await this.loadPlanByVoice(this.data.currentAudioPath);
+    } 
+    else if (this.data.placeId) {
+      await this.loadPlaceAndRoute();
+    }
+    
+    this.setData({ hasRouteData: true });
+    wx.hideLoading();
+  },
 
   switchTravelMode(e: any) {
+    if (!this.data.hasRouteData) return;
+    
     const mode = e.currentTarget.dataset.mode; 
     if (mode === this.data.travelMode) return;
     
     this.setData({ travelMode: mode });
     
     if (this.data.isVoiceMode && this.data.currentAudioPath) {
-      // 语音直达模式切换
-      wx.showLoading({ title: '正在重新聆听...', mask: true });
+      wx.showLoading({ title: '正在重新规划...', mask: true });
       this.loadPlanByVoice(this.data.currentAudioPath);
     } 
     else if (this.data.currentPlace) {
-      // 🌟 核心修复 1：收藏夹（常用地点）模式切换时，立刻无死角拉起等待遮罩！
-      // mask: true 可以让长辈在加载期间无法点击屏幕其他地方，极其重要
       wx.showLoading({ title: '正在重新规划...', mask: true }); 
       this.planRoute(this.data.currentPlace);
     }
@@ -342,22 +363,33 @@ Page({
       wx.navigateTo({ url });
     }
   },
-async replan() {
-  if (this.data.isVoiceMode) {
-    // 语音模式的重新规划：提示老人返回重新录音
-    wx.showToast({ title: '请返回上一页重新说出目的地', icon: 'none', duration: 2000 });
-    setTimeout(() => {
-      wx.navigateBack();
-    }, 2000);
-  } else {
-      const cachedPlace = getPlace(this.data.placeId);
-      if (cachedPlace) {
-        // 清除当前模式下的路线缓存
-        removeStorageSync(`route_${this.data.placeId}_${this.data.travelMode}`); 
-        removeStorageSync(`nav_extra_${this.data.placeId}`);
-        this.setData({ isLoading: true });
-        await this.loadPlaceAndRoute();
-      }
+// async replan() {
+//   if (this.data.isVoiceMode) {
+//     // 语音模式的重新规划：提示老人返回重新录音
+//     wx.showToast({ title: '请返回上一页重新说出目的地', icon: 'none', duration: 2000 });
+//     setTimeout(() => {
+//       wx.navigateBack();
+//     }, 2000);
+//   } else {
+//       const cachedPlace = getPlace(this.data.placeId);
+//       if (cachedPlace) {
+//         // 清除当前模式下的路线缓存
+//         removeStorageSync(`route_${this.data.placeId}_${this.data.travelMode}`); 
+//         removeStorageSync(`nav_extra_${this.data.placeId}`);
+//         this.setData({ isLoading: true });
+//         await this.loadPlaceAndRoute();
+//       }
+//     }
+//   }
+  async replan() {
+    if (this.data.isVoiceMode) {
+      wx.showToast({ title: '请返回上一页重新说出目的地', icon: 'none', duration: 2000 });
+      setTimeout(() => { wx.navigateBack(); }, 2000);
+    } else {
+      // 返回选择出行方式状态
+      this.setData({ 
+        hasRouteData: false
+      });
     }
   }
 });

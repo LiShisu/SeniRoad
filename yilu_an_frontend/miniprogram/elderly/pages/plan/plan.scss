@@ -1,31 +1,166 @@
 /* elderly/pages/plan/plan.scss - 美化版本 */
-/* 出行方式切换栏整体容器 */
-.mode-tabs {
+$page-background-gradient: linear-gradient(160deg, #E8F4FF 0%, #F0F8FF 100%);
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  z-index: 9999;
   display: flex;
-  background-color: #f5f5f5;
-  border-radius: 16rpx;
-  padding: 8rpx;
-  margin: 30rpx 0;
-  border: 2rpx solid #e0e0e0;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10rpx);
 }
 
-/* 单个标签选项 */
-.tab-item {
-  flex: 1;
-  text-align: center;
-  font-size: 34rpx;        /* 适老版特意放大字号 */
-  font-weight: bold;
-  padding: 24rpx 0;        /* 扩大点击热区，防止长辈手指发抖点错 */
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40rpx;
+}
+
+.loading-spinner {
+  width: 120rpx;
+  height: 120rpx;
+  border: 8rpx solid #E8F4FF;
+  border-top-color: #1890FF;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 36rpx;
   color: #666666;
-  border-radius: 12rpx;
-  transition: all 0.2s ease;
+  font-weight: 500;
+}
+.mode-selector {
+  display: flex;
+  gap: 30rpx;
+  margin: 40rpx 0;
+  width: 100%;
 }
 
-/* 激活状态：变成醒目的亮蓝色 */
-.tab-item.active {
-  background-color: #1890ff;
-  color: #ffffff;
-  box-shadow: 0 4rpx 12rpx rgba(24, 144, 255, 0.3);
+.mode-card {
+  flex: 1;
+  background: linear-gradient(135deg, #FFFFFF 0%, #FFFAF5 100%);
+  border-radius: 30rpx;
+  padding: 40rpx 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 3rpx solid #FFE8D6;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6rpx;
+    background: linear-gradient(90deg, #FFE8D6, #FFE8D6);
+    transition: background 0.3s ease;
+  }
+  
+  &:active {
+    transform: scale(0.98);
+  }
+  
+  &.selected {
+    border-color: #FF8C42;
+    box-shadow: 0 12rpx 32rpx rgba(255, 140, 66, 0.25);
+    background: linear-gradient(135deg, #FFF9F0 0%, #FFF4E8 100%);
+    
+    &::before {
+      background: linear-gradient(90deg, #FF8C42, #FF6B35);
+    }
+    
+    .mode-icon-wrapper {
+      background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
+      box-shadow: 0 8rpx 20rpx rgba(255, 140, 66, 0.4);
+    }
+    
+    .mode-icon {
+      filter: brightness(0) invert(1);
+    }
+    
+    .mode-title {
+      color: #FF6B35;
+    }
+    
+    .mode-desc {
+      color: #FF8C42;
+    }
+  }
+  
+  .mode-icon-wrapper {
+    width: 120rpx;
+    height: 120rpx;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FFF9F0 0%, #FFF4E8 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24rpx;
+    transition: all 0.3s ease;
+    box-shadow: 0 4rpx 12rpx rgba(255, 140, 66, 0.15);
+  }
+  
+  .mode-icon {
+    width: 60rpx;
+    height: 60rpx;
+    transition: filter 0.3s ease;
+  }
+  
+  .mode-title {
+    font-size: 36rpx;
+    font-weight: 700;
+    color: #333333;
+    margin-bottom: 8rpx;
+    transition: color 0.3s ease;
+  }
+  
+  .mode-desc {
+    font-size: 24rpx;
+    color: #999999;
+    transition: color 0.3s ease;
+  }
+}
+
+.confirm-btn {
+  width: 100%;
+  height: 120rpx;
+  background: linear-gradient(135deg, #FF7722 0%, #FF5500 100%);
+  border-radius: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 40rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 10rpx 30rpx rgba(255, 85, 0, 0.35);
+  transition: all 0.3s ease;
+  
+  &:active {
+    transform: scale(0.98);
+    box-shadow: 0 6rpx 20rpx rgba(255, 85, 0, 0.4);
+  }
+  
+  .confirm-btn-text {
+    font-size: 40rpx;
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+  }
 }
 
 /* 高亮突出的交通工具文本 */
@@ -34,11 +169,13 @@
   font-weight: bold;
 }
 .container {
-  background: linear-gradient(160deg, #E8F4FF 0%, #F0F8FF 100%); // 柔和的渐变背景
+  background: $page-background-gradient; // 柔和的渐变背景
   min-height: 100vh;
-  padding-bottom: 60rpx;
+  // padding-bottom: 60rpx;
   position: relative;
   overflow-x: hidden;
+  // align-items: center;
+  justify-content: flex-start;
   
   // 背景装饰元素
   &::before {

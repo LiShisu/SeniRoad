@@ -81,8 +81,11 @@
     font-weight: 700;
     color: #2D3748;
     margin-bottom: 20rpx;
-    line-height: 1.4;
+    line-height: 1.6;
     text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.05);
+    word-break: keep-all;
+    text-align: justify;
+    letter-spacing: 2rpx;
   }
 
   .hint-text {

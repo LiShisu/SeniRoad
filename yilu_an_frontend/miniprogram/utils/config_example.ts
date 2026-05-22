@@ -5,7 +5,7 @@
 export const TENCENT_MAP_KEY = 'your_tencent_map_key';
 
 // 高德地图 API Key
-export const GAODE_MAP_KEY = 'your_gaode_map_key';
+export const AMAP_KEY = 'your_gaode_map_key';
 
 // API 基础地址
 export const API_BASE_URL = 'http://localhost:8000/api/v1';

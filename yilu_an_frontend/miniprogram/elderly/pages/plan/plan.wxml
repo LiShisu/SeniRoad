@@ -6,22 +6,38 @@
   </view>
 
   <view class="content">
-    <view class="success-icon">
-       ✅
+    <view class="success-icon" wx:if="{{hasRouteData}}">
+      ✅
+    </view>
+    <view class="success-icon" wx:else>
+      🎈
     </view>
 
-    <text class="title">路线规划好啦</text>
+    <text class="title" wx:if="{{!hasRouteData}}">选择出行方式</text>
+    <text class="title" wx:else>路线规划好啦</text>
 
-    <view class="mode-tabs">
-  <view class="tab-item {{travelMode === 'walking' ? 'active' : ''}}" bindtap="switchTravelMode" data-mode="walking">
-    🚶‍♂️ 步行前往
-  </view>
-  <view class="tab-item {{travelMode === 'transit' ? 'active' : ''}}" bindtap="switchTravelMode" data-mode="transit">
-    🚌 公交/地铁
-  </view>
-</view>
+    <view class="mode-selector" wx:if="{{!hasRouteData}}">
+      <view class="mode-card {{travelMode === 'walking' ? 'selected' : ''}}" bindtap="selectTravelMode" data-mode="walking">
+        <view class="mode-icon-wrapper">
+          <image class="mode-icon" src="/assets/svg/walking-icon.svg" mode="aspectFit" />
+        </view>
+        <text class="mode-title">步行前往</text>
+        <text class="mode-desc">适合短距离出行</text>
+      </view>
+      <view class="mode-card {{travelMode === 'transit' ? 'selected' : ''}}" bindtap="selectTravelMode" data-mode="transit">
+        <view class="mode-icon-wrapper">
+          <image class="mode-icon" src="/assets/svg/transit-icon.svg" mode="aspectFit" />
+        </view>
+        <text class="mode-title">公交/地铁</text>
+        <text class="mode-desc">适合长距离出行</text>
+      </view>
+    </view>
 
-    <view class="route-card">
+    <view class="confirm-btn" bindtap="confirmAndPlan" wx:if="{{!hasRouteData}}">
+      <text class="confirm-btn-text">开始规划路线</text>
+    </view>
+
+    <view class="route-card" wx:if="{{hasRouteData}}">
       <view class="route-item">
         <image class="item-icon" src="/assets/svg/location-icon.svg" mode="aspectFit" />
         <text class="item-label">目的地:</text>
@@ -44,7 +60,7 @@
       </view>
     </view>
 
-    <view class="weather-card" wx:if="{{weather.weather_text || weather.temperature}}">
+    <view class="weather-card" wx:if="{{hasRouteData && (weather.weather_text || weather.temperature)}}">
       <text class="weather-title">🌤️ 天气信息</text>
       <view class="weather-content">
         <view class="weather-row" wx:if="{{weather.weather_text}}">
@@ -66,7 +82,7 @@
       </view>
     </view>
 
-    <view class="advice-card" wx:if="{{navigationAdvice.clothing_advice || navigationAdvice.items_to_bring.length || navigationAdvice.safety_reminders.length || navigationAdvice.best_time || navigationAdvice.tips.length}}">
+    <view class="advice-card" wx:if="{{hasRouteData && (navigationAdvice.clothing_advice || navigationAdvice.items_to_bring.length || navigationAdvice.safety_reminders.length || navigationAdvice.best_time || navigationAdvice.tips.length)}}">
       <text class="advice-main-title">📋 出行建议</text>
       
       <view class="advice-section" wx:if="{{navigationAdvice.clothing_advice}}">
@@ -110,7 +126,7 @@
       </view>
     </view>
 
-    <view class="action-buttons">
+    <view class="action-buttons" wx:if="{{hasRouteData}}">
       <view class="action-btn primary" bindtap="startNavigate">
         <image class="btn-icon" src="/assets/svg/play-icon.svg" mode="aspectFit" />
         <text class="btn-text">开始导航</text>

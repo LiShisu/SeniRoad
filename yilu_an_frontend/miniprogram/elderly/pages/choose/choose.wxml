@@ -9,8 +9,8 @@
   <view class="content">
     <view class="title-section">
       <text class="main-title">请说出您要去的地方</text>
-      <text class="hint-text">比如"去公园"</text>
-      <text class="hint-text">"家旁边的菜市场"</text>
+      <text class="hint-text">比如"去学校"</text>
+      <text class="hint-text">"去中心校区"</text>
     </view>
 
     <view class="voice-section">
