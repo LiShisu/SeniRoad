@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_serializer
+from pydantic import BaseModel, Field, field_serializer, field_validator
 from typing import Optional
 from datetime import datetime, date
 from enum import Enum
@@ -53,6 +53,20 @@ class LoginResponse(BaseModel):
 class UserUpdate(BaseModel):
     nickname: Optional[str] = None
     gender: Optional[int] = Field(None, ge=0, le=9)
-    birthday: Optional[date] = None
+    birthday: Optional[str] = None
     avatar_url: Optional[str] = None
     phone: Optional[str] = None
+
+    @field_validator("birthday")
+    @classmethod
+    def validate_birthday(cls, v):
+        if v == "":
+            return None
+        if v is None:
+            return None
+        if isinstance(v, str):
+            try:
+                return date.fromisoformat(v)
+            except ValueError:
+                raise ValueError("birthday must be a valid ISO date string (YYYY-MM-DD) or empty string")
+        return v

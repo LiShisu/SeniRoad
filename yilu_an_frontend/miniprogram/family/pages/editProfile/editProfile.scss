@@ -1,9 +1,9 @@
 /* edit-profile.scss */
 // 颜色变量
 $bg-color: #FFF5EB; // 米橙色背景
-$primary-color: #FF8C42; // 熟柿色主色调
-$primary-hover: #FFA066; // 主色调 hover
-$primary-active: #E67E3A; // 主色调 active
+$primary-color: #4B8AFF; // 熟柿色主色调
+$primary-hover: #3373FF; // 主色调 hover
+$primary-active: #E673FF; // 主色调 active
 $card-bg: #FFFFFF; // 卡片白色
 $text-dark: #333333; // 深炭灰文字
 $text-light: #888888; // 中灰色文字
@@ -11,8 +11,8 @@ $border-color: #EEEEEE; // 边框颜色
 $input-bg: #F5F5F5; // 输入框背景
 $input-bg-hover: #F0F0F0; // 输入框背景 hover
 $input-bg-active: #E0E0E0; // 输入框背景 active
-$shadow-color: rgba(255, 140, 66, 0.2); // 阴影颜色
-$shadow-color-hover: rgba(255, 140, 66, 0.4); // 阴影颜色 hover
+$shadow-color: rgba(66, 72, 255, 0.2); // 阴影颜色
+$shadow-color-hover: rgba(214, 66, 255, 0.4); // 阴影颜色 hover
 
 // 适老化字体
 $font-title: 40rpx; // 页面标题

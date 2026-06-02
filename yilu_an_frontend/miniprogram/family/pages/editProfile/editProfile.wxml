@@ -66,10 +66,12 @@
     <view class="form-item">
       <view class="form-label">生日</view>
       <view class="picker-container">
-        <view class="picker-trigger" bindtap="showDatePicker">
-          <view class="picker-value">{{birthdayDisplay}}</view>
-          <view class="picker-arrow">▼</view>
-        </view>
+        <picker mode="date" value="{{formData.birthday}}" start="1900-01-01" end="{{today}}" bindchange="onDateChange">
+          <view class="picker-trigger">
+            <view class="picker-value">{{birthdayDisplay}}</view>
+            <view class="picker-arrow">▼</view>
+          </view>
+        </picker>
       </view>
     </view>
 
@@ -95,11 +97,5 @@
     <text class="save-btn-text">保存</text>
   </button>
 
-  <!-- 自定义日期选择器 -->
-  <elder-date-picker
-    visible="{{showDatePicker}}"
-    value="{{formData.birthday}}"
-    bind:confirm="onDateConfirm"
-    bind:cancel="onDateCancel"
-  />
+
 </view>

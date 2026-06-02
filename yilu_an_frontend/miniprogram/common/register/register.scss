@@ -1,4 +1,4 @@
-/* elderly/pages/register/register.scss */
+/* common/pages/register/register.scss */
 
 // 颜色变量
 $bg-color: #FFFFFF;
@@ -11,7 +11,7 @@ $border-color: #E5E5E5;
 // 尺寸变量
 $border-radius: 12rpx;
 $input-height: 80rpx;
-$button-height: 80rpx;
+$button-height: 100rpx;
 
 .container {
   background-color: $bg-color;
@@ -108,12 +108,18 @@ $button-height: 80rpx;
 
 .register-button {
   height: $button-height;
+  width:60%;
   background-color: $primary-orange;
   color: #FFFFFF;
   font-size: 32rpx;
   font-weight: 600;
+  font-family: 'Noto Sans SC', sans-serif;
   border-radius: $border-radius;
   margin-top: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .login-link {

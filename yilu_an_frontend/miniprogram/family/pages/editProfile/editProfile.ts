@@ -34,7 +34,8 @@ Page({
     },
     // 日期选择器相关数据
     showDatePicker: false,
-    birthdayDisplay: '1997年 1月 1日'
+    birthdayDisplay: '1999年 1月 1日',
+    today: ''
   },
 
   /**
@@ -43,6 +44,10 @@ Page({
   onLoad() {
     // 检查用户类型权限（家属端页面需要 'family' 权限）
     checkAndRedirect('family');
+    // 设置今天日期作为日期选择器的结束日期
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    this.setData({ today });
     this.getUserInfo();
   },
 
@@ -58,7 +63,8 @@ Page({
           avatar: userInfo.avatar_url || '',
           gender: userInfo.gender,
           birthday: userInfo.birthday || '',
-        }
+        },
+        birthdayDisplay: userInfo.birthday || '1999年 1月 1日'
       })
       this.updateBirthdayDisplay();
     } catch (error: any) {
@@ -108,30 +114,6 @@ Page({
       'formData.birthday': e.detail.value
     });
     this.updateBirthdayDisplay();
-  },
-
-  // 显示日期选择器
-  showDatePicker() {
-    this.setData({
-      showDatePicker: true
-    });
-  },
-
-  // 确认日期选择
-  onDateConfirm(e: any) {
-    const { value, displayValue } = e.detail;
-    this.setData({
-      'formData.birthday': value,
-      birthdayDisplay: displayValue,
-      showDatePicker: false
-    });
-  },
-
-  // 取消日期选择
-  onDateCancel() {
-    this.setData({
-      showDatePicker: false
-    });
   },
 
   // 更新生日显示格式
