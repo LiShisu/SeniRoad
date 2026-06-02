@@ -20,10 +20,10 @@
         <td-icon name="call" size="36rpx" />
         <text style="font-size: 28rpx;">打电话</text>
       </button>
-      <button class="action-btn" bindtap="sendMessage">
+      <!-- <button class="action-btn" bindtap="sendMessage">
         <td-icon name="chat" size="36rpx" />
         <text style="font-size: 28rpx;">发消息</text>
-      </button>
+      </button> -->
     </view>
   </view>
 

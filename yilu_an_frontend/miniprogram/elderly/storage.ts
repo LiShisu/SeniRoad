@@ -181,6 +181,7 @@ export interface RouteData {
   steps: any[]; // 因为我们在 navigation.ts 中处理了具体的强类型，这里用 any[] 兼容底层存储即可
   polyline: string | string[];
   record_id: number;
+  savedAt?: string; // 添加保存时间戳
   [key: string]: any;
 }
 
@@ -189,13 +190,17 @@ export function getRoute(placeId: number, mode: string = 'walking'): RouteData |
   return getStorageSync<RouteData>(`${ROUTE_STORAGE_PREFIX}${placeId}_${mode}`);
 }
 
-// 🌟 修改：存储时拼接 mode
+// 🌟 修改：存储时拼接 mode，并添加时间戳
 export function saveRoute(placeId: number, route: RouteData, mode: string = 'walking'): boolean {
   if (!placeId || !route) {
     console.error('保存路线数据无效:', { placeId, route });
     return false;
   }
-  return setStorageSync(`${ROUTE_STORAGE_PREFIX}${placeId}_${mode}`, route);
+  const routeWithTimestamp = {
+    ...route,
+    savedAt: new Date().toISOString() // 添加保存时间戳
+  };
+  return setStorageSync(`${ROUTE_STORAGE_PREFIX}${placeId}_${mode}`, routeWithTimestamp);
 }
 
 
@@ -223,6 +228,7 @@ export interface WeatherInfo {
 export interface NavigationExtraData {
   navigation_advice: string | NavigationAdvice;
   weather: string | WeatherInfo;
+  savedAt?: string; // 添加保存时间戳
 }
 
 // 🌟 修改：出行建议和天气也应该跟 mode 绑定。因为公交和步行的建议是截然不同的！
@@ -230,11 +236,15 @@ export function getNavigationExtra(placeId: number, mode: string = 'walking'): N
   return getStorageSync<NavigationExtraData>(`${NAV_EXTRA_STORAGE_PREFIX}${placeId}_${mode}`);
 }
 
-// 🌟 修改：存储时拼接 mode
+// 🌟 修改：存储时拼接 mode，并添加时间戳
 export function saveNavigationExtra(placeId: number, extra: NavigationExtraData, mode: string = 'walking'): boolean {
   if (!placeId || !extra) {
     console.error('保存导航额外数据无效:', { placeId, extra });
     return false;
   }
-  return setStorageSync(`${NAV_EXTRA_STORAGE_PREFIX}${placeId}_${mode}`, extra);
+  const extraWithTimestamp = {
+    ...extra,
+    savedAt: new Date().toISOString() // 添加保存时间戳
+  };
+  return setStorageSync(`${NAV_EXTRA_STORAGE_PREFIX}${placeId}_${mode}`, extraWithTimestamp);
 }

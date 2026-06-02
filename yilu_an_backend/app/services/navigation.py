@@ -472,11 +472,27 @@ class NavigationService:
                     destination = event["data"]["destination"]
                     matched_type = event["data"]["matched_type"]
                     voice_text = event["data"]["voice_text"]
-                    
+
                     # 🌟 核心修复：直接从解析结果中拦截并锁死终点经纬度，最安全、最通配！
                     latitude = event["data"].get("destination_lat")
                     longitude = event["data"].get("destination_lng")
-                    
+
+                    # 🌟 核心校验：如果没有解析出有效的终点，直接抛错告知前端请重新说明地点
+                    # matched_type="llm" 表示只做了LLM提取，应该继续流程让后续节点处理
+                    # 只有当 matched_type="error" 或者有目的地名称但无法获取坐标时才报错
+                    if matched_type == "error" or (destination and not latitude and not longitude):
+                        yield self._format_sse_event(
+                            "error",
+                            {
+                                "error": "无法获取目的地坐标，请尝试说明更具体的地点",
+                                "voice_text": voice_text,
+                                "matched_type": matched_type,
+                                "destination": destination
+                            }
+                        )
+                        yield self._format_sse_event("complete", {"status": "done"})
+                        return
+
                     yield self._format_sse_event("destination", event["data"])
                     
                 elif event["event"] == "route":

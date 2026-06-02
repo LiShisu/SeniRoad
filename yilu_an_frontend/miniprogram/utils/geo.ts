@@ -102,10 +102,26 @@ export function gaodeReverseGeocode(latitude: number, longitude: number): Promis
         if (res.data.status === '1' && res.data.regeocode) {
           const result = res.data.regeocode;
           const addressComponent = result.addressComponent || {};
+          
+          // 获取正确的城市名称
+          let city = '';
+          if (typeof addressComponent.city === 'string') {
+            city = addressComponent.city;
+          } else if (Array.isArray(addressComponent.city) && addressComponent.city.length > 0) {
+            city = addressComponent.city[0];
+          }
+          
+          // 如果城市为空，尝试用省名代替
+          if (!city && typeof addressComponent.province === 'string') {
+            city = addressComponent.province;
+          }
+          
+          console.log('🗺️ 高德逆地理编码结果 - 城市:', city, '省:', addressComponent.province, '区:', addressComponent.district);
+          
           resolve({
             address: result.formatted_address || '未知地址',
             province: addressComponent.province || '',
-            city: addressComponent.city ? addressComponent.city[0] || addressComponent.city : '',
+            city: city,
             district: addressComponent.district || ''
           });
         } else {

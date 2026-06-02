@@ -20,15 +20,17 @@ export interface UpdateNavigationRecordParams {
 // 导航记录
 export interface NavigationRecord {
   id: number;
+  record_id?: number;
   user_id: number;
-  device_id: number;
-  start_location: string;
-  end_location: string;
+  device_id?: number;
+  start_location?: string;
+  end_location?: string;
+  dest_name?: string;
   start_time: string;
-  end_time: string | null;
+  end_time?: string | null;
   status: number;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 // 列表查询参数
 export interface GetRecordsParams {

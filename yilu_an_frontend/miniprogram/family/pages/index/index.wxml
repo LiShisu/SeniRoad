@@ -6,11 +6,11 @@
     </view>
     <view class="info">
       <text class="name">{{elderName}}</text>
-      <text class="subtitle-text">实时守护家人出行安全</text>
+      <text class="subtitle-text">当前守护老人</text>
     </view>
-    <view class="switch-icon" bindtap="switchElder">
+    <!-- <view class="switch-icon" bindtap="switchElder">
       <image src="/assets/svg/refresh-icon.svg" class="switch-img"></image>
-    </view>
+    </view> -->
   </view>
 
   <!-- 状态卡片 -->

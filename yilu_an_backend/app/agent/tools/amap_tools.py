@@ -38,6 +38,66 @@ class AmapApiTools:
         return None, None
 
     @staticmethod
+    async def get_destination_coordinates(address: str, city: str = None) -> Dict:
+        """获取目的地的经纬度坐标
+
+        Args:
+            address: 目的地地址或名称，如"天安门"、"北京市朝阳区望京街道"
+            city: 城市名称（可选），如"北京"，有助于提高解析准确性
+
+        Returns:
+            Dict: 包含经纬度信息的字典，格式为 {"longitude": "经度", "latitude": "纬度", "formatted_address": "格式化地址"}
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"[DEBUG] AmapApiTools.get_destination_coordinates: address = {repr(address)}, city = {repr(city)}")
+        
+        try:
+            params = {
+                "key": settings.AMAP_API_KEY,
+                "address": address
+            }
+            if city:
+                params["city"] = city
+            
+            logger.info(f"[DEBUG] AmapApiTools.get_destination_coordinates: params = {repr(params)}")
+            
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{AmapApiTools.BASE_URL}/geocode/geo", 
+                    params=params,
+                    timeout=10.0
+                )
+                data = response.json()
+            
+            logger.info(f"[DEBUG] AmapApiTools.get_destination_coordinates: API response = {repr(data)}")
+            
+            if data.get("status") == "1" and data.get("geocodes"):
+                geocode = data["geocodes"][0]
+                result = {
+                    "longitude": float(geocode["location"].split(",")[0]),
+                    "latitude": float(geocode["location"].split(",")[1]),
+                    "formatted_address": geocode.get("formatted_address", address),
+                    "province": geocode.get("province", ""),
+                    "city": geocode.get("city", ""),
+                    "district": geocode.get("district", "")
+                }
+                logger.info(f"[DEBUG] AmapApiTools.get_destination_coordinates: success, result = {repr(result)}")
+                return result
+            else:
+                error_result = {
+                    "error": f"无法解析地址: {address}",
+                    "detail": data.get("info", "未知错误")
+                }
+                logger.info(f"[DEBUG] AmapApiTools.get_destination_coordinates: error, result = {repr(error_result)}")
+                return error_result
+        except Exception as e:
+            logger.exception(f"[DEBUG] AmapApiTools.get_destination_coordinates: exception occurred")
+            return {
+                "error": f"获取坐标失败: {str(e)}"
+            }
+
+    @staticmethod
     async def get_walking_route(
         origin_lng: str,
         origin_lat: str,
@@ -195,6 +255,52 @@ class AmapApiTools:
                     return address_component.get("adcode")
         except Exception as e:
             print(f"获取城市adcode失败: {e}")
+        
+        return None
+        
+    @staticmethod
+    async def get_city_by_location(lng: str, lat: str) -> Optional[str]:
+        """通过经纬度获取城市名
+
+        Args:
+            lng: 经度
+            lat: 纬度
+
+        Returns:
+            城市名，如果获取失败返回None
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        try:
+            params = {
+                "key": settings.AMAP_API_KEY,
+                "location": f"{lng},{lat}",
+                "output": "json"
+            }
+
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{AmapApiTools.BASE_URL}/geocode/regeo",
+                    params=params,
+                    timeout=10.0
+                )
+                result = response.json()
+
+                if result.get("status") == "1" and result.get("regeocode"):
+                    address_component = result["regeocode"].get("addressComponent", {})
+                    
+                    # 优先获取城市名
+                    city = address_component.get("city")
+                    
+                    if not city:
+                        city = address_component.get("province")
+                        
+                    if city:
+                        logger.info(f"[DEBUG] 从坐标反查城市: ({lng}, {lat}) -> {city}")
+                        return city
+                        
+        except Exception as e:
+            logger.error(f"获取城市名失败: {e}")
         
         return None
     

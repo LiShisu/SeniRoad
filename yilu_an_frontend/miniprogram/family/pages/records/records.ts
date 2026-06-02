@@ -1,5 +1,5 @@
 // records.ts
-import { navigationRecordApi } from '../../../api/navigation-record';
+import { navigationRecordApi, NavigationRecord } from '../../../api/navigation-record';
 import { getCurrentElder } from '../../storage';
 
 interface RecordItem {
@@ -34,7 +34,7 @@ Page({
     wx.navigateBack();
   },
 
-  onTabChange(e: any) {
+  onTabChange(e: { detail: { value: string } }) {
     const tab = e.detail.value;
     this.setData({
       currentTab: tab
@@ -53,12 +53,12 @@ Page({
     wx.showLoading({ title: '加载中...' });
 
     try {
-      const res = await navigationRecordApi.getRecords({ user_id: userId }) as any;
+      const res = await navigationRecordApi.getRecords({ user_id: userId });
       console.log('获取到的记录:', res);
 
       const filteredRecords = this.filterByTab(res);
       const formattedRecords = this.formatRecords(filteredRecords);
-      const stats = this.calculateStats(res);
+      const stats = this.calculateStats(filteredRecords);
 
       this.setData({
         records: formattedRecords,
@@ -72,7 +72,7 @@ Page({
     }
   },
 
-  filterByTab(records: any[]): any[] {
+  filterByTab(records: NavigationRecord[]): NavigationRecord[] {
     const now = new Date();
     const currentTab = this.data.currentTab;
 
@@ -80,7 +80,7 @@ Page({
       return records;
     }
 
-    return records.filter((record: any) => {
+    return records.filter((record) => {
       const recordDate = new Date(record.start_time);
 
       switch (currentTab) {
@@ -113,8 +113,8 @@ Page({
     return date1 >= startOfWeek && date1 < endOfWeek;
   },
 
-  formatRecords(records: any[]): RecordItem[] {
-    return records.map((record: any) => {
+  formatRecords(records: NavigationRecord[]): RecordItem[] {
+    return records.map((record) => {
       const startDate = new Date(record.start_time);
       const timeStr = this.formatDate(startDate);
       const path = record.dest_name || '未知';
@@ -126,7 +126,7 @@ Page({
       else if (status === 3) statusText = '已取消';
 
       return {
-        id: record.record_id,
+        id: record.record_id || record.id,
         time: timeStr,
         path: path,
         destName: record.dest_name || '',

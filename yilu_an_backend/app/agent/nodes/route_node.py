@@ -7,7 +7,6 @@
 from app.agent.schemas import NavigationWorkflowState, RouteResult
 from app.agent.tools.amap_tools import AmapApiTools
 
-# TODO：待支持公共交通路线查询
 # async def route_query_node(state: NavigationWorkflowState) -> RouteResult:
 #     """路线查询节点
 

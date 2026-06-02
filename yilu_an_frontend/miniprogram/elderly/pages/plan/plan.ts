@@ -3,14 +3,7 @@ import type { FavoritePlace } from '../../../api/favorite-places';
 import { navigationApi, AddressNavigationResponse, SSEPlanResponse,SmartRouteData } from '../../../api/navigation';
 import { getPlace, savePlace, getRoute, saveRoute, getNavigationExtra, saveNavigationExtra, type NavigationAdvice, type WeatherInfo } from '../../storage';
 import { getLocation } from '../../../utils/geo';
-import { getRealLocation } from '../../../utils/geo';
-function removeStorageSync(key: string) {
-  try {
-    wx.removeStorageSync(key);
-  } catch (error) {
-    console.error(`删除存储失败: ${key}`, error);
-  }
-}
+
 
 function formatDuration(seconds: number): string {
   const totalMinutes = Math.round(seconds / 60);
@@ -121,15 +114,11 @@ Page({
   // 获取当前位置
   async getLocation() {
     try {
-      // 🌟 核心修改 4：將原本的 getLocation 替換為 getRealLocation
-      const location = await getRealLocation();
-      console.log('成功動態感知長輩所在環境，當前城市為:', location.city);
-      
-      // 一箭三雕：把坐標和真正的城市統統寫進 data 狀態機中
+      const location = await getLocation();
+    
       this.setData({
         cur_lat: location.latitude.toString(),
-        cur_lng: location.longitude.toString(),
-        city: location.city // 動態覆蓋！從此徹底告別死代碼
+        cur_lng: location.longitude.toString()
       });
       
     } catch (error) {
@@ -244,8 +233,20 @@ Page({
       const cachedRoute = getRoute(place.place_id, travelMode);
       const cachedExtra = getNavigationExtra(place.place_id, travelMode);
 
-      if (cachedRoute && cachedExtra) {
-        console.log('使用本地缓存路线和导航信息');
+      // 检查缓存是否为当日数据
+      function isToday(savedAt?: string): boolean {
+        if (!savedAt) return false;
+        const savedDate = new Date(savedAt);
+        const today = new Date();
+        return savedDate.toDateString() === today.toDateString();
+      }
+
+      const isCacheValid = cachedRoute && cachedExtra && 
+        isToday(cachedRoute.savedAt) && 
+        isToday(cachedExtra.savedAt);
+
+      if (isCacheValid) {
+        console.log('使用今日本地缓存路线和导航信息');
         route = cachedRoute as SmartRouteData;
         if (typeof cachedExtra.navigation_advice === 'object') {
           navigationAdvice = cachedExtra.navigation_advice as NavigationAdvice;

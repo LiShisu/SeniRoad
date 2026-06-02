@@ -34,15 +34,15 @@ Page({
     },
     // 日期选择器相关数据
     showDatePicker: false,
-    birthdayDisplay: '1945年 1月 1日'
+    birthdayDisplay: '1997年 1月 1日'
   },
 
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad() {
-    // 检查用户类型权限
-    checkAndRedirect('elderly');
+    // 检查用户类型权限（家属端页面需要 'family' 权限）
+    checkAndRedirect('family');
     this.getUserInfo();
   },
 

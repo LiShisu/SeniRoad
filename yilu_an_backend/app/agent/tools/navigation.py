@@ -4,7 +4,7 @@ from httpx import AsyncClient
 from app.config import settings
 
 AMAP_BASE_URL = "https://restapi.amap.com/v3"
-
+# 废弃，使用amap_tools.py中的函数
 @tool
 async def get_destination_coordinates(address: str, city: str = None) -> Dict:
     """获取目的地的经纬度坐标

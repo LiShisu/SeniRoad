@@ -12,7 +12,7 @@ async def process_speech_to_text(audio_file: UploadFile) -> str:
     try:
         os.makedirs(settings.TEMP_DIR, exist_ok=True)
 
-        USE_LOCAL_TEST_FILE = True  # 测试完毕准备上线时，把这里改成 False 即可！
+        USE_LOCAL_TEST_FILE = False  # 测试完毕准备上线时，把这里改成 False 即可！
         if USE_LOCAL_TEST_FILE:
             temp_file_path = os.path.join(settings.TEMP_DIR, "campus.wav")
             print(f"正在使用本地测试文件: {temp_file_path}")
